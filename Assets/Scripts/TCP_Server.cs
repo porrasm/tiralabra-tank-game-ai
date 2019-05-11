@@ -15,11 +15,17 @@ public class TCP_Server : MonoBehaviour {
     private TcpClient client;
     private TcpClient[] clients;
 
-    private int port = 5001;
+    public static int PORT = 5001;
 
     // Start is called before the first frame update
     void Start() {
+        StartServer();
+    }
 
+    private void Update() {
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            Send("Server message");
+        }
     }
 
     public void StartServer() {
@@ -31,7 +37,7 @@ public class TCP_Server : MonoBehaviour {
     }
     private void Listen() {
         try {
-            listener = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
+            listener = new TcpListener(IPAddress.Parse("127.0.0.1"), PORT);
             listener.Start();
             print("Server is listening");
 
@@ -47,13 +53,39 @@ public class TCP_Server : MonoBehaviour {
                             byte[] data = new byte[length];
                             Array.Copy(bytes, 0, data, 0, length);
 
+                            string message = Encoding.ASCII.GetString(data);
+                            print("Message: " + message);
                         }
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (SocketException e) {
             print("Failed to create server");
             print(e);
+        }
+    }
+
+
+    public void Send(string message) {
+
+        if (client == null) {
+            print("Client was null");
+            return;
+        }
+
+        try {
+
+            NetworkStream stream = client.GetStream();
+
+            if (stream.CanWrite) {
+                byte[] messageBytes = Encoding.ASCII.GetBytes(message);
+
+                stream.Write(messageBytes, 0, messageBytes.Length);
+                print("Sent message");
+            }
+
+        } catch (SocketException e) {
+            print("Error sending message: " + e);
         }
     }
 }

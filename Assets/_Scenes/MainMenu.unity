@@ -131,6 +131,9 @@ GameObject:
   - component: {fileID: 25138834}
   - component: {fileID: 25138833}
   - component: {fileID: 25138835}
+  - component: {fileID: 25138837}
+  - component: {fileID: 25138836}
+  - component: {fileID: 25138838}
   m_Layer: 0
   m_Name: Scripts
   m_TagString: Untagged
@@ -171,11 +174,51 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 25138832}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f68de842e3b12fb4491deacf3992f8bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &25138836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 25138832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e50965d563724946862b64f4ae27458, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  messageKey: 49
+  message: i am client 1
+--- !u!114 &25138837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 25138832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71cb402151cce2a42936523f62aab4f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &25138838
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 25138832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e50965d563724946862b64f4ae27458, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  messageKey: 50
+  message: i am client 2
 --- !u!1 &44086293
 GameObject:
   m_ObjectHideFlags: 0
