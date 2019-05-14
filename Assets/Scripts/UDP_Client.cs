@@ -28,19 +28,11 @@ public class UDP_Client : MonoBehaviour {
     }
 
     public void Connect() {
-        // Endpunkt definieren, von dem die Nachrichten gesendet werden.
-        print("UDPSend.init()");
 
+        print("Connecting to server");
 
-        // ----------------------------
-        // Senden
-        // ----------------------------
         remoteEndPoint = new IPEndPoint(IPAddress.Parse(IP), UDP_Server.PORT);
-        client = new UdpClient();
-
-        // status
-        print("Sending to " + IP + " : " + UDP_Server.PORT);
-        print("Testing: nc -lu " + IP + " : " + UDP_Server.PORT);
+        client = new UdpClient();;
     }
 
 
