@@ -11,37 +11,79 @@ public class UDP_Client : MonoBehaviour {
 
     string IP = "127.0.0.1";
 
+    private Thread responseThread;
     IPEndPoint remoteEndPoint;
     UdpClient client;
 
     public KeyCode messageKey;
-    public string message;
+    public Packet packet;
 
 
     private void Update() {
         if (Input.GetKeyDown(KeyCode.C)) {
-            Connect();
+            ConnectToServer();
         }
         if (Input.GetKeyDown(messageKey)) {
-            Send(message);
+            Send(packet);
         }
     }
 
-    public void Connect() {
+    public void ConnectToServer() {
 
         print("Connecting to server");
 
         remoteEndPoint = new IPEndPoint(IPAddress.Parse(IP), UDP_Server.PORT);
         client = new UdpClient();;
+
+        return;
+        responseThread = new Thread(new ThreadStart(Receive));
+        responseThread.IsBackground = true;
+        responseThread.Start();
+
     }
 
+    private void Receive() {
 
-    private void Send(string message) {
+        while (true) {
+
+            try {
+
+                IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+
+                print("Receiving");
+
+                byte[] data = client.Receive(ref remoteEndPoint);
+
+
+                Packet packet = Packet.BytesToPacket(data);
+                print("Client received packet: " + packet);
+
+
+            } catch (Exception err) {
+                print(err.ToString());
+            }
+        }
+    }
+
+    public void JoinGame() {
+        ConnectToServer();
+
+
+    }
+
+    public void Send(Packet packet) {
         try {
 
-            byte[] data = Encoding.UTF8.GetBytes(message);
+            // Request
+            byte[] data = packet.ToByteArray();
 
             client.Send(data, data.Length, remoteEndPoint);
+
+            // Response
+            byte[] r_data = client.Receive(ref remoteEndPoint);
+
+            Packet r_packet = Packet.BytesToPacket(r_data);
+            print("Client received packet from server: " + r_packet);
         } catch (Exception err) {
             print(err.ToString());
         }

@@ -12,24 +12,45 @@ public class UDP_Server : MonoBehaviour {
     private Thread receiveThread;
     private UdpClient client;
 
-    private string latestPacket;
-    private List<string> packets;
+    private Queue<Packet> packets;
 
     public static int PORT = 5000;
 
     void Start() {
-        InitializeServer();
     }
 
-    public void InitializeServer() {
+    private void Update() {
+        ProcessRequests();
+    }
 
-        print("Initializing server");
+    private void ProcessRequests() {
+
+        if (packets == null) {
+            return;
+        }
+
+        if (packets.Count == 0) {
+            return;
+        }
+
+        while (packets.Count > 0) {
+            ProcessRequest(packets.Dequeue());
+        }
+    }
+    private void ProcessRequest(Packet packet) {
+
+    }
+
+    public void StartServer() {
+
+        packets = new Queue<Packet>();
+
+        print("Starting server");
 
         receiveThread = new Thread(new ThreadStart(Receive));
         receiveThread.IsBackground = true;
         receiveThread.Start();
     }
-
     private void Receive() {
 
         client = new UdpClient(PORT);
@@ -37,25 +58,41 @@ public class UDP_Server : MonoBehaviour {
         while (true) {
 
             try {
-                // Bytes empfangen.
+
                 IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
                 byte[] data = client.Receive(ref anyIP);
 
-                // Bytes mit der UTF8-Kodierung in das Textformat kodieren.
-                string text = Encoding.UTF8.GetString(data);
 
-                // Den abgerufenen Text anzeigen.
-                print("Message from client: " + text);
+                Packet packet = Packet.BytesToPacket(data);
+                packet.IPAddress = anyIP.Address;
 
-                // latest UDPpacket
-                latestPacket = text;
+                ReceivePacket(packet);
 
-                // ....
-                packets.Add(latestPacket);
-
+                //client.Send(data, data.Length, anyIP);
             } catch (Exception err) {
                 print(err.ToString());
             }
         }
+    }
+    private void ReceivePacket(Packet packet) {
+
+        print("Server received packet: " + packet);
+        packets.Enqueue(packet);
+    }
+
+    public void StopServer() {
+
+        print("Stopping server");
+
+        if (receiveThread == null) {
+            return;
+        }
+
+        client.Close();
+
+        receiveThread.Abort();
+        receiveThread = null;
+
+        packets = null;
     }
 }
