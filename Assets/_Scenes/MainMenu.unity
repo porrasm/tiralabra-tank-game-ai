@@ -131,13 +131,9 @@ GameObject:
   - component: {fileID: 25138834}
   - component: {fileID: 25138842}
   - component: {fileID: 25138833}
-  - component: {fileID: 25138835}
-  - component: {fileID: 25138837}
-  - component: {fileID: 25138836}
-  - component: {fileID: 25138838}
   - component: {fileID: 25138841}
-  - component: {fileID: 25138840}
-  - component: {fileID: 25138839}
+  - component: {fileID: 25138836}
+  - component: {fileID: 25138835}
   m_Layer: 0
   m_Name: Scripts
   m_TagString: Scripts
@@ -178,11 +174,17 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 25138832}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f68de842e3b12fb4491deacf3992f8bf, type: 3}
+  m_Script: {fileID: 11500000, guid: e5b1310cf2c2f9140b6fc7b17c6b92a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  packet:
+    client_id: 0
+    control: 0
+    control_hold: 0
+    message: Client 1 message
+  messageKey: 49
 --- !u!114 &25138836
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -190,75 +192,11 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 25138832}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e50965d563724946862b64f4ae27458, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  messageKey: 49
-  message: i am client 1
---- !u!114 &25138837
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 25138832}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71cb402151cce2a42936523f62aab4f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &25138838
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 25138832}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e50965d563724946862b64f4ae27458, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  messageKey: 50
-  message: i am client 2
---- !u!114 &25138839
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 25138832}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef14c633fd69318409d57b20dd3845f4, type: 3}
+  m_Script: {fileID: 11500000, guid: 1b89aa6dd2391aa448dd682b7ab6f58c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  messageKey: 50
-  packet:
-    client_id: 2
-    control: 0
-    control_hold: 0
-    message: Hello
---- !u!114 &25138840
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 25138832}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef14c633fd69318409d57b20dd3845f4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  messageKey: 49
-  packet:
-    client_id: 1
-    control: 0
-    control_hold: 0
-    message: CLIENT 1111111
 --- !u!114 &25138841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -266,7 +204,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 25138832}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ae6a57a7dc45c444bbe7b2f83d07740d, type: 3}
   m_Name: 

@@ -13,7 +13,7 @@ public class MainMenuUI : MonoBehaviour {
 
     public void CreateGame() {
         ChangeView("Lobby");
-        Scripts.GetGameObject().GetComponent<UDP_Server>().StartServer();
+        Scripts.GetGameObject().GetComponent<Server>().StartServer();
     }
     public void CancelGame() {
         ChangeView("Main");

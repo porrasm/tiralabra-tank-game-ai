@@ -8,7 +8,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 public class UDP_Client : MonoBehaviour {
-
+    
     string IP = "127.0.0.1";
 
     private Thread responseThread;
@@ -34,6 +34,9 @@ public class UDP_Client : MonoBehaviour {
 
         remoteEndPoint = new IPEndPoint(IPAddress.Parse(IP), UDP_Server.PORT);
         client = new UdpClient();;
+
+        client.Client.SendTimeout = 1000;
+        client.Client.ReceiveTimeout = 1000;
 
         return;
         responseThread = new Thread(new ThreadStart(Receive));
@@ -81,6 +84,10 @@ public class UDP_Client : MonoBehaviour {
 
             // Response
             byte[] r_data = client.Receive(ref remoteEndPoint);
+
+            if (r_data.Length == 0) {
+                print("Did not receive response in time");
+            }
 
             Packet r_packet = Packet.BytesToPacket(r_data);
             print("Client received packet from server: " + r_packet);
