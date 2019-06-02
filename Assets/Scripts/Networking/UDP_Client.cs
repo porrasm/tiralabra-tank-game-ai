@@ -70,8 +70,6 @@ public class UDP_Client : MonoBehaviour {
 
     public void JoinGame() {
         ConnectToServer();
-
-
     }
 
     public void Send(Packet packet) {

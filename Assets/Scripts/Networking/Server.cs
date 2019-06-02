@@ -7,12 +7,13 @@ using UnityEngine;
 public class Server : MonoBehaviour {
 
     public const int PORT = 3001;
+    public const int TIMEOUT = 1000;
 
-    private TCP_Server tcpServer;
+    private NetworkCommsServerWrapper tcpServer;
 
     public void StartServer() {
         print("Starting server");
-        tcpServer = new TCP_Server();
+        tcpServer = new NetworkCommsServerWrapper();
         tcpServer.StartServer();
     }
 
@@ -29,12 +30,38 @@ public class Server : MonoBehaviour {
     }
 }
 
-public class ServerType {
+public abstract class ServerType {
 
-    public virtual void StartServer() { }
-    public virtual void StopServer() { }
-    public virtual Packet[] GetRequests() { return null; }
-    public virtual void SendResponse(Packet packet) { }
+    protected List<Packet> requests;
+    protected List<Packet>[] responses;
+
+    public virtual void StartServer() {
+        requests = new List<Packet>();
+        responses = new List<Packet>[8];
+    }
+    public virtual void StopServer() {
+        requests = null;
+        responses = null;
+    }
+    public Packet[] GetRequests() {
+
+        if (requests.Count == 0) {
+            return new Packet[0];
+        }
+
+        Packet[] p = requests.ToArray();
+        requests.Clear();
+        return p;
+    }
+    public void SendResponse(Packet packet) {
+        if (packet.client_id < 0) {
+            for (int i = 0; i < 8; i++) {
+                responses[i].Add(packet);
+            }
+        } else {
+            responses[packet.client_id].Add(packet);
+        }
+    }
 }
 
 public class TcpStateObject {

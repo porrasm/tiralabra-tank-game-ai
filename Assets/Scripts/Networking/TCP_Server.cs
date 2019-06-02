@@ -8,13 +8,25 @@ using UnityEngine;
 
 public class TCP_Server : ServerType {
 
+    #region Threads
     private Thread receiveThread;
-    private Thread sendThread;
+    private List<ThreadTime> sendThreads;
+    private void FlushThreads() {
+
+        if (sendThreads == null) {
+            return;
+        }
+
+        for (int i = 0; i < sendThreads.Count; i++) {
+            if (sendThreads[i].Done()) {
+                sendThreads.RemoveAt(i);
+                i--;
+            }
+        }
+    }
+    #endregion
 
     public ManualResetEvent allDone = new ManualResetEvent(false);
-
-    private List<Packet> requests;
-    private List<Packet>[] responses;
 
     private Packet testPacket = new Packet(0, 0, 0, "Server response template");
     private byte[] TestData() {
@@ -23,41 +35,27 @@ public class TCP_Server : ServerType {
         return Packet.ToByteData(p);
     }
 
+    private Socket listener;
+
     static int Main(string[] args) {
         TCP_Server s = new TCP_Server();
         s.StartServer();
         return 0;
     }
 
-    public override Packet[] GetRequests() {
-
-        if (requests.Count == 0) {
-            return new Packet[0];
-        }
-
-        Packet[] p = requests.ToArray();
-        requests.Clear();
-        return p;
-    }
-    public override void SendResponse(Packet packet) {
-        if (packet.client_id < 0) {
-            for (int i = 0; i < 8; i++) {
-                responses[i].Add(packet);
-            }
-        } else {
-            responses[packet.client_id].Add(packet);
-        }
-    }
-
     public override void StartServer() {
+        base.StartServer();
 
-        requests = new List<Packet>();
-        responses = new List<Packet>[8];
+        sendThreads = new List<ThreadTime>();
 
         receiveThread = new Thread(new ThreadStart(StartServerThread));
         receiveThread.IsBackground = true;
         receiveThread.Start();
     }
+    public override void StopServer() {
+        base.StopServer();
+    }
+
     public void StartServerThread() {
 
         MonoBehaviour.print("Creating server");
@@ -67,7 +65,7 @@ public class TCP_Server : ServerType {
         IPAddress ipAddress = ipHostInfo.AddressList[0];
         IPEndPoint localEndPoint = new IPEndPoint(ipAddress, Server.PORT);
 
-        Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
         try {
 
@@ -77,6 +75,7 @@ public class TCP_Server : ServerType {
             while (true) {
 
                 allDone.Reset();
+                MonoBehaviour.print("Starting to listen");
                 listener.BeginAccept(new AsyncCallback(ReceiveData), listener);
 
                 allDone.WaitOne();
@@ -112,6 +111,8 @@ public class TCP_Server : ServerType {
 
             if (state.EndOfData()) {
 
+                MonoBehaviour.print("Server received data: " + state.data.Count);
+
                 List<Packet> reqs = Packet.ToPacketData(state.ToByteArray());
 
                 foreach (Packet p in reqs) {
@@ -128,22 +129,17 @@ public class TCP_Server : ServerType {
 
     private void Send(Socket handler, byte[] data) {
 
-        if (sendThread != null) {
-            if (sendThread.IsAlive) {
-                MonoBehaviour.print("Server send thread has not finished");
-                return;
-            }
-        }
+        FlushThreads();
 
-        sendThread = new Thread(delegate() { SendThread(handler, data); });
-        sendThread.IsBackground = true;
-        sendThread.Start();
+        ThreadTime t = ThreadTime.New(delegate () { SendThread(handler, data); });
+        sendThreads.Add(t);
+        t.thread.Start();
     }
     private void SendThread(Socket handler, byte[] data) {
         handler.BeginSend(data, 0, data.Length, 0, new AsyncCallback(SendCallback), handler);
     }
     private static void SendCallback(IAsyncResult ar) {
-        try {  
+        try {
             Socket handler = (Socket)ar.AsyncState;
 
             int bytesSent = handler.EndSend(ar);
@@ -154,5 +150,7 @@ public class TCP_Server : ServerType {
             MonoBehaviour.print(e.ToString());
         }
     }
+
+    
 }
 

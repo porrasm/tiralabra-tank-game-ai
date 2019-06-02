@@ -7,7 +7,7 @@ public class Client : MonoBehaviour {
     public Packet packet;
     public KeyCode messageKey;
 
-    private TCP_Client tcpClient;
+    private NetworkCommsClientWrapper tcpClient;
 
     private void Update() {
         if (Input.GetKeyDown(KeyCode.C)) {
@@ -15,6 +15,9 @@ public class Client : MonoBehaviour {
         }
         if (Input.GetKeyDown(messageKey)) {
             SendPacket(packet);
+        }
+        if (Input.GetKeyDown(KeyCode.E)) {
+            print("----------------------------------------");
         }
 
         if (tcpClient == null) {
@@ -28,12 +31,12 @@ public class Client : MonoBehaviour {
     }
 
     public void ConnectToServer() {
-        tcpClient = new TCP_Client();
+        tcpClient = new NetworkCommsClientWrapper();
         tcpClient.Connect();
     }
     public void SendPacket(Packet packet) {
 
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 1; i++) {
             tcpClient.AddRequestToQueue(packet);
         }
 
@@ -41,10 +44,42 @@ public class Client : MonoBehaviour {
     }
 }
 
-public class ClientType {
-    public virtual void Connect() { }
-    public virtual void Disconnect() { }
-    public virtual void AddRequestToQueue(Packet packet) { }
+public abstract class ClientType {
+
+    protected List<Packet> requests;
+    protected List<Packet> responses;
+
+    public virtual void Connect() {
+        requests = new List<Packet>();
+        responses = new List<Packet>();
+    }
+    public virtual void Disconnect() {
+        requests = null;
+        responses = null;
+    }
+
+    public void AddRequestToQueue(Packet packet) {
+
+        if (requests == null) {
+            return;
+        }
+
+        requests.Add(packet);
+    }
+    public Packet[] GetResponses() {
+
+        if (responses == null) {
+            return new Packet[0];
+        }
+
+        if (responses.Count == 0) {
+            return new Packet[0];
+        }
+
+        Packet[] p = responses.ToArray();
+        responses.Clear();
+        return p;
+    }
+    
     public virtual void SendRequests() { }
-    public virtual Packet[] GetResponses() { return null; }
 }

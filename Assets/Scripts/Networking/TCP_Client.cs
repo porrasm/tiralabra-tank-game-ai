@@ -9,7 +9,20 @@ using UnityEngine;
 public class TCP_Client : ClientType {
 
     private Thread responseThread;
-    private Thread sendThread;
+    private List<ThreadTime> sendThreads;
+    private void FlushThreads() {
+
+        if (sendThreads == null) {
+            return;
+        }
+
+        for (int i = 0; i < sendThreads.Count; i++) {
+            if (sendThreads[i].Done()) {
+                sendThreads.RemoveAt(i);
+                i--;
+            }
+        }
+    }
 
     private ManualResetEvent connectDone = new ManualResetEvent(false);
     private ManualResetEvent sendDone = new ManualResetEvent(false);
@@ -17,12 +30,11 @@ public class TCP_Client : ClientType {
 
     private Socket client;
 
-    private List<Packet> requests;
-    private List<Packet> responses;
-
+    
     public override void Connect() {
-        requests = new List<Packet>();
-        responses = new List<Packet>();
+        base.Connect();
+
+        sendThreads = new List<ThreadTime>();
 
         responseThread = new Thread(new ThreadStart(ConnectThread));
         responseThread.IsBackground = true;
@@ -40,67 +52,17 @@ public class TCP_Client : ClientType {
             IPEndPoint remoteEP = new IPEndPoint(ipAddress, Server.PORT);
 
             client = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
+            MonoBehaviour.print("Client connect status: " + client.Connected);
+            client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
             connectDone.WaitOne();
+            
+            MonoBehaviour.print("Client connect status: " + client.Connected);
 
         } catch (Exception e) {
             MonoBehaviour.print(e);
         }
     }
-    public override void Disconnect() {
-
-        Socket client = null;
-
-        if (client == null) {
-            return;
-        }
-
-        client.Shutdown(SocketShutdown.Both);
-        client.Close();
-        client = null;
-    }
-
-    public override Packet[] GetResponses() {
-
-        if (responses.Count == 0) {
-            return new Packet[0];
-        }
-
-        Packet[] p = responses.ToArray();
-        responses.Clear();
-        return p;
-    }
-    public override void AddRequestToQueue(Packet packet) {
-        requests.Add(packet);
-    }
-    public override void SendRequests() {
-
-        if (sendThread == null || !sendThread.IsAlive) {
-            
-            if (sendThread != null) {
-                sendThread.Abort();
-            }
-
-            sendThread = new Thread(new ThreadStart(SendRequestsThread));
-            sendThread.IsBackground = true;
-            sendThread.Start();
-        } else {
-            MonoBehaviour.print("Send has not finished yet");
-        }     
-    }
-    public void SendRequestsThread() {
-
-        byte[] data = Packet.ToByteData(requests);
-        requests.Clear();
-
-        Send(client, data);
-        sendDone.WaitOne();
-
-        Receive(client);
-        receiveDone.WaitOne();
-    }
-
     private void ConnectCallback(IAsyncResult ar) {
         try {
             // Retrieve the socket from the state object.  
@@ -118,6 +80,23 @@ public class TCP_Client : ClientType {
         }
     }
 
+
+    public override void Disconnect() {
+
+        base.Disconnect();
+
+        Socket client = null;
+
+        if (client == null) {
+            return;
+        }
+
+        client.Shutdown(SocketShutdown.Both);
+        client.Close();
+        client = null;
+    }
+   
+    
     private void Receive(Socket client) {
         try {
             // Create the state object.  
@@ -130,7 +109,6 @@ public class TCP_Client : ClientType {
             Console.WriteLine(e.ToString());
         }
     }
-
     private void ReceiveCallback(IAsyncResult ar) {
         try {
             // Retrieve the state object and the client socket   
@@ -151,6 +129,8 @@ public class TCP_Client : ClientType {
 
                 state.EndOfData();
 
+                MonoBehaviour.print("Client received data: " + state.data.Count);
+
                 List<Packet> ress = Packet.ToPacketData(state.ToByteArray());
 
                 foreach (Packet p in ress) {
@@ -164,20 +144,47 @@ public class TCP_Client : ClientType {
         }
     }
 
+
+    public override void SendRequests() {
+
+        FlushThreads();
+
+        ThreadTime t = ThreadTime.New(new ThreadStart(SendRequestsThread));
+        sendThreads.Add(t);
+        t.thread.Start();
+    }
+    private void SendRequestsThread() {
+
+        MonoBehaviour.print("Sending " + requests.Count + " requests");
+
+        byte[] data = Packet.ToByteData(requests);
+        requests.Clear();
+
+        Send(client, data);
+        sendDone.WaitOne();
+
+        Receive(client);
+        receiveDone.WaitOne();
+    }
     private void Send(Socket client, byte[] data) {
+
+        MonoBehaviour.print("Client sends data: " + data.Length);
         client.BeginSend(data, 0, data.Length, 0, new AsyncCallback(SendCallback), client);
     }
-
     private void SendCallback(IAsyncResult ar) {
         try {
             // Retrieve the socket from the state object.  
             Socket client = (Socket)ar.AsyncState;
+            MonoBehaviour.print("Send start: " + client.Connected);
 
             // Complete sending the data to the remote device.  
             int bytesSent = client.EndSend(ar);
 
             // Signal that all bytes have been sent.  
             sendDone.Set();
+
+            MonoBehaviour.print("Send done: " + bytesSent);
+
         } catch (Exception e) {
             MonoBehaviour.print(e.ToString());
         }
