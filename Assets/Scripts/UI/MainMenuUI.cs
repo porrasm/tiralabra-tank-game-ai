@@ -12,13 +12,23 @@ public class MainMenuUI : MonoBehaviour {
     }
 
     public void CreateGame() {
-        ChangeView("Lobby");
-        Scripts.GetGameObject().GetComponent<Server>().StartServer();
+        bool success = Server.StartServer();
+        if (success) {
+            ChangeView("Lobby");
+        }
     }
     public void CancelGame() {
         ChangeView("Main");
-        Scripts.GetGameObject().GetComponent<UDP_Server>().StopServer();
+        //Scripts.GetGameObject().GetComponent<UDP_Server>().StopServer();
     }
+
+    public void JoinGame() {
+        bool success = Server.ConnectToServer();
+        if (success) {
+            ChangeView("Lobby");
+        }
+    }
+
 
     public void ChangeView(string view) {
         ChangeView(view, false);
@@ -35,7 +45,9 @@ public class MainMenuUI : MonoBehaviour {
         newView.gameObject.SetActive(true);
 
         if (!force) {
-            currentView.gameObject.SetActive(false);
+            if (currentView) {
+                currentView.gameObject.SetActive(false);
+            }
         }
 
         currentView = newView.transform;

@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Scripts
   - Menu View
+  - Players
+  - NetworkManager
   layers:
   - Default
   - TransparentFX

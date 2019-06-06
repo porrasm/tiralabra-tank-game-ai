@@ -5,19 +5,31 @@ using UnityEngine;
 public class PlayerList : MonoBehaviour {
 
     private struct PlayerObject {
-        public Player player;
+        public Client player;
         public GameObject pObject;
     }
 
     private PlayerObject[] playerObjects;
     private GameObject playerListObject;
 
+    private GameObject table;
+
     void Start() {
         playerObjects = new PlayerObject[8];
         playerListObject = Resources.Load<GameObject>("ResourcePrefabs/PlayerListObject");
+
+        string[,] content = new string[2,5];
+
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 5; j++) {
+                content[i, j] = "Row " + j + ", Column " + i;
+            }
+        }
+
+        table = PanelTable.CreateTable(transform, content, new Vector3(100, 30, 1), true);
     }
 
-    public void AddPlayer(Player player) {
+    public void AddPlayer(Client player) {
 
         PlayerObject playerObject = new PlayerObject();
         playerObject.player = player;
@@ -35,7 +47,7 @@ public class PlayerList : MonoBehaviour {
         RemovePlayer(player);
         playerObjects[player.ID] = playerObject;
     }
-    public void RemovePlayer(Player player) {
+    public void RemovePlayer(Client player) {
 
         if (playerObjects[player.ID].player == null) {
             return;

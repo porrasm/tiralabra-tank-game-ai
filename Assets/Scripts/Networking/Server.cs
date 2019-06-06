@@ -1,104 +1,70 @@
-﻿using System;
+﻿using BeardedManStudios.Forge.Networking;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Sockets;
 using UnityEngine;
 
-public class Server : MonoBehaviour {
+public class Server {
 
-    public const int PORT = 3001;
-    public const int TIMEOUT = 1000;
+    private static TCPServer server;
+    private static NetWorker client;
 
-    private NetworkCommsServerWrapper tcpServer;
+    private static CustomNetworkManager manager;
 
-    public void StartServer() {
-        print("Starting server");
-        tcpServer = new NetworkCommsServerWrapper();
-        tcpServer.StartServer();
+    static string ip = "127.0.0.1";
+    public const ushort PORT = 15937;
+
+    public static bool StartServer() {
+
+        server = new TCPServer(64);
+        MonoBehaviour.print("Hosting: " + ip + ":" + PORT);
+        server.Connect(ip, PORT);
+
+        server.playerTimeout += PlayerTimeout;
+        //LobbyService.Instance.Initialize(server);
+
+        return Connected(server);
+    }
+    public static bool ConnectToServer() {
+
+        MonoBehaviour.print("Joining game");
+
+        client = new TCPClient();
+        MonoBehaviour.print("Joining: " + ip + ":" + PORT);
+        ((TCPClient)client).Connect(ip, PORT);
+
+        return Connected(client);
     }
 
-    private void Update() {
-
-        if (tcpServer == null) {
-            return;
-        }
-    
-        var reqs = tcpServer.GetRequests();
-        foreach (Packet p in reqs) {
-            print("SERVER: " + p);
-        }
-    }
-}
-
-public abstract class ServerType {
-
-    protected List<Packet> requests;
-    protected List<Packet>[] responses;
-
-    public virtual void StartServer() {
-        requests = new List<Packet>();
-        responses = new List<Packet>[8];
-    }
-    public virtual void StopServer() {
-        requests = null;
-        responses = null;
-    }
-    public Packet[] GetRequests() {
-
-        if (requests.Count == 0) {
-            return new Packet[0];
-        }
-
-        Packet[] p = requests.ToArray();
-        requests.Clear();
-        return p;
-    }
-    public void SendResponse(Packet packet) {
-        if (packet.client_id < 0) {
-            for (int i = 0; i < 8; i++) {
-                responses[i].Add(packet);
-            }
-        } else {
-            responses[packet.client_id].Add(packet);
-        }
-    }
-}
-
-public class TcpStateObject {
-    public Socket workSocket = null;
-    public const int bufferSize = 1024;
-    public byte[] buffer = new byte[bufferSize];
-    public List<byte> data = new List<byte>();
-    public int dataLength = -1;
-
-    public void SaveBuffer(int byteAmount) {
-        for (int i = 0; i < byteAmount; i++) {
-            data.Add(buffer[i]);
-        }
-    }
-    public bool EndOfData() {
-
-        if (dataLength >= 4) {
-            if (data.Count == dataLength) {
-                return true;
-            }
-        }
-
-        if (data.Count < 4) {
+    private static bool Connected(NetWorker networker) {
+        if (!networker.IsBound) {
+            Debug.LogError("NetWorker failed to bind");
             return false;
         }
 
-        byte[] intBytes = new byte[4];
+        CreateManager();
 
-        for (int i = 0; i < 4; i++) {
-            intBytes[i] = data[i];
+        manager.Initialize(networker, "", PORT, null);
+
+        NetworkObject.Flush(networker); //Called because we are already in the correct scene!
+        return true;
+    }
+    private static void CreateManager() {
+
+        GameObject old = GameObject.FindGameObjectWithTag("NetworkManager");
+
+        if (old) {
+            MonoBehaviour.Destroy(old);
         }
 
-        dataLength = BitConverter.ToInt32(intBytes, 0);
+        GameObject managerObject = new GameObject();
+        managerObject.name = "NetworkManager";
+        managerObject.tag = "NetworkManager";
+        manager = managerObject.AddComponent<CustomNetworkManager>();
+    }
 
-        return data.Count == dataLength;
+    private static void PlayerTimeout(NetworkingPlayer player, NetWorker sender) {
+        MonoBehaviour.print("Player " + player.NetworkId + " timed out");
     }
-    public byte[] ToByteArray() {
-        return data.ToArray();
-    }
+
 }
