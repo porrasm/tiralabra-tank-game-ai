@@ -8,6 +8,7 @@ TagManager:
   - Menu View
   - Players
   - NetworkManager
+  - Client
   layers:
   - Default
   - TransparentFX

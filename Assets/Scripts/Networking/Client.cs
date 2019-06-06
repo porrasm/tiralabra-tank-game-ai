@@ -1,27 +1,63 @@
 ﻿using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Generated;
+using BeardedManStudios.Forge.Networking.Unity;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Client : ClientBehavior {
-    
+
     public int ID { get; set; }
     public PlayerColor Color { get; set; }
     public string Name { get; set; }
+    public NetworkingPlayer nPlayer { get; set; }
 
-
-    public void ChangeName(string newName) {
-
-        //if (!networkObject.IsOwner)
-        //    return;
-
-        networkObject.SendRpc(RPC_UPDATE_NAME, Receivers.AllBuffered, newName);
+    public static void CreateNewClient() {
+        print("Creating new client object");
+        NetworkManager.Instance.InstantiateClient();
     }
-    public override void UpdateName(RpcArgs args) {
-        // Since there is only 1 argument and it is a string we can safely
-        // cast the first argument to a string knowing that it is going to
-        // be the name for this player
-        Name = args.GetNext<string>();
+
+    private void Start() {
+        transform.SetParent(GameObject.FindGameObjectWithTag("Players").transform);
+        InitializeClient();
     }
+
+    public void InitializeClient() {
+        if (!Server.networker.IsServer) {
+            return;
+        }
+
+        print("Initializing client");
+
+        Scripts.GetScriptComponent<ClientManager>().AddPlayer(this);
+
+        print("Initialized to " + Name);
+
+        UpdateClient();
+    } 
+    public void UpdateClient() {
+        if (!networkObject.IsOwner && !Server.networker.IsServer) {
+            return;
+        }
+
+        print("Sending client info over RPC");
+        networkObject.SendRpc(RPC_UPDATE_CLIENT_RPC, Receivers.AllBuffered, (byte)ID, (byte)Color, Name);
+    }
+
+    #region RPCs
+    public override void UpdateClientRpc(RpcArgs args) {
+
+        print("Received RPC call");
+
+        ID = args.GetAt<byte>(0);
+        Color = (PlayerColor)args.GetAt<byte>(1);
+        Name = args.GetAt<string>(2);
+
+        string objectName = "Player " + ID + ": " + Name;
+
+        print("Updating client: " + Name);
+        print("Setting gameobject name to: " + objectName);
+        gameObject.name = objectName;
+    }
+    #endregion
 }

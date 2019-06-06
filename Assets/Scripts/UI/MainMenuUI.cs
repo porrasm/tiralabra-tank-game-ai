@@ -17,6 +17,10 @@ public class MainMenuUI : MonoBehaviour {
             ChangeView("Lobby");
         }
     }
+    public void StartGame() {
+        //CustomNetworkManager.Instance.InstantiateClient();
+    }
+
     public void CancelGame() {
         ChangeView("Main");
         //Scripts.GetGameObject().GetComponent<UDP_Server>().StopServer();
@@ -27,6 +31,7 @@ public class MainMenuUI : MonoBehaviour {
         if (success) {
             ChangeView("Lobby");
         }
+        Client.CreateNewClient();
     }
 
 

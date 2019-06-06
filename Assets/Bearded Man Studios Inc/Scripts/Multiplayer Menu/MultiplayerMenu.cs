@@ -225,7 +225,6 @@ public class MultiplayerMenu : MonoBehaviour
 
 	private void CreateInlineChat(Scene arg0, LoadSceneMode arg1)
 	{
-        return;
 		SceneManager.sceneLoaded -= CreateInlineChat;
 		var chat = NetworkManager.Instance.InstantiateChatManager();
 		DontDestroyOnLoad(chat.gameObject);

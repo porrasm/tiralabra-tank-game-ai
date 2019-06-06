@@ -25,6 +25,11 @@ public class ClientManager : MonoBehaviour {
 
         return -1;
     }
+    public void AddPlayer(Client client) {
+        NewClientInfo(client, GetFreeID());
+        players[client.ID] = client;
+    }
+
     public bool CreateNewPlayer(int id) {
 
         if (players[id] != null) {
@@ -39,7 +44,7 @@ public class ClientManager : MonoBehaviour {
 
         return true;
     }
-    public void NewClientInfo(ref Client client, int id) {
+    public void NewClientInfo(Client client, int id) {
         client.ID = id;
         client.Name = "Player " + id;
         client.Color = GetNextFreeColor(0);
@@ -78,5 +83,5 @@ public class ClientManager : MonoBehaviour {
 }
 
 public enum PlayerColor {
-    Red = 0, Green, Blue, Cyan, Yellow, Orange, Purple, Magenta, Black
+    Red = 0, Green = 1, Blue = 2, Cyan = 3, Yellow = 4, Orange = 5, Purple = 6, Magenta = 7, Black = -1
 }

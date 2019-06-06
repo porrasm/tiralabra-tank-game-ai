@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace BeardedManStudios.Forge.Networking.Generated
 {
-	[GeneratedRPC("{\"types\":[[\"string\"]]")]
-	[GeneratedRPCVariableNames("{\"types\":[[\"newName\"]]")]
+	[GeneratedRPC("{\"types\":[[\"byte\", \"byte\", \"string\"]]")]
+	[GeneratedRPCVariableNames("{\"types\":[[\"ID\", \"Color\", \"Name\"]]")]
 	public abstract partial class ClientBehavior : NetworkBehavior
 	{
-		public const byte RPC_UPDATE_NAME = 0 + 5;
+		public const byte RPC_UPDATE_CLIENT_RPC = 0 + 5;
 		
 		public ClientNetworkObject networkObject = null;
 
@@ -22,7 +22,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 			networkObject.AttachedBehavior = this;
 
 			base.SetupHelperRpcs(networkObject);
-			networkObject.RegisterRpc("UpdateName", UpdateName, typeof(string));
+			networkObject.RegisterRpc("UpdateClientRpc", UpdateClientRpc, typeof(byte), typeof(byte), typeof(string));
 
 			networkObject.onDestroy += DestroyGameObject;
 
@@ -101,9 +101,11 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		/// <summary>
 		/// Arguments:
-		/// string newName
+		/// byte ID
+		/// byte Color
+		/// string Name
 		/// </summary>
-		public abstract void UpdateName(RpcArgs args);
+		public abstract void UpdateClientRpc(RpcArgs args);
 
 		// DO NOT TOUCH, THIS GETS GENERATED PLEASE EXTEND THIS CLASS IF YOU WISH TO HAVE CUSTOM CODE ADDITIONS
 	}
