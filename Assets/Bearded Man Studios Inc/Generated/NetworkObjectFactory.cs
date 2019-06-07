@@ -27,6 +27,10 @@ namespace BeardedManStudios.Forge.Networking.Generated
 						availableCallback = true;
 						obj = new ChatManagerNetworkObject(networker, id, frame);
 						break;
+					case ClientManagerNetworkObject.IDENTITY:
+						availableCallback = true;
+						obj = new ClientManagerNetworkObject(networker, id, frame);
+						break;
 					case ClientNetworkObject.IDENTITY:
 						availableCallback = true;
 						obj = new ClientNetworkObject(networker, id, frame);

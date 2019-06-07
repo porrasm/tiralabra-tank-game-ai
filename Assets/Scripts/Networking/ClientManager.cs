@@ -1,17 +1,19 @@
-﻿using System.Collections;
+﻿using BeardedManStudios.Forge.Networking;
+using BeardedManStudios.Forge.Networking.Generated;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ClientManager : MonoBehaviour {
 
     private List<PlayerColor> takenColors;
-    private Client[] players;
+    private Player[] players;
 
     private GameObject playerPrefab;
 
     private void Start() {
         takenColors = new List<PlayerColor>();
-        players = new Client[8];
+        players = new Player[8];
         playerPrefab = Resources.Load<GameObject>("ResourcePrefabs/Player");
     }
 
@@ -25,13 +27,13 @@ public class ClientManager : MonoBehaviour {
 
         return -1;
     }
-    public void AddPlayer(Client client) {
+    public void AddPlayer(Player client) {
         NewClientInfo(client, GetFreeID());
         print("Adding player to list");
         players[client.ID] = client;
     }
 
-    public Client[] GetPlayers() {
+    public Player[] GetPlayers() {
         return players;
     }
 
@@ -42,16 +44,16 @@ public class ClientManager : MonoBehaviour {
         }
 
         GameObject clientObject = Instantiate(playerPrefab);
-        Client client = clientObject.GetComponent<Client>();
+        Player client = clientObject.GetComponent<Player>();
         
 
         players[id] = client;
 
         return true;
     }
-    public void NewClientInfo(Client client, int id) {
+    public void NewClientInfo(Player client, int id) {
         client.ID = id;
-        client.Name = "Player " + id;
+        client.Name = "Player " + (id + 1);
         client.Color = GetNextFreeColor(PlayerColor.Black);
     }
 
@@ -60,9 +62,11 @@ public class ClientManager : MonoBehaviour {
     #region Colors
     public PlayerColor GetNextFreeColor(PlayerColor oldColor) {
 
+        Debug.Log("Getting next free color after: " + oldColor);
+
         for (int i = 0; i < 8; i++) {
 
-            PlayerColor newColor = oldColor + i;
+            PlayerColor newColor = (PlayerColor)((int)(oldColor + i) % 8);
 
             if (IsFreeColor(newColor)) {
                 takenColors.Remove(oldColor);

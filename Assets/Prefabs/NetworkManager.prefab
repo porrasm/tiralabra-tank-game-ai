@@ -44,9 +44,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ChatManagerNetworkObject: []
+  ClientManagerNetworkObject: []
   ClientNetworkObject:
   - {fileID: 6066969734986248387, guid: 92a74f915e464524480b171e589679c8, type: 3}
   CubeForgeGameNetworkObject: []
   ExampleProximityPlayerNetworkObject: []
   NetworkCameraNetworkObject: []
-  automaticScenes: 1
+  automaticScenes: 0

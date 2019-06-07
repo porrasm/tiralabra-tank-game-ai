@@ -1,20 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MainMenuUI : MonoBehaviour {
 
     private GameObject scripts;
     private Transform currentView;
 
-    private void Start() {
-        ChangeView("Main", true);
-    }
+    [SerializeField]
+    private string startView;
 
+    private void Start() {
+        DisableAllViews(transform);
+        ChangeView(startView, true);
+    }
     public void CreateGame() {
         bool success = Server.StartServer();
         if (success) {
-            ChangeView("Lobby");
+            print("Loading host lobby");
+            SceneManager.LoadScene("Host_Lobby");
         }
     }
     public void StartGame() {
@@ -29,9 +34,9 @@ public class MainMenuUI : MonoBehaviour {
     public void JoinGame() {
         bool success = Server.ConnectToServer();
         if (success) {
-            ChangeView("Lobby");
+            Player.CreateNewClient();
+            SceneManager.LoadScene("Client_Lobby");
         }
-        Client.CreateNewClient();
     }
 
 
@@ -71,5 +76,14 @@ public class MainMenuUI : MonoBehaviour {
         }
 
         return null;
+    }
+    public void DisableAllViews(Transform t) {
+        foreach (Transform child in t) {
+            DisableAllViews(child);
+        }
+
+        if (t.name.ToLower().Contains(" view")) {
+            t.gameObject.SetActive(false);
+        }
     }
 }

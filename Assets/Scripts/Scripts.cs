@@ -5,6 +5,8 @@ using UnityEngine;
 public class Scripts : MonoBehaviour {
 
     private void Start() {
+        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(GameObject.FindGameObjectWithTag("Players"));
     }
 
     public static GameObject GetGameObject() {
@@ -12,5 +14,10 @@ public class Scripts : MonoBehaviour {
     }
     public static T GetScriptComponent<T>() {
         return GetGameObject().GetComponent<T>();
+    }
+
+    public static void Print(object obj) {
+        print(obj);
+
     }
 }

@@ -4,11 +4,12 @@ using UnityEngine;
 
 namespace BeardedManStudios.Forge.Networking.Generated
 {
-	[GeneratedRPC("{\"types\":[[\"byte\", \"byte\", \"string\"]]")]
-	[GeneratedRPCVariableNames("{\"types\":[[\"ID\", \"Color\", \"Name\"]]")]
+	[GeneratedRPC("{\"types\":[[\"byte\", \"byte\", \"string\"][]]")]
+	[GeneratedRPCVariableNames("{\"types\":[[\"ID\", \"Color\", \"Name\"][]]")]
 	public abstract partial class ClientBehavior : NetworkBehavior
 	{
 		public const byte RPC_UPDATE_CLIENT_RPC = 0 + 5;
+		public const byte RPC_TOGGLE_COLOR_RPC = 1 + 5;
 		
 		public ClientNetworkObject networkObject = null;
 
@@ -23,6 +24,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 			base.SetupHelperRpcs(networkObject);
 			networkObject.RegisterRpc("UpdateClientRpc", UpdateClientRpc, typeof(byte), typeof(byte), typeof(string));
+			networkObject.RegisterRpc("ToggleColorRpc", ToggleColorRpc);
 
 			networkObject.onDestroy += DestroyGameObject;
 
@@ -106,6 +108,10 @@ namespace BeardedManStudios.Forge.Networking.Generated
 		/// string Name
 		/// </summary>
 		public abstract void UpdateClientRpc(RpcArgs args);
+		/// <summary>
+		/// Arguments:
+		/// </summary>
+		public abstract void ToggleColorRpc(RpcArgs args);
 
 		// DO NOT TOUCH, THIS GETS GENERATED PLEASE EXTEND THIS CLASS IF YOU WISH TO HAVE CUSTOM CODE ADDITIONS
 	}
