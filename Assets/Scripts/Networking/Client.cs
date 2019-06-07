@@ -9,7 +9,8 @@ public class Client : ClientBehavior {
 
     public int ID { get; set; }
     public PlayerColor Color { get; set; }
-    public string Name { get; set; }
+    private string name;
+    public string Name { get { if (name == null) { return ""; } else { return name; } } set { name = value; } }
     public NetworkingPlayer nPlayer { get; set; }
 
     public static void CreateNewClient() {
@@ -34,7 +35,7 @@ public class Client : ClientBehavior {
         print("Initialized to " + Name);
 
         UpdateClient();
-    } 
+    }
     public void UpdateClient() {
         if (!networkObject.IsOwner && !Server.networker.IsServer) {
             return;
@@ -60,4 +61,27 @@ public class Client : ClientBehavior {
         gameObject.name = objectName;
     }
     #endregion
+
+    public static bool Matches(Client a, Client b) {
+
+        if (a == null && b == null) {
+            return true;
+        } else if (a != null && b != null) {
+            return a.Matches(b);
+        }
+
+        return false;
+    }
+    public bool Matches(Client other) {
+
+        if (other == null) {
+            return false;
+        }
+
+        bool names = Name.Equals(other.Name);
+        bool ids = ID == other.ID;
+        bool color = Color == other.Color;
+
+        return names && ids && color;
+    }
 }

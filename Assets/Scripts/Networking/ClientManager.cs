@@ -27,7 +27,12 @@ public class ClientManager : MonoBehaviour {
     }
     public void AddPlayer(Client client) {
         NewClientInfo(client, GetFreeID());
+        print("Adding player to list");
         players[client.ID] = client;
+    }
+
+    public Client[] GetPlayers() {
+        return players;
     }
 
     public bool CreateNewPlayer(int id) {
@@ -47,7 +52,7 @@ public class ClientManager : MonoBehaviour {
     public void NewClientInfo(Client client, int id) {
         client.ID = id;
         client.Name = "Player " + id;
-        client.Color = GetNextFreeColor(0);
+        client.Color = GetNextFreeColor(PlayerColor.Black);
     }
 
     #endregion
@@ -55,24 +60,23 @@ public class ClientManager : MonoBehaviour {
     #region Colors
     public PlayerColor GetNextFreeColor(PlayerColor oldColor) {
 
-        if (IsFreeColor(oldColor)) {
-            return TakeColor(oldColor);
-        }
+        for (int i = 0; i < 8; i++) {
 
-        takenColors.Remove(oldColor);
-
-        for (int plusAmount = 1; plusAmount < 9; plusAmount++) {
-
-            PlayerColor newColor = (PlayerColor)((int)(oldColor + 1) % 8);
+            PlayerColor newColor = oldColor + i;
 
             if (IsFreeColor(newColor)) {
+                takenColors.Remove(oldColor);
                 return TakeColor(newColor);
             }
         }
 
+        takenColors.Remove(oldColor);
         return PlayerColor.Black;
     }
     private bool IsFreeColor(PlayerColor color) {
+        if (color == PlayerColor.Black) {
+            return false;
+        }
         return !takenColors.Contains(color);
     }
     private PlayerColor TakeColor(PlayerColor color) {
@@ -83,5 +87,5 @@ public class ClientManager : MonoBehaviour {
 }
 
 public enum PlayerColor {
-    Red = 0, Green = 1, Blue = 2, Cyan = 3, Yellow = 4, Orange = 5, Purple = 6, Magenta = 7, Black = -1
+    Black = -1, Red = 0, Green = 1, Blue = 2, Cyan = 3, Yellow = 4, Orange = 5, Purple = 6, Magenta = 7
 }

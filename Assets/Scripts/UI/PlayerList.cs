@@ -1,8 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerList : MonoBehaviour {
+
+    private ClientManager manager;
+    private GameObject listObject;
+    private Color color1, color2;
+
+    private Client[] players;
 
     private struct PlayerObject {
         public Client player;
@@ -15,18 +22,91 @@ public class PlayerList : MonoBehaviour {
     private GameObject table;
 
     void Start() {
+        manager = Scripts.GetScriptComponent<ClientManager>();
         playerObjects = new PlayerObject[8];
-        playerListObject = Resources.Load<GameObject>("ResourcePrefabs/PlayerListObject");
 
-        string[,] content = new string[2,5];
+        for (int i = 0; i < 8; i++) {
+            transform.GetChild(i).gameObject.SetActive(false);
+        }
+    }
 
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 5; j++) {
-                content[i, j] = "Row " + j + ", Column " + i;
+    private void Update() {
+        CheckUpdate();
+    }
+
+    public void CheckUpdate() {
+
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            players = manager.GetPlayers();
+            UpdateList();
+            return;
+        }
+
+        Client[] newPlayers = manager.GetPlayers();
+
+        if (NeedToUpdate(newPlayers)) {
+            UpdateList();
+        }
+    }
+    private void UpdateList() {
+
+        print("Updating player list");
+
+        int i = 0;
+
+        foreach (Client c in players) {
+
+            if (c == null) {
+                continue;
+            }
+
+            UpdateListObject(transform.GetChild(i), c, i);
+
+            i++;
+        }
+
+        for (;i < 8; i++) {
+            transform.GetChild(i).gameObject.SetActive(false);
+        }
+    }
+
+    private void UpdateListObject(Transform t, Client c, int index) {
+
+        t.gameObject.SetActive(true);
+
+        // Name
+        t.GetChild(0).GetComponent<Text>().text = c.Name;
+        // Color
+        t.GetChild(1).GetChild(0).GetComponent<Image>().color = Colors.GetBasicColor(c.Color);
+
+        // Backgroud color
+        //Image bg = t.GetComponent<Image>();
+        //if (useColor1) {
+        //    bg.color = color1;
+        //} else {
+        //    bg.color = color2;
+        //}
+    }
+
+    private bool NeedToUpdate(Client[] newPlayers) {
+
+        if (players == null) {
+            players = newPlayers;
+            return true;
+        }
+
+        bool update = false;
+
+        for (int i = 0; i < newPlayers.Length; i++) {
+            if (!Client.Matches(players[i], newPlayers[i])) {
+
             }
         }
 
-        table = PanelTable.CreateTable(transform, content, new Vector3(100, 30, 1), true);
+        if (update) {
+            players = newPlayers;
+        }
+        return update;
     }
 
     public void AddPlayer(Client player) {
