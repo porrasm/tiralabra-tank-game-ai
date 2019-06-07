@@ -72,20 +72,17 @@ public class Player : ClientBehavior {
             return;
         }
 
-        print("Toggling player color");
-        Color = Scripts.GetScriptComponent<ClientManager>().GetNextFreeColor(Color);
-        print("New color is: " + Color);
-        UpdateClient();
-
-        //MainThreadManager.Run(() => {
-        //    print("Toggling player color");
-        //    Color = Scripts.GetScriptComponent<ClientManager>().GetNextFreeColor(Color);
-        //    print("New color is: " + Color);
-        //    UpdateClient();
-        //});
-
-        Debug.Log("New color is: " + Color);
+        //print("Toggling player color");
+        //Color = Scripts.GetScriptComponent<ClientManager>().GetNextFreeColor(Color);
+        //print("New color is: " + Color);
         //UpdateClient();
+
+        MainThreadManager.Run(() => {
+            print("Toggling player color");
+            Color = Scripts.GetScriptComponent<ClientManager>().GetNextFreeColor(Color);
+            print("New color is: " + Color);
+            UpdateClient();
+        });
     }
     #endregion
 
