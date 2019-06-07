@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using BeardedManStudios.Forge.Networking;
+using BeardedManStudios.Forge.Networking.Unity;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +9,7 @@ public class Scripts : MonoBehaviour {
     private void Start() {
         DontDestroyOnLoad(gameObject);
         DontDestroyOnLoad(GameObject.FindGameObjectWithTag("Players"));
+        Rpc.MainThreadRunner = MainThreadManager.Instance;
     }
 
     public static GameObject GetGameObject() {
