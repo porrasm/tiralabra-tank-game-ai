@@ -1,52 +1,45 @@
 ﻿using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Unity;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Server {
 
-    public static NetWorker networker { get; private set; }
+    #region fields
+    public const ushort PORT = 15937;
+    private static readonly string IP = "127.0.0.1";
 
     private static NetworkManager manager;
 
-    static string ip = "127.0.0.1";
-    public const ushort PORT = 15937;
-
-    public static bool IsServer = false;
+    public static NetWorker Networker { get; private set; }
+    #endregion
 
     public static bool StartServer() {
+        Networker = new TCPServer(64);
+        MonoBehaviour.print("Hosting: " + IP + ":" + PORT);
+        ((TCPServer)Networker).Connect(IP, PORT);
 
-        networker = new TCPServer(64);
-        MonoBehaviour.print("Hosting: " + ip + ":" + PORT);
-        ((TCPServer)networker).Connect(ip, PORT);
+        Networker.playerTimeout += PlayerTimeout;
 
-        networker.playerTimeout += PlayerTimeout;
-        //LobbyService.Instance.Initialize(server);
-
-        bool created = Connected(networker);
-
-        IsServer = created;
+        bool created = Connected(Networker);
 
         if (created) {
-            networker.playerAccepted += new NetWorker.PlayerEvent(OnPlayerJoin);
+            Networker.playerAccepted += new NetWorker.PlayerEvent(OnPlayerJoin);
         }
 
         return created;
     }
-    public static bool ConnectToServer() {
 
+    public static bool ConnectToServer() {
         MonoBehaviour.print("Joining game");
 
-        networker = new TCPClient();
-        MonoBehaviour.print("Joining: " + ip + ":" + PORT);
-        ((TCPClient)networker).Connect(ip, PORT);
+        Networker = new TCPClient();
+        MonoBehaviour.print("Joining: " + IP + ":" + PORT);
+        ((TCPClient)Networker).Connect(IP, PORT);
 
-        bool connected = Connected(networker);
+        bool connected = Connected(Networker);
 
         if (connected) {
-            networker.serverAccepted += new NetWorker.BaseNetworkEvent(OnServerConnect);
+            Networker.serverAccepted += new NetWorker.BaseNetworkEvent(OnServerConnect);
         }
 
         return connected;
@@ -62,9 +55,10 @@ public class Server {
 
         manager.Initialize(networker, "", PORT, null);
 
-        NetworkObject.Flush(networker); //Called because we are already in the correct scene!
+        NetworkObject.Flush(networker);
         return true;
     }
+
     private static void GetManager() {
 
         GameObject old = GameObject.FindGameObjectWithTag("NetworkManager");
@@ -84,17 +78,15 @@ public class Server {
         manager = managerObject.AddComponent<NetworkManager>();
     }
 
+    #region events
+    private static void OnPlayerJoin(NetworkingPlayer player, NetWorker sender) {
+        MonoBehaviour.print("Player connected: " + player.NetworkId);
+    }
+    private static void OnServerConnect(NetWorker sender) {
+        MonoBehaviour.print("Joined server");
+    }
     private static void PlayerTimeout(NetworkingPlayer player, NetWorker sender) {
         MonoBehaviour.print("Player " + player.NetworkId + " timed out");
     }
-
-    // Other
-    private static void OnPlayerJoin(NetworkingPlayer player, NetWorker sender) {
-        MonoBehaviour.print("Player connected: " + player.NetworkId);
-
-    }
-    private static void OnServerConnect (NetWorker sender) {
-        MonoBehaviour.print("Joined server");
-
-    }
+    #endregion
 }

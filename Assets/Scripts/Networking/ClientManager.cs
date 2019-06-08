@@ -1,21 +1,71 @@
-﻿using BeardedManStudios.Forge.Networking;
-using BeardedManStudios.Forge.Networking.Generated;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
+
+public enum PlayerColor {
+    Black = -1, Red = 0, Green = 1, Blue = 2, Cyan = 3, Yellow = 4, Orange = 5, Purple = 6, Magenta = 7
+}
 
 public class ClientManager : MonoBehaviour {
 
+    #region fields
     private List<PlayerColor> takenColors;
     private Player[] players;
 
     private GameObject playerPrefab;
+    #endregion
 
     private void Start() {
         takenColors = new List<PlayerColor>();
         players = new Player[8];
         playerPrefab = Resources.Load<GameObject>("ResourcePrefabs/Player");
     }
+
+    public string GetFreeName(string name) {
+        return GetFreeName(name, 0);
+    }
+    private string GetFreeName(string nameParam, int index) {
+
+        string name = null;
+        if (index == 0) {
+            name = nameParam;
+        } else {
+            name = nameParam + index;
+        }
+
+        foreach (Player p in players) {
+
+            if (p == null) {
+                continue;
+            }
+
+            if (p.Name.Equals(name)) {
+                return GetFreeName(nameParam, index + 1);
+            }
+        }
+
+        // Fix input
+        name = Regex.Replace(name.Trim(), @"[^a-zA-Z0-9\söäåÖÄÅ(:)]", string.Empty);
+        name = Regex.Replace(name.Trim(), @"\s+", " ");
+
+        return name;
+    }
+
+    #region Client Side
+    public static bool AllReady() {
+
+        foreach (Transform child in GameObject.FindGameObjectWithTag("Players").transform) {
+
+            Player p = child.GetComponent<Player>();
+
+            if (!p.Ready) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    #endregion
 
     #region Player Initialization
     public int GetFreeID() {
@@ -88,8 +138,4 @@ public class ClientManager : MonoBehaviour {
         return color;
     }
     #endregion
-}
-
-public enum PlayerColor {
-    Black = -1, Red = 0, Green = 1, Blue = 2, Cyan = 3, Yellow = 4, Orange = 5, Purple = 6, Magenta = 7
 }

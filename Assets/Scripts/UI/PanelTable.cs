@@ -20,7 +20,7 @@ public class PanelTable {
         Image background = table.AddComponent<Image>();
        
 
-        for( int y = 0; y < content.GetLength(1); y++) {
+        for (int y = 0; y < content.GetLength(1); y++) {
 
             GameObject row = new GameObject();
             row.name = "Row " + y;
@@ -72,5 +72,4 @@ public class PanelTable {
             cellHeight = tableHeight / content.GetLength(0);
         }
     }
-
 }

@@ -4,51 +4,51 @@ using UnityEngine;
 
 public class BackgroundFlaker : MonoBehaviour {
 
-	[SerializeField]
-	private float time;
-	private float timePassed;
+    [SerializeField]
+    private float time;
+    private float timePassed;
 
-	private float width;
-	private float height;
-	
+    private float width;
+    private float height;
 
-	private GameObject flakePrefab;
 
-	// Use this for initialization
-	void Start () {
+    private GameObject flakePrefab;
 
-		Vector3[] corners = new Vector3[4];
-		GetComponent<RectTransform>().GetLocalCorners(corners);
+    // Use this for initialization
+    private void Start() {
 
-		width = Vector3.Distance(corners[0], corners[3]);
-		height = Vector3.Distance(corners[0], corners[1]);
+        Vector3[] corners = new Vector3[4];
+        GetComponent<RectTransform>().GetLocalCorners(corners);
 
-		print("W: " + width);
-		print("H: " + height);
+        width = Vector3.Distance(corners[0], corners[3]);
+        height = Vector3.Distance(corners[0], corners[1]);
 
-		if (time == 0) {
-			time = 1;
-		}
-		flakePrefab = Resources.Load<GameObject>("ResourcePrefabs/BackgroundFlake");
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		UpdateTimes();
-	}
+        print("W: " + width);
+        print("H: " + height);
 
-	private void UpdateTimes() {
-		timePassed += Time.deltaTime;
+        if (time == 0) {
+            time = 1;
+        }
+        flakePrefab = Resources.Load<GameObject>("ResourcePrefabs/BackgroundFlake");
+    }
 
-		while (timePassed >= time) {
-			timePassed -= time;
-			SpawnFlake();
-		}
-	}
-	private void SpawnFlake() {
-		GameObject newFlake = Instantiate(flakePrefab);
-		newFlake.GetComponent<RectTransform>().localPosition = new Vector3(Random.value * width, height + 50);
-		print(newFlake.GetComponent<RectTransform>().localPosition);
-		newFlake.GetComponent<RectTransform>().SetParent(transform);
-	}
+    // Update is called once per frame
+    private void Update() {
+        UpdateTimes();
+    }
+
+    private void UpdateTimes() {
+        timePassed += Time.deltaTime;
+
+        while (timePassed >= time) {
+            timePassed -= time;
+            SpawnFlake();
+        }
+    }
+    private void SpawnFlake() {
+        GameObject newFlake = Instantiate(flakePrefab);
+        newFlake.GetComponent<RectTransform>().localPosition = new Vector3(Random.value * width, height + 50);
+        print(newFlake.GetComponent<RectTransform>().localPosition);
+        newFlake.GetComponent<RectTransform>().SetParent(transform);
+    }
 }

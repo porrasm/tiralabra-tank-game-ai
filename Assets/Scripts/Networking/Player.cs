@@ -1,18 +1,47 @@
 ﻿using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Generated;
 using BeardedManStudios.Forge.Networking.Unity;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : ClientBehavior {
 
+    #region fields
+    private string playerName;
+    private int score;
+
     public int ID { get; set; }
     public PlayerColor Color { get; set; }
-    private string name;
-    public string Name { get { if (name == null) { return ""; } else { return name; } } set { name = value; } }
-    public int Score { get; private set; }
-    public NetworkingPlayer nPlayer { get; set; }
+    public string Name {
+        get {
+            if (playerName == null) {
+                return "";
+            } else {
+                return playerName;
+            }
+        }
+        set {
+            playerName = value;
+        }
+    } 
+    public int Score {
+        get {
+            if (networkObject.IsServer) {
+                return score;
+            } else {
+                score = networkObject.Score;
+                return score;
+            }
+        } set {
+            if (networkObject.IsServer) {
+                score = value;
+                networkObject.Score = score;
+            } 
+        } }
+    public bool Ready { get; set; }
+    public bool Primary { get { return ID == 0; } }
+
+    public NetworkingPlayer NetPlayer { get; set; }
+    #endregion
 
     protected override void NetworkStart() {
         base.NetworkStart();
@@ -21,7 +50,7 @@ public class Player : ClientBehavior {
     }
 
     private void Start() {
-        transform.SetParent(GameObject.FindGameObjectWithTag("Players").transform);   
+        transform.SetParent(GameObject.FindGameObjectWithTag("Players").transform);
     }
 
     public static void CreateNewClient() {
@@ -30,7 +59,7 @@ public class Player : ClientBehavior {
     }
 
     public void InitializeClient() {
-        if (!Server.networker.IsServer) {
+        if (!Server.Networker.IsServer) {
             return;
         }
 
@@ -43,17 +72,30 @@ public class Player : ClientBehavior {
         UpdateClient();
     }
     public void UpdateClient() {
-        if (!networkObject.IsOwner && !Server.networker.IsServer) {
+        if (!networkObject.IsOwner && !Server.Networker.IsServer) {
             print("Was not server or owner");
             return;
         }
 
+        byte ready = 0;
+        if (Ready) {
+            ready = 1;
+        }
+
         print("Sending client info over RPC: " + Name);
-        networkObject.SendRpc(RPC_UPDATE_CLIENT_RPC, Receivers.AllBuffered, (byte)ID, (byte)Color, Name);
+        networkObject.SendRpc(RPC_UPDATE_CLIENT_RPC, Receivers.AllBuffered, (byte)ID, (byte)Color, Name, ready);
     }
     public void ToggleColor() {
         print("Toggling player color");
         networkObject.SendRpc(RPC_TOGGLE_COLOR_RPC, Receivers.AllBuffered);
+    }
+    public void ChangeName(string name) {
+        if (!networkObject.IsOwner && !Server.Networker.IsServer) {
+            print("Was not server or owner");
+            return;
+        }
+
+        networkObject.SendRpc(RPC_CHANGE_NAME_RPC, Receivers.AllBuffered, name);
     }
 
     #region RPCs
@@ -64,6 +106,7 @@ public class Player : ClientBehavior {
         ID = args.GetAt<byte>(0);
         Color = (PlayerColor)args.GetAt<byte>(1);
         Name = args.GetAt<string>(2);
+        Ready = args.GetAt<byte>(3) == 1;
     }
     public override void ToggleColorRpc(RpcArgs args) {
 
@@ -76,16 +119,25 @@ public class Player : ClientBehavior {
         Color = Scripts.GetScriptComponent<ClientManager>().GetNextFreeColor(Color);
         print("New color is: " + Color);
         UpdateClient();
+    }
+    public override void ChangeNameRpc(RpcArgs args) {
 
-        //MainThreadManager.Run(() => {
-        //    print("Toggling player color");
-        //    Color = Scripts.GetScriptComponent<ClientManager>().GetNextFreeColor(Color);
-        //    print("New color is: " + Color);
-        //    UpdateClient();
-        //});
+        if (!networkObject.IsServer) {
+            return;
+        }
+
+        string name = args.GetAt<string>(0);
+
+        if (name == null) {
+            print("Name was null");
+        }
+
+        Name = Scripts.GetScriptComponent<ClientManager>().GetFreeName(name);
+        UpdateClient();
     }
     #endregion
 
+    #region tools
     public static bool Matches(Player a, Player b) {
 
         if (a == null && b == null) {
@@ -126,6 +178,5 @@ public class Player : ClientBehavior {
 
         return null;
     }
-
-
+    #endregion
 }

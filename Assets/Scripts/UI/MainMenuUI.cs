@@ -23,12 +23,13 @@ public class MainMenuUI : MonoBehaviour {
         }
     }
     public void StartGame() {
-        //CustomNetworkManager.Instance.InstantiateClient();
+        // CustomNetworkManager.Instance.InstantiateClient();
     }
 
     public void CancelGame() {
         ChangeView("Main");
-        //Scripts.GetGameObject().GetComponent<UDP_Server>().StopServer();
+
+        // Scripts.GetGameObject().GetComponent<UDP_Server>().StopServer();
     }
 
     public void JoinGame() {
@@ -38,7 +39,6 @@ public class MainMenuUI : MonoBehaviour {
             SceneManager.LoadScene("Client_Lobby");
         }
     }
-
 
     public void ChangeView(string view) {
         ChangeView(view, false);

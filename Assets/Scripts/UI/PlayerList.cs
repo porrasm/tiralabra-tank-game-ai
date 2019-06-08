@@ -3,25 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class PlayerList : MonoBehaviour {
 
+    #region fields
     private ClientManager manager;
-    private GameObject listObject;
-    private Color color1, color2;
+    private GameObject listObject; 
 
-    private struct PlayerObject {
-        public Player player;
-        public GameObject pObject;
-    }
-
-    private PlayerObject[] playerObjects;
+    private PlayerObjectPair[] playerObjects;
     private GameObject playerListObject;
 
     private GameObject table;
 
-    void Start() {
+    private struct PlayerObjectPair {
+        public Player Player;
+        public GameObject Object;
+    }
+    #endregion
+
+    private void Start() {
         manager = Scripts.GetScriptComponent<ClientManager>();
-        playerObjects = new PlayerObject[8];
+        playerObjects = new PlayerObjectPair[8];
 
         for (int i = 0; i < 8; i++) {
             transform.GetChild(i).gameObject.SetActive(false);
@@ -45,6 +47,7 @@ public class PlayerList : MonoBehaviour {
             UpdateList(players);
         }
     }
+
     private void UpdateList(Player[] players) {
 
         print("Updating player list");
@@ -52,30 +55,6 @@ public class PlayerList : MonoBehaviour {
         for (int i = 0; i < 8; i++) {
             transform.GetChild(i).GetComponent<PlayerListObject>().SetInfo(players[i]);
         }
-    }
-
-    private void UpdateListObject(Transform t, Player c, int index) {
-
-        t.gameObject.SetActive(true);
-
-        // Name
-        t.GetChild(0).GetComponent<Text>().text = c.Name;
-
-        // Score
-        t.GetChild(1).GetComponent<Text>().text = "" + c.Score;
-
-        // Color
-        //t.GetChild(1).GetChild(0).GetComponent<Image>().color = Colors.GetBasicColor(c.Color);
-
-        // Backgroud color
-        Image bg = t.GetComponent<Image>();
-        Color32 color = Colors.GetBasicColor(c.Color, 128);
-        bg.color = color;
-        //if (useColor1) {
-        //    bg.color = color1;
-        //} else {
-        //    bg.color = color2;
-        //}
     }
 
     private bool NeedToUpdate(Player[] players) {
@@ -94,13 +73,12 @@ public class PlayerList : MonoBehaviour {
         Transform listPlayer = transform.GetChild(index);
 
         return true;
-
     }
 
     public void AddPlayer(Player player) {
 
-        PlayerObject playerObject = new PlayerObject();
-        playerObject.player = player;
+        PlayerObjectPair playerObject = new PlayerObjectPair();
+        playerObject.Player = player;
 
         GameObject newListObject = Instantiate(playerListObject);
         RectTransform rect = newListObject.GetComponent<RectTransform>();
@@ -110,19 +88,19 @@ public class PlayerList : MonoBehaviour {
 
         newListObject.GetComponent<RectTransform>().localPosition = listPos;
 
-        playerObject.pObject = newListObject;
+        playerObject.Object = newListObject;
 
         RemovePlayer(player);
         playerObjects[player.ID] = playerObject;
     }
     public void RemovePlayer(Player player) {
 
-        if (playerObjects[player.ID].player == null) {
+        if (playerObjects[player.ID].Player == null) {
             return;
         }
 
-        Destroy(playerObjects[player.ID].pObject);
+        Destroy(playerObjects[player.ID].Object);
 
-        playerObjects[player.ID] = new PlayerObject();
+        playerObjects[player.ID] = new PlayerObjectPair();
     }
 }

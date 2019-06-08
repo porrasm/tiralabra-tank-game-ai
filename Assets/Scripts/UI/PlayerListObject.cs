@@ -1,23 +1,23 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerListObject : MonoBehaviour {
 
-    private int ID;
-    private string Name;
-    private int Score;
-    private PlayerColor Color;
+    #region fields
+    private int id;
+    private string playerName;
+    private int score;
+    private PlayerColor color;
     private bool isNull = true;
+    #endregion
 
     public void SetInfo(Player player) {
 
         if (player != null) {
-            ID = player.ID;
-            Name = player.Name;
-            Color = player.Color;
-            Score = player.Score;
+            id = player.ID;
+            playerName = player.Name;
+            color = player.Color;
+            score = player.Score;
             isNull = false;
             ReDraw();
         } else {
@@ -32,13 +32,13 @@ public class PlayerListObject : MonoBehaviour {
             return;
         }
 
-        transform.GetChild(0).GetComponent<Text>().text = Name;
+        transform.GetChild(0).GetComponent<Text>().text = playerName;
         
-        transform.GetChild(1).GetComponent<Text>().text = "" + Score;
+        transform.GetChild(1).GetComponent<Text>().text = "" + score;
 
         Image bg = transform.GetComponent<Image>();
-        Color32 color = Colors.GetBasicColor(Color, 128);
-        bg.color = color;
+        Color32 bgColor = Colors.GetBasicColor(color, 128);
+        bg.color = bgColor;
     }
     public bool Matches(Player p) {
 
@@ -47,10 +47,10 @@ public class PlayerListObject : MonoBehaviour {
         } 
 
         if (p != null && !isNull) {
-            bool names = Name.Equals(p.Name);
-            bool ids = ID == p.ID;
-            bool color = Color == p.Color;
-            bool score = Score == p.Score;
+            bool names = playerName.Equals(p.Name);
+            bool ids = id == p.ID;
+            bool color = this.color == p.Color;
+            bool score = this.score == p.Score;
 
             return names && ids && color && score;
         }

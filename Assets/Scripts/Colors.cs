@@ -4,14 +4,15 @@ using UnityEngine;
 
 public class Colors {
 
-    public static Color GetBasicColor(PlayerColor pColor) {
-        return GetBasicColor(pColor, 255);
+    public static Color GetBasicColor(PlayerColor pcolor) {
+        return GetBasicColor(pcolor, 255);
     }
-    public static Color GetBasicColor(PlayerColor pColor, byte alpha) {
+
+    public static Color GetBasicColor(PlayerColor pcolor, byte alpha) {
 
         Color32 color = new Color32(0, 0, 0, alpha);
 
-        switch (pColor) {
+        switch (pcolor) {
             case PlayerColor.Black:
                 color = new Color32(16, 16, 16, alpha);
                 break;
@@ -43,5 +44,4 @@ public class Colors {
 
         return color;
     }
-
 }

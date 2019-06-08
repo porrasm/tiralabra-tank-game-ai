@@ -9,39 +9,93 @@ public class Client_LobbyUI : MonoBehaviour {
     [SerializeField]
     private InputField nameField;
     [SerializeField]
-    private Button colorButton;
+    private Button colorButton, readyButton, startButton;
     private Image colorImage;
 
     private Player player;
 
+    private Player Player {
+        get {
+            if (player == null) {
+                player = Player.MyPlayer();
+                return player;
+            } else {
+                return player;
+            }
+        }
+    }
+
     private void Start() {
         colorImage = colorButton.GetComponent<Image>();
-        player = Player.MyPlayer();
     }
     private void Update() {
-        UpdateInfo();
+        UpdateUI();
     }
 
     public void ChangeName(string name) {
-        nameField.text = name.Trim();
-    }
-    public void UpdateName() {
 
-        if (nameField.text.Length < 2) {
+        if (!AllowedInput(ref name)) {
+            nameField.text = name;
+        }
+    }
+    private bool AllowedInput(ref string input) {
+        string clean = Regex.Replace(input, @"[^a-zA-Z0-9\söäåÖÄÅ(:)]", string.Empty);
+        if (input.Equals(clean)) {
+            return true;
+        }
+        input = clean;
+        return false;
+    }
+
+    public void UpdateName(string name) {
+
+        if (name.Length < 2) {
             return;
         }
 
-        print("Updating client name: " + nameField.text);
+        print("Updating client name: " + name);
 
-        Player.MyPlayer().Name = nameField.text;
-        Player.MyPlayer().UpdateClient();
+        Player.ChangeName(name);
     }
 
-    
-    private void UpdateInfo() {
+    public void ToggleReady() {
+        Player.Ready = !Player.Ready;
+        Player.UpdateClient();
+    }
 
-        if (colorImage.color != Colors.GetBasicColor(player.Color)) {
-            colorImage.color = Colors.GetBasicColor(player.Color);
+    private void UpdateUI() {
+
+        ClientManager manager = Scripts.GetScriptComponent<ClientManager>();
+
+        // Color
+        if (colorImage.color != Colors.GetBasicColor(Player.Color)) {
+            colorImage.color = Colors.GetBasicColor(Player.Color);
+        }
+
+        // Name field
+        if (!nameField.isFocused) {
+            if (!Player.Name.Equals(nameField.text)) {
+                nameField.text = Player.Name;
+            }
+        }
+
+        // Ready button
+        Image bImage = readyButton.GetComponent<Image>();
+
+        if (Player.Ready && bImage.color != Color.green) {
+            bImage.color = Color.green;
+            readyButton.transform.GetChild(0).GetComponent<Text>().text = "Ready";
+        } else if (!Player.Ready && bImage.color != Color.red) {
+            bImage.color = Color.red;
+            readyButton.transform.GetChild(0).GetComponent<Text>().text = "Not Ready";
+        }
+
+        // Start button
+        if (Player.Primary) {
+            startButton.gameObject.SetActive(true);
+            startButton.interactable = ClientManager.AllReady();
+        } else {
+            startButton.gameObject.SetActive(false);
         }
     }
 
