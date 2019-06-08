@@ -9,6 +9,8 @@ TagManager:
   - Players
   - NetworkManager
   - Client
+  - Level
+  - Environment
   layers:
   - Default
   - TransparentFX
