@@ -7,9 +7,6 @@ public class TankControls : MonoBehaviour {
     public Vector2 Movement;
     public float Rotation;
 
-    [SerializeField]
-    private float speed, rotateSpeed;
-
     private Transform head;
 
     private void Start() {
@@ -18,20 +15,6 @@ public class TankControls : MonoBehaviour {
 
     private void Update() {
         UpdateControls();
-        MoveTank();
-    }
-
-    private void MoveTank() {
-
-        Vector3 move = new Vector3(0, 0, Movement.y) * speed * Time.deltaTime;
-        float rotation = Movement.x * rotateSpeed * Time.deltaTime;
-
-        // Rotate
-        transform.Rotate(0, rotation, 0);
-        head.Rotate(0, -rotation, 0);
-
-        // Move
-        transform.Translate(move);
     }
     private void UpdateControls() {
 
