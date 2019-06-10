@@ -13,10 +13,10 @@ public class TankController : MonoBehaviour {
     private Rigidbody2D rb;
 
     private void Start() {
-        //if (!Server.Networker.IsServer) {
-        //    Destroy(this);
-        //    return;
-        //}
+        if (!Server.Networker.IsServer) {
+            Destroy(this);
+            return;
+        }
 
         rect = GetComponent<RectTransform>();
         rb = GetComponent<Rigidbody2D>();

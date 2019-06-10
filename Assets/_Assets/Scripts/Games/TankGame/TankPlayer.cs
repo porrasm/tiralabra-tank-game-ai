@@ -10,6 +10,8 @@ public class TankPlayer : TankPlayerBehavior {
 
     private int health;
     private int score;
+
+    public enum PlayerState { Disabled, Locked, Enabled }
     #endregion
 
     private void Update() {
@@ -20,8 +22,6 @@ public class TankPlayer : TankPlayerBehavior {
     }
 
     private void UpdateVariables() {
-
-        return;
 
         if (networkObject.IsServer) {
 

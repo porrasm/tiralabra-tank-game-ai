@@ -5,7 +5,6 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuUI : MonoBehaviour {
 
-    private GameObject scripts;
     private Transform currentView;
 
     [SerializeField]
@@ -18,12 +17,11 @@ public class MainMenuUI : MonoBehaviour {
     public void CreateGame() {
         bool success = Server.StartServer();
         if (success) {
-            print("Loading host lobby");
-            SceneManager.LoadScene("Host_Lobby");
+            Games.StartGame();
         }
     }
     public void StartGame() {
-        // CustomNetworkManager.Instance.InstantiateClient();
+        Games.SetScene(Games.GameList.TankGame);
     }
 
     public void CancelGame() {
@@ -34,9 +32,8 @@ public class MainMenuUI : MonoBehaviour {
 
     public void JoinGame() {
         bool success = Server.ConnectToServer();
-        if (success) {
-            Player.CreateNewClient();
-            SceneManager.LoadScene("Client_Lobby");
+        if (success) {   
+            Games.StartGame();
         }
     }
 

@@ -15,7 +15,23 @@ public class Scripts : MonoBehaviour {
     }
 
     public static T GetScriptComponent<T>() {
-        return GetGameObject().GetComponent<T>();
+
+        GameObject obj = GetGameObject();
+
+        T component = obj.GetComponent<T>();
+
+        if (component != null) {
+            return component;
+        }
+
+        foreach (Transform child in obj.transform) {
+            component = child.GetComponent<T>();
+            if (component != null) {
+                return component;
+            }
+        }
+
+        return default;
     }
 
     public static void Print(object obj) {

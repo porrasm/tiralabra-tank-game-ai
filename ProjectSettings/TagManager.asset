@@ -11,6 +11,7 @@ TagManager:
   - Client
   - Level
   - Environment
+  - Game
   layers:
   - Default
   - TransparentFX

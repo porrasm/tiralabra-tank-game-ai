@@ -15,7 +15,9 @@ namespace BeardedManStudios.Forge.Networking.Unity
 		public GameObject[] ClientNetworkObject = null;
 		public GameObject[] CubeForgeGameNetworkObject = null;
 		public GameObject[] ExampleProximityPlayerNetworkObject = null;
+		public GameObject[] GamesNetworkObject = null;
 		public GameObject[] NetworkCameraNetworkObject = null;
+		public GameObject[] TankControlsNetworkObject = null;
 		public GameObject[] TankPlayerNetworkObject = null;
 
 		protected virtual void SetupObjectCreatedEvent()
@@ -149,6 +151,29 @@ namespace BeardedManStudios.Forge.Networking.Unity
 						objectInitialized(newObj, obj);
 				});
 			}
+			else if (obj is GamesNetworkObject)
+			{
+				MainThreadManager.Run(() =>
+				{
+					NetworkBehavior newObj = null;
+					if (!NetworkBehavior.skipAttachIds.TryGetValue(obj.NetworkId, out newObj))
+					{
+						if (GamesNetworkObject.Length > 0 && GamesNetworkObject[obj.CreateCode] != null)
+						{
+							var go = Instantiate(GamesNetworkObject[obj.CreateCode]);
+							newObj = go.GetComponent<GamesBehavior>();
+						}
+					}
+
+					if (newObj == null)
+						return;
+						
+					newObj.Initialize(obj);
+
+					if (objectInitialized != null)
+						objectInitialized(newObj, obj);
+				});
+			}
 			else if (obj is NetworkCameraNetworkObject)
 			{
 				MainThreadManager.Run(() =>
@@ -160,6 +185,29 @@ namespace BeardedManStudios.Forge.Networking.Unity
 						{
 							var go = Instantiate(NetworkCameraNetworkObject[obj.CreateCode]);
 							newObj = go.GetComponent<NetworkCameraBehavior>();
+						}
+					}
+
+					if (newObj == null)
+						return;
+						
+					newObj.Initialize(obj);
+
+					if (objectInitialized != null)
+						objectInitialized(newObj, obj);
+				});
+			}
+			else if (obj is TankControlsNetworkObject)
+			{
+				MainThreadManager.Run(() =>
+				{
+					NetworkBehavior newObj = null;
+					if (!NetworkBehavior.skipAttachIds.TryGetValue(obj.NetworkId, out newObj))
+					{
+						if (TankControlsNetworkObject.Length > 0 && TankControlsNetworkObject[obj.CreateCode] != null)
+						{
+							var go = Instantiate(TankControlsNetworkObject[obj.CreateCode]);
+							newObj = go.GetComponent<TankControlsBehavior>();
 						}
 					}
 
@@ -265,6 +313,18 @@ namespace BeardedManStudios.Forge.Networking.Unity
 			
 			return netBehavior;
 		}
+		[Obsolete("Use InstantiateGames instead, its shorter and easier to type out ;)")]
+		public GamesBehavior InstantiateGamesNetworkObject(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
+		{
+			var go = Instantiate(GamesNetworkObject[index]);
+			var netBehavior = go.GetComponent<GamesBehavior>();
+			var obj = netBehavior.CreateNetworkObject(Networker, index);
+			go.GetComponent<GamesBehavior>().networkObject = (GamesNetworkObject)obj;
+
+			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
+			
+			return netBehavior;
+		}
 		[Obsolete("Use InstantiateNetworkCamera instead, its shorter and easier to type out ;)")]
 		public NetworkCameraBehavior InstantiateNetworkCameraNetworkObject(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
 		{
@@ -272,6 +332,18 @@ namespace BeardedManStudios.Forge.Networking.Unity
 			var netBehavior = go.GetComponent<NetworkCameraBehavior>();
 			var obj = netBehavior.CreateNetworkObject(Networker, index);
 			go.GetComponent<NetworkCameraBehavior>().networkObject = (NetworkCameraNetworkObject)obj;
+
+			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
+			
+			return netBehavior;
+		}
+		[Obsolete("Use InstantiateTankControls instead, its shorter and easier to type out ;)")]
+		public TankControlsBehavior InstantiateTankControlsNetworkObject(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
+		{
+			var go = Instantiate(TankControlsNetworkObject[index]);
+			var netBehavior = go.GetComponent<TankControlsBehavior>();
+			var obj = netBehavior.CreateNetworkObject(Networker, index);
+			go.GetComponent<TankControlsBehavior>().networkObject = (TankControlsNetworkObject)obj;
 
 			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
 			
@@ -546,6 +618,57 @@ namespace BeardedManStudios.Forge.Networking.Unity
 			return netBehavior;
 		}
 		/// <summary>
+		/// Instantiate an instance of Games
+		/// </summary>
+		/// <returns>
+		/// A local instance of GamesBehavior
+		/// </returns>
+		/// <param name="index">The index of the Games prefab in the NetworkManager to Instantiate</param>
+		/// <param name="position">Optional parameter which defines the position of the created GameObject</param>
+		/// <param name="rotation">Optional parameter which defines the rotation of the created GameObject</param>
+		/// <param name="sendTransform">Optional Parameter to send transform data to other connected clients on Instantiation</param>
+		public GamesBehavior InstantiateGames(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
+		{
+			var go = Instantiate(GamesNetworkObject[index]);
+			var netBehavior = go.GetComponent<GamesBehavior>();
+
+			NetworkObject obj = null;
+			if (!sendTransform && position == null && rotation == null)
+				obj = netBehavior.CreateNetworkObject(Networker, index);
+			else
+			{
+				metadata.Clear();
+
+				if (position == null && rotation == null)
+				{
+					byte transformFlags = 0x1 | 0x2;
+					ObjectMapper.Instance.MapBytes(metadata, transformFlags);
+					ObjectMapper.Instance.MapBytes(metadata, go.transform.position, go.transform.rotation);
+				}
+				else
+				{
+					byte transformFlags = 0x0;
+					transformFlags |= (byte)(position != null ? 0x1 : 0x0);
+					transformFlags |= (byte)(rotation != null ? 0x2 : 0x0);
+					ObjectMapper.Instance.MapBytes(metadata, transformFlags);
+
+					if (position != null)
+						ObjectMapper.Instance.MapBytes(metadata, position.Value);
+
+					if (rotation != null)
+						ObjectMapper.Instance.MapBytes(metadata, rotation.Value);
+				}
+
+				obj = netBehavior.CreateNetworkObject(Networker, index, metadata.CompressBytes());
+			}
+
+			go.GetComponent<GamesBehavior>().networkObject = (GamesNetworkObject)obj;
+
+			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
+			
+			return netBehavior;
+		}
+		/// <summary>
 		/// Instantiate an instance of NetworkCamera
 		/// </summary>
 		/// <returns>
@@ -591,6 +714,57 @@ namespace BeardedManStudios.Forge.Networking.Unity
 			}
 
 			go.GetComponent<NetworkCameraBehavior>().networkObject = (NetworkCameraNetworkObject)obj;
+
+			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
+			
+			return netBehavior;
+		}
+		/// <summary>
+		/// Instantiate an instance of TankControls
+		/// </summary>
+		/// <returns>
+		/// A local instance of TankControlsBehavior
+		/// </returns>
+		/// <param name="index">The index of the TankControls prefab in the NetworkManager to Instantiate</param>
+		/// <param name="position">Optional parameter which defines the position of the created GameObject</param>
+		/// <param name="rotation">Optional parameter which defines the rotation of the created GameObject</param>
+		/// <param name="sendTransform">Optional Parameter to send transform data to other connected clients on Instantiation</param>
+		public TankControlsBehavior InstantiateTankControls(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
+		{
+			var go = Instantiate(TankControlsNetworkObject[index]);
+			var netBehavior = go.GetComponent<TankControlsBehavior>();
+
+			NetworkObject obj = null;
+			if (!sendTransform && position == null && rotation == null)
+				obj = netBehavior.CreateNetworkObject(Networker, index);
+			else
+			{
+				metadata.Clear();
+
+				if (position == null && rotation == null)
+				{
+					byte transformFlags = 0x1 | 0x2;
+					ObjectMapper.Instance.MapBytes(metadata, transformFlags);
+					ObjectMapper.Instance.MapBytes(metadata, go.transform.position, go.transform.rotation);
+				}
+				else
+				{
+					byte transformFlags = 0x0;
+					transformFlags |= (byte)(position != null ? 0x1 : 0x0);
+					transformFlags |= (byte)(rotation != null ? 0x2 : 0x0);
+					ObjectMapper.Instance.MapBytes(metadata, transformFlags);
+
+					if (position != null)
+						ObjectMapper.Instance.MapBytes(metadata, position.Value);
+
+					if (rotation != null)
+						ObjectMapper.Instance.MapBytes(metadata, rotation.Value);
+				}
+
+				obj = netBehavior.CreateNetworkObject(Networker, index, metadata.CompressBytes());
+			}
+
+			go.GetComponent<TankControlsBehavior>().networkObject = (TankControlsNetworkObject)obj;
 
 			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
 			

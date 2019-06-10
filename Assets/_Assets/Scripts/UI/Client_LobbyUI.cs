@@ -55,6 +55,8 @@ public class Client_LobbyUI : MonoBehaviour {
 
         print("Updating client name: " + name);
 
+        Player.Ready = false;
+        Player.UpdateClient();
         Player.ChangeName(name);
     }
 
@@ -100,6 +102,8 @@ public class Client_LobbyUI : MonoBehaviour {
     }
 
     public void ToggleColor() {
+        Player.Ready = false;
+        Player.UpdateClient();
         Player.MyPlayer().ToggleColor();
     }
 }

@@ -49,5 +49,9 @@ MonoBehaviour:
   - {fileID: 6066969734986248387, guid: 92a74f915e464524480b171e589679c8, type: 3}
   CubeForgeGameNetworkObject: []
   ExampleProximityPlayerNetworkObject: []
+  GamesNetworkObject:
+  - {fileID: 907510494412072848, guid: c6bccfa891f8d98408c6c77a793d4c96, type: 3}
   NetworkCameraNetworkObject: []
+  TankPlayerNetworkObject:
+  - {fileID: 3916300988557135650, guid: 847e9190283e95042ad3602a133bec6c, type: 3}
   automaticScenes: 0
