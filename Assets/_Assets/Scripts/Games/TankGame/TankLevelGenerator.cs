@@ -10,7 +10,7 @@ public class TankLevelGenerator : MonoBehaviour {
     private GameObject cellPrefab;
 
     [SerializeField]
-    private RectTransform cellParent, levelBackground;
+    private Transform cellParent, levelFloor;
 
     private Transform levelParent;
 
@@ -22,19 +22,21 @@ public class TankLevelGenerator : MonoBehaviour {
     private List<Step> steps;
 
     private int width, height;
-    private float cellDiameter;
+    //private float cellDiameter;
 
     private System.Random rnd;
 
-    private bool generating = false;
+    public bool Generating { get; set; }
 
     private struct Step {
         public Coords Coords;
         public TankCell.CellWall Wall;
+        public bool Silent;
         public override string ToString() {
             return Wall + " " + Coords;
         }
     }
+
     private struct Coords {
         public int X, Y;
         public override string ToString() {
@@ -51,23 +53,28 @@ public class TankLevelGenerator : MonoBehaviour {
     }
     private void Update() {
         if (Input.GetKeyDown(KeyCode.R)) {
-            CreateLevel();
+            GenerateLevel();
         }
     }
 
-    public void CreateLevel() {
+    public void GenerateLevel() {
 
-        if (generating) {
+        if (Generating) {
             return;
         }
 
-        generating = true;
+        Generating = true;
 
         Initialize();
         DFSGenerateMaze();
+        CleanLevel();
         BuildLevel();
     }
 
+    private void AddStep(int x, int y, TankCell.CellWall wall, bool silent) {
+        Step step = new Step() { Coords = new Coords() { X = x, Y = y }, Wall = wall, Silent = silent };
+        steps.Add(step);
+    }
     #region Initialization
     private void Initialize() {
         ClearLevel();
@@ -80,13 +87,7 @@ public class TankLevelGenerator : MonoBehaviour {
         width = TankSettings.LevelWidth;
         height = TankSettings.LevelHeight;
 
-        if (height > width) {
-            int w = width;
-            width = height;
-            height = width;
-        }
-
-        cellDiameter = TankSettings.AreaWidth / width;
+        //cellDiameter = TankSettings.AreaWidth / width;
 
         visited = new bool[width, height];
         cells = new TankCell[width, height];
@@ -101,27 +102,63 @@ public class TankLevelGenerator : MonoBehaviour {
 
     private void InitializeLevel() {
         InitializeLevelArea();
+        InitializeCamera();
+        SetSpawns();
         CreateCells();
+        RemoveEdgeWalls();
     }
 
     private void InitializeLevelArea() {
+        levelFloor.localScale = new Vector3(width, 1, height) * 0.1f;
+    }
+    private void InitializeCamera() {
 
-        area = new Vector2(width, height) * (TankSettings.AreaWidth / width);
+        Vector3 position = new Vector3(1.0f * width / 2, 10, 1.0f * height / 2);
+        float size;
 
-        levelBackground.sizeDelta = area;
-        levelBackground.localPosition = Vector3.zero;
+        if (width > height) {
+            size = position.x * TankSettings.CameraSizeFactorX;
+        } else {
+            size = position.z * TankSettings.CameraSizeFactorY;
+        }
 
-        float wOffset = area.x / 2;
-        float hOffset = area.y / 2;
+        Camera.main.transform.position = position;
+        Camera.main.orthographicSize = size;
+    }
 
-        Vector2[] corners = new Vector2[4];
-        corners[0] = new Vector2(-wOffset, -hOffset);
-        corners[1] = new Vector2(-wOffset, hOffset);
-        corners[2] = new Vector2(wOffset, hOffset);
-        corners[3] = new Vector2(wOffset, -hOffset);
+    private void SetSpawns() {
 
-        EdgeCollider2D col = levelBackground.GetComponent<EdgeCollider2D>();
-        col.points = corners;
+        Transform spawns = GameObject.FindGameObjectWithTag("Respawn").transform;
+
+        for (int i = 0; i < spawns.childCount; i++) {
+            spawns.GetChild(i).position = SpawnPosition(i);
+            spawns.GetChild(i).LookAt(new Vector3(0.5f * width, 0, 0.5f * height));
+        }
+    }
+    private Vector3 SpawnPosition(int index) {
+
+        float offset = 0.5f;
+
+        switch (index) {
+            case 0:
+                return new Vector3(offset, 0, offset);
+            case 1:
+                return new Vector3(width - offset, 0, height - offset);
+            case 2:
+                return new Vector3(offset, 0, height - offset);
+            case 3:
+                return new Vector3(width - offset, 0, offset);
+            case 4:
+                return new Vector3(offset * width, 0, offset);
+            case 5:
+                return new Vector3(offset * width, 0, height - offset);
+            case 6:
+                return new Vector3(width - offset, 0, offset * height);
+            case 7:
+                return new Vector3(offset, 0, offset * height);
+        }
+
+        return Vector3.zero;
     }
 
     private void CreateCells() {
@@ -140,20 +177,24 @@ public class TankLevelGenerator : MonoBehaviour {
         cells[x, y] = newCell.GetComponent<TankCell>();
         cells[x, y].SetWalls(TankSettings.StartActive);
 
-        RectTransform t = newCell.GetComponent<RectTransform>();
+        Transform t = newCell.transform;
 
         t.SetParent(cellParent);
         t.localScale = new Vector3(1, 1, 1);
-        t.sizeDelta = new Vector2(cellDiameter, cellDiameter);
         t.localPosition = CellPosition(x, y);
     }
-    private Vector2 CellPosition(int x, int y) {
+    private Vector3 CellPosition(int x, int y) {
+        // X & Y are swapped for some reason, works now
+        return new Vector3(y, 0, x);
+    }
 
-        Vector2 position = new Vector2(-area.x / 2, -area.y / 2);
-        position.x += x * cellDiameter;
-        position.y += y * cellDiameter;
-
-        return position;
+    private void RemoveEdgeWalls() {
+        for (int x = 0; x < width; x++) {
+            AddStep(x, height - 1, TankCell.CellWall.Top, true);
+        }
+        for (int y = 0; y < height; y++) {
+            AddStep(width - 1, y, TankCell.CellWall.Right, true);
+        }
     }
     #endregion
 
@@ -267,6 +308,65 @@ public class TankLevelGenerator : MonoBehaviour {
     }
     #endregion
 
+    #region Cleaning
+    private void CleanLevel() {
+        CleanSpawns();
+        ThinLevel();
+    }
+
+    private void CleanSpawns() {
+
+        int cleanW = width - 2;
+        int cleanH = height - 2;
+        int cleanWHalf = width / 2 - 1;
+        int cleanHHalf = height / 2 - 1;
+
+        CleanArea(0, 0);
+        CleanArea(cleanW, cleanH);
+        CleanArea(cleanW, 0);
+        CleanArea(0, cleanH);
+
+        CleanArea(cleanWHalf, 0);
+        CleanArea(cleanWHalf, cleanH);
+        CleanArea(0, cleanHHalf);
+        CleanArea(cleanW, cleanHHalf);
+    }
+    private void CleanArea(int x, int y) {
+        for (int i = 0; i < 1; i++) {
+            for (int j = 0; j < 1; j++) {
+                AddStep(x + i, y + j, TankCell.CellWall.Both, false);
+            }
+        }
+    }
+
+
+    private void ThinLevel() {
+
+        for (int i = 0; i < width; i++) {
+
+            int amount = rnd.Next(0, 4) + 2;
+            bool deleting = Random.value > TankSettings.CleanProbability;
+            int n = 2;
+
+            for (int j = 0; j < height; j++) {
+
+                if (deleting) {
+
+                    AddStep(i, j, TankCell.CellWall.Both, false);
+
+                    n++;
+                    if (n >= amount) {
+                        deleting = false;
+                    }
+                } else if (Random.value > TankSettings.CleanProbability) {
+                    AddStep(i, j, TankCell.CellWall.Both, false);
+                    deleting = true;
+                }
+            }
+        }
+    }
+    #endregion
+
     #region Creation
     private void BuildLevel() {
 
@@ -284,7 +384,9 @@ public class TankLevelGenerator : MonoBehaviour {
 
         foreach (Step step in steps) {
 
-            ProcessStep(step);
+            if (ProcessStep(step)) {
+                continue;
+            }
 
             if (waitTime == 0) {
                 continue;
@@ -297,14 +399,22 @@ public class TankLevelGenerator : MonoBehaviour {
             additional = 0;
         }
 
-        generating = false;
+        Generating = false;
     }
-    private void ProcessStep(Step step) {
+    private bool ProcessStep(Step step) {
 
         print(step);
 
-        cells[step.Coords.X, step.Coords.Y].SetWalls(true);
-        cells[step.Coords.X, step.Coords.Y].DisableWall(step.Wall);
+        TankCell cell = cells[step.Coords.X, step.Coords.Y];
+
+        if (cell == null) {
+            return true;
+        }
+
+        cell.SetWalls(true);
+        cell.DisableWall(step.Wall);
+
+        return step.Silent;
     }
     #endregion
 }

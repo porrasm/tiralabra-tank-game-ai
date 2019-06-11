@@ -9,6 +9,7 @@ public class Player : ClientBehavior {
     private string playerName;
     private int score;
 
+    private uint networkPlayerID;
     public int ID { get; set; }
     public PlayerColor Color { get; set; }
     public string Name {
@@ -59,6 +60,9 @@ public class Player : ClientBehavior {
     }
 
     public void InitializeClient() {
+
+        networkPlayerID = networkObject.MyPlayerId;
+
         if (!Server.Networker.IsServer) {
             return;
         }
@@ -172,6 +176,19 @@ public class Player : ClientBehavior {
             Player p = child.GetComponent<Player>();
 
             if (p.networkObject.IsOwner) {
+                return p;
+            }
+        }
+
+        return null;
+    }
+    public static Player MyPlayer(uint networkPlayerID) {
+        GameObject parent = GameObject.FindGameObjectWithTag("Players");
+
+        foreach (Transform child in parent.transform) {
+            Player p = child.GetComponent<Player>();
+
+            if (p.networkPlayerID == networkPlayerID) {
                 return p;
             }
         }

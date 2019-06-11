@@ -51,6 +51,10 @@ public class TankControls : TankControlsBehavior {
         if (Input.GetKey(KeyCode.A)) {
             movement.x -= 1;
         }
+
+        if (Input.GetKeyDown(KeyCode.Mouse0)) {
+            fire++;
+        }
     }
     private void SendControls() {
         if (networkObject.IsServer) {

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TankCell : MonoBehaviour {
 
-    public enum CellWall { Top, Right }
+    public enum CellWall { Top, Right, Both }
 
     private GameObject topWall, rightWall;
 
@@ -23,11 +23,20 @@ public class TankCell : MonoBehaviour {
     }
 
     public void DisableWall(CellWall type) {
-        if (type == CellWall.Top) {
+        if (type == CellWall.Top || type == CellWall.Both) {
             TopWall().SetActive(false);
-        } else if (type == CellWall.Right) {
+        }
+        if (type == CellWall.Right || type == CellWall.Both) {
             RightWall().SetActive(false);
         }
+
+        if (BothDisabled()) {
+            Destroy(gameObject);
+        }
+    }
+
+    private bool BothDisabled() {
+        return !TopWall().activeInHierarchy && !RightWall().activeInHierarchy;
     }
 
     public void SetWalls(bool enabled) {
