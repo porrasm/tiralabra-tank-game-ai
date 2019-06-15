@@ -1,12 +1,14 @@
 ﻿using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Unity;
+using System.Net;
+using System.Net.Sockets;
 using UnityEngine;
 
 public class Server {
 
     #region fields
     public const ushort PORT = 15937;
-    private static readonly string IP = "127.0.0.1";
+    public static string IP = "127.0.0.1";
 
     private static NetworkManager manager;
 
@@ -14,6 +16,9 @@ public class Server {
     #endregion
 
     public static bool StartServer() {
+
+        SetIP();
+
         Networker = new TCPServer(64);
         MonoBehaviour.print("Hosting: " + IP + ":" + PORT);
         ((TCPServer)Networker).Connect(IP, PORT);
@@ -27,6 +32,15 @@ public class Server {
         }
 
         return created;
+    }
+    public static void SetIP() {
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList) {
+            if (ip.AddressFamily == AddressFamily.InterNetwork) {
+                IP = ip.ToString();
+                return;
+            }
+        }
     }
 
     public static bool ConnectToServer() {

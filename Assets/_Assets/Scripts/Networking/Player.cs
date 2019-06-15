@@ -9,7 +9,7 @@ public class Player : ClientBehavior {
     private string playerName;
     private int score;
 
-    private uint networkPlayerID;
+    private uint networkPlayerID = uint.MaxValue;
     public int ID { get; set; }
     public PlayerColor Color { get; set; }
     public string Name {
@@ -64,6 +64,7 @@ public class Player : ClientBehavior {
         networkPlayerID = networkObject.MyPlayerId;
 
         if (!Server.Networker.IsServer) {
+            networkObject.SendRpc(RPC_SET_NETWORK_PLAYER_I_D_R_P_C, Receivers.All, networkObject.MyPlayerId);
             return;
         }
 
@@ -139,6 +140,9 @@ public class Player : ClientBehavior {
         Name = Scripts.GetScriptComponent<ClientManager>().GetFreeName(name);
         UpdateClient();
     }
+    public override void SetNetworkPlayerIDRPC(RpcArgs args) {
+        networkPlayerID = args.GetNext<uint>();
+    }
     #endregion
 
     #region tools
@@ -189,6 +193,19 @@ public class Player : ClientBehavior {
             Player p = child.GetComponent<Player>();
 
             if (p.networkPlayerID == networkPlayerID) {
+                return p;
+            }
+        }
+
+        return null;
+    }
+    public static Player PlayerByID(int id) {
+        GameObject parent = GameObject.FindGameObjectWithTag("Players");
+
+        foreach (Transform child in parent.transform) {
+            Player p = child.GetComponent<Player>();
+
+            if (p.ID == id) {
                 return p;
             }
         }

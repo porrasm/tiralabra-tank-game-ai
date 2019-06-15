@@ -13,7 +13,7 @@ public class TankGameClient : SceneScript {
         base.Initialize();
 
         if (!Server.Networker.IsServer) {
-            NetworkManager.Instance.InstantiateTankPlayer();
+            NetworkManager.Instance.InstantiateTankNetworking();
         }
     }
 }

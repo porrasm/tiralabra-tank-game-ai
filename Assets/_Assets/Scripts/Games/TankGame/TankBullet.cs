@@ -11,6 +11,13 @@ public class TankBullet : MonoBehaviour {
     private Rigidbody rb;
     private Vector3 velocity;
 
+    private float harmlessTime = 0.3f;
+    private float aliveTime;
+    private int bounces;
+
+    private void Awake() {
+        transform.position = transform.position += transform.forward * speed * Time.deltaTime;
+    }
     private void Start() {
         damage = TankSettings.BulletDamage;
         speed = TankSettings.BulletSpeed;
@@ -18,10 +25,26 @@ public class TankBullet : MonoBehaviour {
 
         velocity = transform.forward * speed;
         transform.eulerAngles = Vector3.zero;
+
+        aliveTime = TankSettings.BulletAliveTime;
+        bounces = TankSettings.BulletBounces;
     }
 
     private void Update() {
+        UpdateTime();
         FixVelocity();
+    }
+    private void UpdateTime() {
+
+        if (aliveTime > 0) {
+            aliveTime -= Time.deltaTime;
+        } else {
+            Kill();
+        }
+
+        if (harmlessTime > 0) {
+            harmlessTime -= Time.deltaTime;
+        }  
     }
     private void FixVelocity() {
         rb.velocity = velocity;
@@ -34,19 +57,25 @@ public class TankBullet : MonoBehaviour {
             return;
         }
 
-        print("Count: " + collision.contactCount);
+        if (bounces == 0) {
+            Kill();
+        }
 
         Bounce(collision.contacts[0]);
 
         damage -= TankSettings.BulletDamageBounceReduction;
+        bounces--;
     }
     private void Bounce(ContactPoint point) {
         Vector3 newDirection = Vector3.Reflect(velocity, point.normal);
         velocity = newDirection.normalized * speed; 
     }
 
+    private void Kill() {
+        Destroy(gameObject);
+    }
 
-    private bool HitPlayer(GameObject obj) {
+    private bool HitPlayer(GameObject obj) {   
 
         TankPlayer p = obj.GetComponent<TankPlayer>();
 
@@ -54,10 +83,14 @@ public class TankBullet : MonoBehaviour {
             return false;
         }
 
-        print("Hit player, doing damage");
+        if (harmlessTime > 0) {
+            if (p.Equals(Owner)) {
+                return true;
+            }
+        }
 
         p.DoDamage(damage, Owner);
-        Destroy(this.gameObject);
+        Kill();
         return true;
     }
 }

@@ -16,9 +16,9 @@ public class TankGameManager : MonoBehaviour {
         StartRound();
     }
 
-    private TankPlayer[] Players {
+    private TankNetworking[] Players {
         get {
-            return GameObject.FindGameObjectsWithTag("Player").Select(g => g.GetComponent<TankPlayer>()).ToArray();
+            return GameObject.FindGameObjectsWithTag("Player").Select(g => g.GetComponent<TankNetworking>()).ToArray();
         }
     }
 
@@ -26,10 +26,25 @@ public class TankGameManager : MonoBehaviour {
 
     }
 
+    private bool AllInitialized() {
+
+        foreach (TankNetworking p in Players) {
+            if (p.networkObject == null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     #region Round
     private void StartRound() {
 
         if (roundIsOn) {
+            return;
+        }
+
+        if (!AllInitialized()) {
             return;
         }
 
@@ -43,22 +58,24 @@ public class TankGameManager : MonoBehaviour {
 
         float roundTime = 0;
 
+        generator.GenerateLevel();
+
         SetPlayerPositions();
         SetPlayerStates(TankPlayer.PlayerState.Locked);
 
-        generator.GenerateLevel();
+        generator.BuildGeneratedLevel();
 
-        while (generator.Generating) {
+        while (generator.Building) {
             yield return null;
         }
 
         yield return new WaitForSeconds(TankSettings.ExtraWaitTime);
 
-        TankPlayer[] players = Players;
+        TankNetworking[] players = Players;
 
         SetPlayerStates(TankPlayer.PlayerState.Enabled);
 
-        while (roundTime < TankSettings.RoundTime && AliveCount(players) >= 1) {
+        while (roundTime < TankSettings.RoundTime && AliveCount(players) > 1) {
             roundTime += Time.deltaTime;
             yield return null;
         }
@@ -72,24 +89,23 @@ public class TankGameManager : MonoBehaviour {
         roundIsOn = false;
 
     }
-    private int AliveCount(TankPlayer[] players) {
+    private int AliveCount(TankNetworking[] players) {
 
         int count = 0;
 
-        foreach (TankPlayer p in players) {
+        foreach (TankNetworking p in players) {
             if (p.State == TankPlayer.PlayerState.Enabled) {
                 count++;
             }
         }
 
-        print("Alive count: " + count);
-
         return count;
     }
     private void GiveWin() {
-        foreach (TankPlayer p in Players) {
+        foreach (TankNetworking p in Players) {
             if (p.State == TankPlayer.PlayerState.Enabled) {
-                p.WinRound();
+                Debug.LogWarning("Not implemented");
+                // p.WinRound();
             }
         }
     }
@@ -98,7 +114,7 @@ public class TankGameManager : MonoBehaviour {
 
         Queue<Transform> spawns = RandomSpawns();
 
-        foreach (TankPlayer p in Players) {
+        foreach (TankNetworking p in Players) {
 
             Transform spawn = spawns.Dequeue();
 
@@ -107,7 +123,7 @@ public class TankGameManager : MonoBehaviour {
         }
     }
     private void SetPlayerStates(TankPlayer.PlayerState state) {
-        foreach (TankPlayer p in Players) {
+        foreach (TankPlayer p in Players.Select(p => p.GetComponent<TankPlayer>()).ToArray()) {
             p.SetPlayerState(state);
         }
     }
@@ -141,6 +157,4 @@ public class TankGameManager : MonoBehaviour {
         return rSpawns;
     }
     #endregion
-
-
 }

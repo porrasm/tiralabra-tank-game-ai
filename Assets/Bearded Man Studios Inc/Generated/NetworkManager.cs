@@ -17,8 +17,7 @@ namespace BeardedManStudios.Forge.Networking.Unity
 		public GameObject[] ExampleProximityPlayerNetworkObject = null;
 		public GameObject[] GamesNetworkObject = null;
 		public GameObject[] NetworkCameraNetworkObject = null;
-		public GameObject[] TankControlsNetworkObject = null;
-		public GameObject[] TankPlayerNetworkObject = null;
+		public GameObject[] TankNetworkingNetworkObject = null;
 
 		protected virtual void SetupObjectCreatedEvent()
 		{
@@ -197,40 +196,17 @@ namespace BeardedManStudios.Forge.Networking.Unity
 						objectInitialized(newObj, obj);
 				});
 			}
-			else if (obj is TankControlsNetworkObject)
+			else if (obj is TankNetworkingNetworkObject)
 			{
 				MainThreadManager.Run(() =>
 				{
 					NetworkBehavior newObj = null;
 					if (!NetworkBehavior.skipAttachIds.TryGetValue(obj.NetworkId, out newObj))
 					{
-						if (TankControlsNetworkObject.Length > 0 && TankControlsNetworkObject[obj.CreateCode] != null)
+						if (TankNetworkingNetworkObject.Length > 0 && TankNetworkingNetworkObject[obj.CreateCode] != null)
 						{
-							var go = Instantiate(TankControlsNetworkObject[obj.CreateCode]);
-							newObj = go.GetComponent<TankControlsBehavior>();
-						}
-					}
-
-					if (newObj == null)
-						return;
-						
-					newObj.Initialize(obj);
-
-					if (objectInitialized != null)
-						objectInitialized(newObj, obj);
-				});
-			}
-			else if (obj is TankPlayerNetworkObject)
-			{
-				MainThreadManager.Run(() =>
-				{
-					NetworkBehavior newObj = null;
-					if (!NetworkBehavior.skipAttachIds.TryGetValue(obj.NetworkId, out newObj))
-					{
-						if (TankPlayerNetworkObject.Length > 0 && TankPlayerNetworkObject[obj.CreateCode] != null)
-						{
-							var go = Instantiate(TankPlayerNetworkObject[obj.CreateCode]);
-							newObj = go.GetComponent<TankPlayerBehavior>();
+							var go = Instantiate(TankNetworkingNetworkObject[obj.CreateCode]);
+							newObj = go.GetComponent<TankNetworkingBehavior>();
 						}
 					}
 
@@ -337,25 +313,13 @@ namespace BeardedManStudios.Forge.Networking.Unity
 			
 			return netBehavior;
 		}
-		[Obsolete("Use InstantiateTankControls instead, its shorter and easier to type out ;)")]
-		public TankControlsBehavior InstantiateTankControlsNetworkObject(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
+		[Obsolete("Use InstantiateTankNetworking instead, its shorter and easier to type out ;)")]
+		public TankNetworkingBehavior InstantiateTankNetworkingNetworkObject(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
 		{
-			var go = Instantiate(TankControlsNetworkObject[index]);
-			var netBehavior = go.GetComponent<TankControlsBehavior>();
+			var go = Instantiate(TankNetworkingNetworkObject[index]);
+			var netBehavior = go.GetComponent<TankNetworkingBehavior>();
 			var obj = netBehavior.CreateNetworkObject(Networker, index);
-			go.GetComponent<TankControlsBehavior>().networkObject = (TankControlsNetworkObject)obj;
-
-			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
-			
-			return netBehavior;
-		}
-		[Obsolete("Use InstantiateTankPlayer instead, its shorter and easier to type out ;)")]
-		public TankPlayerBehavior InstantiateTankPlayerNetworkObject(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
-		{
-			var go = Instantiate(TankPlayerNetworkObject[index]);
-			var netBehavior = go.GetComponent<TankPlayerBehavior>();
-			var obj = netBehavior.CreateNetworkObject(Networker, index);
-			go.GetComponent<TankPlayerBehavior>().networkObject = (TankPlayerNetworkObject)obj;
+			go.GetComponent<TankNetworkingBehavior>().networkObject = (TankNetworkingNetworkObject)obj;
 
 			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
 			
@@ -720,19 +684,19 @@ namespace BeardedManStudios.Forge.Networking.Unity
 			return netBehavior;
 		}
 		/// <summary>
-		/// Instantiate an instance of TankControls
+		/// Instantiate an instance of TankNetworking
 		/// </summary>
 		/// <returns>
-		/// A local instance of TankControlsBehavior
+		/// A local instance of TankNetworkingBehavior
 		/// </returns>
-		/// <param name="index">The index of the TankControls prefab in the NetworkManager to Instantiate</param>
+		/// <param name="index">The index of the TankNetworking prefab in the NetworkManager to Instantiate</param>
 		/// <param name="position">Optional parameter which defines the position of the created GameObject</param>
 		/// <param name="rotation">Optional parameter which defines the rotation of the created GameObject</param>
 		/// <param name="sendTransform">Optional Parameter to send transform data to other connected clients on Instantiation</param>
-		public TankControlsBehavior InstantiateTankControls(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
+		public TankNetworkingBehavior InstantiateTankNetworking(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
 		{
-			var go = Instantiate(TankControlsNetworkObject[index]);
-			var netBehavior = go.GetComponent<TankControlsBehavior>();
+			var go = Instantiate(TankNetworkingNetworkObject[index]);
+			var netBehavior = go.GetComponent<TankNetworkingBehavior>();
 
 			NetworkObject obj = null;
 			if (!sendTransform && position == null && rotation == null)
@@ -764,58 +728,7 @@ namespace BeardedManStudios.Forge.Networking.Unity
 				obj = netBehavior.CreateNetworkObject(Networker, index, metadata.CompressBytes());
 			}
 
-			go.GetComponent<TankControlsBehavior>().networkObject = (TankControlsNetworkObject)obj;
-
-			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
-			
-			return netBehavior;
-		}
-		/// <summary>
-		/// Instantiate an instance of TankPlayer
-		/// </summary>
-		/// <returns>
-		/// A local instance of TankPlayerBehavior
-		/// </returns>
-		/// <param name="index">The index of the TankPlayer prefab in the NetworkManager to Instantiate</param>
-		/// <param name="position">Optional parameter which defines the position of the created GameObject</param>
-		/// <param name="rotation">Optional parameter which defines the rotation of the created GameObject</param>
-		/// <param name="sendTransform">Optional Parameter to send transform data to other connected clients on Instantiation</param>
-		public TankPlayerBehavior InstantiateTankPlayer(int index = 0, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true)
-		{
-			var go = Instantiate(TankPlayerNetworkObject[index]);
-			var netBehavior = go.GetComponent<TankPlayerBehavior>();
-
-			NetworkObject obj = null;
-			if (!sendTransform && position == null && rotation == null)
-				obj = netBehavior.CreateNetworkObject(Networker, index);
-			else
-			{
-				metadata.Clear();
-
-				if (position == null && rotation == null)
-				{
-					byte transformFlags = 0x1 | 0x2;
-					ObjectMapper.Instance.MapBytes(metadata, transformFlags);
-					ObjectMapper.Instance.MapBytes(metadata, go.transform.position, go.transform.rotation);
-				}
-				else
-				{
-					byte transformFlags = 0x0;
-					transformFlags |= (byte)(position != null ? 0x1 : 0x0);
-					transformFlags |= (byte)(rotation != null ? 0x2 : 0x0);
-					ObjectMapper.Instance.MapBytes(metadata, transformFlags);
-
-					if (position != null)
-						ObjectMapper.Instance.MapBytes(metadata, position.Value);
-
-					if (rotation != null)
-						ObjectMapper.Instance.MapBytes(metadata, rotation.Value);
-				}
-
-				obj = netBehavior.CreateNetworkObject(Networker, index, metadata.CompressBytes());
-			}
-
-			go.GetComponent<TankPlayerBehavior>().networkObject = (TankPlayerNetworkObject)obj;
+			go.GetComponent<TankNetworkingBehavior>().networkObject = (TankNetworkingNetworkObject)obj;
 
 			FinalizeInitialization(go, netBehavior, obj, position, rotation, sendTransform);
 			

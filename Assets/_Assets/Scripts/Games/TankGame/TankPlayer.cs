@@ -4,57 +4,28 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TankPlayer : TankPlayerBehavior {
+public class TankPlayer : MonoBehaviour {
 
     #region fields
-    private Player owner;
-
-    private int health;
-    private int score;
+    private TankNetworking net;
 
     private int roundWins;
     private int kills;
     private int assists;
-
-    public PlayerState State { get; private set; }
-
+     
     public enum PlayerState { Disabled = 0, Locked = 1, Enabled = 2 }
     #endregion
 
-    protected override void NetworkStart() {
-        base.NetworkStart();
-
-        if (networkObject.IsServer) {
-            transform.SetParent(GameObject.FindGameObjectWithTag("Game").transform);
-            transform.localScale = new Vector3(1, 1, 1);
-            owner = Player.MyPlayer(networkObject.MyPlayerId);
-        }
-    }
-
-    private void Update() {
-        UpdateVariables();
-    }
-
-    private void UpdateVariables() {
-
-        if (networkObject.IsServer) {
-
-            networkObject.Health = health;
-            networkObject.Score = score;
-
-            return;
-        }
-
-        health = networkObject.Health;
-        score = networkObject.Score;
+    private void Start() {
+        net = GetComponent<TankNetworking>();
     }
 
     #region Game
     public void DoDamage(int damage, TankPlayer player) {
 
-        health -= damage;
+        net.Health -= damage;
 
-        if (health <= 0) {
+        if (net.Health <= 0) {
             SetPlayerState(PlayerState.Disabled);
             player.KilledPlayer(this);
         }
@@ -65,28 +36,29 @@ public class TankPlayer : TankPlayerBehavior {
     }
     public void SetPlayerState(PlayerState state) {
 
-        if (!networkObject.IsServer) {
+        if (!net.networkObject.IsServer) {
             return;
         }
 
-        this.State = state;
-        networkObject.SendRpc(RPC_CHANGE_STATE_R_P_C, Receivers.All, (byte)state);
+        GetComponent<TankController>().StopTank();
+
+        net.ChangeState(state);
 
         UpdateState();
     }
     private void UpdateState() {
-        if (State == PlayerState.Enabled) {
+
+        print("Player update state: " + net.State);
+
+        if (net.State == PlayerState.Enabled) {
             transform.GetChild(0).gameObject.SetActive(true);
-            GetComponent<TankController>().enabled = true;
             SetAlive();
         }
-        if (State == PlayerState.Locked) {
+        if (net.State == PlayerState.Locked) {
             transform.GetChild(0).gameObject.SetActive(true);
-            GetComponent<TankController>().enabled = false;
         }
-        if (State == PlayerState.Disabled) {
+        if (net.State == PlayerState.Disabled) {
             transform.GetChild(0).gameObject.SetActive(false);
-            GetComponent<TankController>().enabled = false;
             Kill();
         }
     }
@@ -113,27 +85,14 @@ public class TankPlayer : TankPlayerBehavior {
 
         print("Setting health to: " + TankSettings.Health);
 
-        health = TankSettings.Health;
+        net.Health = TankSettings.Health;
     }
     private void Kill() {
-        health = 0;
+        net.Health = 0;
     }
-
-    #region RPCS
-    public override void ChangeStateRPC(RpcArgs args) {
-        byte stateByte = args.GetNext<byte>();
-        State = (PlayerState)stateByte;
-    }
-    #endregion
 
     public void AddScore(int score) {
-
-        if (!networkObject.IsOwner) {
-            return;
-        }
-
-        networkObject.Score += score;
-        score += score;
+        net.TankScore += score;
     }
 
     public override bool Equals(object other) {
@@ -144,6 +103,6 @@ public class TankPlayer : TankPlayerBehavior {
             return false;
         }
 
-        return owner.ID == p.owner.ID;
-    }
+        return net.Owner.ID == p.net.Owner.ID;
+    }  
 }

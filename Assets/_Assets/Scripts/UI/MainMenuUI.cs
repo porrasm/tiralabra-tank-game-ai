@@ -2,10 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MainMenuUI : MonoBehaviour {
 
     private Transform currentView;
+
+    [SerializeField]
+    private InputField ipField;
+
+    [SerializeField]
+    private Text ipText;
 
     [SerializeField]
     private string startView;
@@ -13,6 +20,16 @@ public class MainMenuUI : MonoBehaviour {
     private void Start() {
         DisableAllViews(transform);
         ChangeView(startView, true);
+
+        Server.SetIP();
+        
+        if (ipField != null) {
+            ipField.text = Server.IP;
+        }
+
+        if (ipText != null) {
+            ipText.text = Server.IP;
+        }
     }
     public void CreateGame() {
         bool success = Server.StartServer();
@@ -29,7 +46,11 @@ public class MainMenuUI : MonoBehaviour {
 
         // Scripts.GetGameObject().GetComponent<UDP_Server>().StopServer();
     }
-
+    
+    public void SetIP() {
+        string ip = ipField.text;
+        Server.IP = ip;
+    }
     public void JoinGame() {
         bool success = Server.ConnectToServer();
         if (success) {   

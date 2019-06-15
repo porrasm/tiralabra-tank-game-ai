@@ -27,7 +27,7 @@ public class TankSettings : MonoBehaviour {
     public static float TankSpeed = 1;
     public static float TankRotateSpeed = 100;
 
-    public static float BulletSpeed = 1.5f;
+    public static float BulletSpeed = 2f;
 
     #region Game
     public static int RoundTime = 120;
@@ -40,6 +40,7 @@ public class TankSettings : MonoBehaviour {
     public static int BulletDamage = 60;
     public static int BulletBounces = 5;
     public static int BulletDamageBounceReduction = 10;
+    public static float BulletAliveTime = 10f;
 
     #endregion
 

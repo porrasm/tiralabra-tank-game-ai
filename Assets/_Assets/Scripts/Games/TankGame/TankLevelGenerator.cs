@@ -26,7 +26,7 @@ public class TankLevelGenerator : MonoBehaviour {
 
     private System.Random rnd;
 
-    public bool Generating { get; set; }
+    public bool Building { get; set; }
 
     private struct Step {
         public Coords Coords;
@@ -58,16 +58,18 @@ public class TankLevelGenerator : MonoBehaviour {
     }
 
     public void GenerateLevel() {
+        Initialize();
+        DFSGenerateMaze();
+        CleanLevel();    
+    }
+    public void BuildGeneratedLevel() {
 
-        if (Generating) {
+        if (Building) {
             return;
         }
 
-        Generating = true;
+        Building = true;
 
-        Initialize();
-        DFSGenerateMaze();
-        CleanLevel();
         BuildLevel();
     }
 
@@ -109,7 +111,7 @@ public class TankLevelGenerator : MonoBehaviour {
     }
 
     private void InitializeLevelArea() {
-        levelFloor.localScale = new Vector3(width, 1, height) * 0.1f;
+        levelFloor.localScale = new Vector3(0.1f * width, 1, 0.1f * height);
     }
     private void InitializeCamera() {
 
@@ -369,9 +371,6 @@ public class TankLevelGenerator : MonoBehaviour {
 
     #region Creation
     private void BuildLevel() {
-
-        print("Step count: " + steps.Count);
-
         StartCoroutine(BuildCoroutine());
     }
     private IEnumerator BuildCoroutine() {
@@ -399,11 +398,9 @@ public class TankLevelGenerator : MonoBehaviour {
             additional = 0;
         }
 
-        Generating = false;
+        Building = false;
     }
     private bool ProcessStep(Step step) {
-
-        print(step);
 
         TankCell cell = cells[step.Coords.X, step.Coords.Y];
 

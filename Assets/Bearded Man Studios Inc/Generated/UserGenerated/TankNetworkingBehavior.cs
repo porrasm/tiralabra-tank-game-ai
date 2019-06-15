@@ -4,12 +4,14 @@ using UnityEngine;
 
 namespace BeardedManStudios.Forge.Networking.Generated
 {
-	[GeneratedRPC("{\"types\":[]")]
-	[GeneratedRPCVariableNames("{\"types\":[]")]
-	public abstract partial class TankControlsBehavior : NetworkBehavior
+	[GeneratedRPC("{\"types\":[[\"int\"][\"byte\"]]")]
+	[GeneratedRPCVariableNames("{\"types\":[[\"PlayerID\"][\"State\"]]")]
+	public abstract partial class TankNetworkingBehavior : NetworkBehavior
 	{
+		public const byte RPC_SET_OWNER_R_P_C = 0 + 5;
+		public const byte RPC_CHANGE_STATE_R_P_C = 1 + 5;
 		
-		public TankControlsNetworkObject networkObject = null;
+		public TankNetworkingNetworkObject networkObject = null;
 
 		public override void Initialize(NetworkObject obj)
 		{
@@ -17,10 +19,12 @@ namespace BeardedManStudios.Forge.Networking.Generated
 			if (networkObject != null && networkObject.AttachedBehavior != null)
 				return;
 			
-			networkObject = (TankControlsNetworkObject)obj;
+			networkObject = (TankNetworkingNetworkObject)obj;
 			networkObject.AttachedBehavior = this;
 
 			base.SetupHelperRpcs(networkObject);
+			networkObject.RegisterRpc("SetOwnerRPC", SetOwnerRPC, typeof(int));
+			networkObject.RegisterRpc("ChangeStateRPC", ChangeStateRPC, typeof(byte));
 
 			networkObject.onDestroy += DestroyGameObject;
 
@@ -78,7 +82,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		public override void Initialize(NetWorker networker, byte[] metadata = null)
 		{
-			Initialize(new TankControlsNetworkObject(networker, createCode: TempAttachCode, metadata: metadata));
+			Initialize(new TankNetworkingNetworkObject(networker, createCode: TempAttachCode, metadata: metadata));
 		}
 
 		private void DestroyGameObject(NetWorker sender)
@@ -89,7 +93,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		public override NetworkObject CreateNetworkObject(NetWorker networker, int createCode, byte[] metadata = null)
 		{
-			return new TankControlsNetworkObject(networker, this, createCode, metadata);
+			return new TankNetworkingNetworkObject(networker, this, createCode, metadata);
 		}
 
 		protected override void InitializedTransform()
@@ -97,6 +101,16 @@ namespace BeardedManStudios.Forge.Networking.Generated
 			networkObject.SnapInterpolations();
 		}
 
+		/// <summary>
+		/// Arguments:
+		/// int PlayerID
+		/// </summary>
+		public abstract void SetOwnerRPC(RpcArgs args);
+		/// <summary>
+		/// Arguments:
+		/// byte State
+		/// </summary>
+		public abstract void ChangeStateRPC(RpcArgs args);
 
 		// DO NOT TOUCH, THIS GETS GENERATED PLEASE EXTEND THIS CLASS IF YOU WISH TO HAVE CUSTOM CODE ADDITIONS
 	}

@@ -5,16 +5,78 @@ using UnityEngine;
 
 namespace BeardedManStudios.Forge.Networking.Generated
 {
-	[GeneratedInterpol("{\"inter\":[0,0,0,0,0]")]
-	public partial class TankControlsNetworkObject : NetworkObject
+	[GeneratedInterpol("{\"inter\":[0,0,0,0,0,0]")]
+	public partial class TankNetworkingNetworkObject : NetworkObject
 	{
-		public const int IDENTITY = 8;
+		public const int IDENTITY = 11;
 
 		private byte[] _dirtyFields = new byte[1];
 
 		#pragma warning disable 0067
 		public event FieldChangedEvent fieldAltered;
 		#pragma warning restore 0067
+		[ForgeGeneratedField]
+		private int _Health;
+		public event FieldEvent<int> HealthChanged;
+		public Interpolated<int> HealthInterpolation = new Interpolated<int>() { LerpT = 0f, Enabled = false };
+		public int Health
+		{
+			get { return _Health; }
+			set
+			{
+				// Don't do anything if the value is the same
+				if (_Health == value)
+					return;
+
+				// Mark the field as dirty for the network to transmit
+				_dirtyFields[0] |= 0x1;
+				_Health = value;
+				hasDirtyFields = true;
+			}
+		}
+
+		public void SetHealthDirty()
+		{
+			_dirtyFields[0] |= 0x1;
+			hasDirtyFields = true;
+		}
+
+		private void RunChange_Health(ulong timestep)
+		{
+			if (HealthChanged != null) HealthChanged(_Health, timestep);
+			if (fieldAltered != null) fieldAltered("Health", _Health, timestep);
+		}
+		[ForgeGeneratedField]
+		private int _Score;
+		public event FieldEvent<int> ScoreChanged;
+		public Interpolated<int> ScoreInterpolation = new Interpolated<int>() { LerpT = 0f, Enabled = false };
+		public int Score
+		{
+			get { return _Score; }
+			set
+			{
+				// Don't do anything if the value is the same
+				if (_Score == value)
+					return;
+
+				// Mark the field as dirty for the network to transmit
+				_dirtyFields[0] |= 0x2;
+				_Score = value;
+				hasDirtyFields = true;
+			}
+		}
+
+		public void SetScoreDirty()
+		{
+			_dirtyFields[0] |= 0x2;
+			hasDirtyFields = true;
+		}
+
+		private void RunChange_Score(ulong timestep)
+		{
+			if (ScoreChanged != null) ScoreChanged(_Score, timestep);
+			if (fieldAltered != null) fieldAltered("Score", _Score, timestep);
+		}
 		[ForgeGeneratedField]
 		private Vector2 _Movement;
 		public event FieldEvent<Vector2> MovementChanged;
@@ -29,7 +91,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 					return;
 
 				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x1;
+				_dirtyFields[0] |= 0x4;
 				_Movement = value;
 				hasDirtyFields = true;
 			}
@@ -37,7 +99,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		public void SetMovementDirty()
 		{
-			_dirtyFields[0] |= 0x1;
+			_dirtyFields[0] |= 0x4;
 			hasDirtyFields = true;
 		}
 
@@ -60,7 +122,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 					return;
 
 				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x2;
+				_dirtyFields[0] |= 0x8;
 				_Rotation = value;
 				hasDirtyFields = true;
 			}
@@ -68,7 +130,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		public void SetRotationDirty()
 		{
-			_dirtyFields[0] |= 0x2;
+			_dirtyFields[0] |= 0x8;
 			hasDirtyFields = true;
 		}
 
@@ -76,37 +138,6 @@ namespace BeardedManStudios.Forge.Networking.Generated
 		{
 			if (RotationChanged != null) RotationChanged(_Rotation, timestep);
 			if (fieldAltered != null) fieldAltered("Rotation", _Rotation, timestep);
-		}
-		[ForgeGeneratedField]
-		private float _HeadRotation;
-		public event FieldEvent<float> HeadRotationChanged;
-		public InterpolateFloat HeadRotationInterpolation = new InterpolateFloat() { LerpT = 0f, Enabled = false };
-		public float HeadRotation
-		{
-			get { return _HeadRotation; }
-			set
-			{
-				// Don't do anything if the value is the same
-				if (_HeadRotation == value)
-					return;
-
-				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x4;
-				_HeadRotation = value;
-				hasDirtyFields = true;
-			}
-		}
-
-		public void SetHeadRotationDirty()
-		{
-			_dirtyFields[0] |= 0x4;
-			hasDirtyFields = true;
-		}
-
-		private void RunChange_HeadRotation(ulong timestep)
-		{
-			if (HeadRotationChanged != null) HeadRotationChanged(_HeadRotation, timestep);
-			if (fieldAltered != null) fieldAltered("HeadRotation", _HeadRotation, timestep);
 		}
 		[ForgeGeneratedField]
 		private int _Fire;
@@ -122,7 +153,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 					return;
 
 				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x8;
+				_dirtyFields[0] |= 0x10;
 				_Fire = value;
 				hasDirtyFields = true;
 			}
@@ -130,7 +161,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		public void SetFireDirty()
 		{
-			_dirtyFields[0] |= 0x8;
+			_dirtyFields[0] |= 0x10;
 			hasDirtyFields = true;
 		}
 
@@ -153,7 +184,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 					return;
 
 				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x10;
+				_dirtyFields[0] |= 0x20;
 				_Powerup = value;
 				hasDirtyFields = true;
 			}
@@ -161,7 +192,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		public void SetPowerupDirty()
 		{
-			_dirtyFields[0] |= 0x10;
+			_dirtyFields[0] |= 0x20;
 			hasDirtyFields = true;
 		}
 
@@ -179,9 +210,10 @@ namespace BeardedManStudios.Forge.Networking.Generated
 		
 		public void SnapInterpolations()
 		{
+			HealthInterpolation.current = HealthInterpolation.target;
+			ScoreInterpolation.current = ScoreInterpolation.target;
 			MovementInterpolation.current = MovementInterpolation.target;
 			RotationInterpolation.current = RotationInterpolation.target;
-			HeadRotationInterpolation.current = HeadRotationInterpolation.target;
 			FireInterpolation.current = FireInterpolation.target;
 			PowerupInterpolation.current = PowerupInterpolation.target;
 		}
@@ -190,9 +222,10 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		protected override BMSByte WritePayload(BMSByte data)
 		{
+			UnityObjectMapper.Instance.MapBytes(data, _Health);
+			UnityObjectMapper.Instance.MapBytes(data, _Score);
 			UnityObjectMapper.Instance.MapBytes(data, _Movement);
 			UnityObjectMapper.Instance.MapBytes(data, _Rotation);
-			UnityObjectMapper.Instance.MapBytes(data, _HeadRotation);
 			UnityObjectMapper.Instance.MapBytes(data, _Fire);
 			UnityObjectMapper.Instance.MapBytes(data, _Powerup);
 
@@ -201,6 +234,14 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		protected override void ReadPayload(BMSByte payload, ulong timestep)
 		{
+			_Health = UnityObjectMapper.Instance.Map<int>(payload);
+			HealthInterpolation.current = _Health;
+			HealthInterpolation.target = _Health;
+			RunChange_Health(timestep);
+			_Score = UnityObjectMapper.Instance.Map<int>(payload);
+			ScoreInterpolation.current = _Score;
+			ScoreInterpolation.target = _Score;
+			RunChange_Score(timestep);
 			_Movement = UnityObjectMapper.Instance.Map<Vector2>(payload);
 			MovementInterpolation.current = _Movement;
 			MovementInterpolation.target = _Movement;
@@ -209,10 +250,6 @@ namespace BeardedManStudios.Forge.Networking.Generated
 			RotationInterpolation.current = _Rotation;
 			RotationInterpolation.target = _Rotation;
 			RunChange_Rotation(timestep);
-			_HeadRotation = UnityObjectMapper.Instance.Map<float>(payload);
-			HeadRotationInterpolation.current = _HeadRotation;
-			HeadRotationInterpolation.target = _HeadRotation;
-			RunChange_HeadRotation(timestep);
 			_Fire = UnityObjectMapper.Instance.Map<int>(payload);
 			FireInterpolation.current = _Fire;
 			FireInterpolation.target = _Fire;
@@ -229,14 +266,16 @@ namespace BeardedManStudios.Forge.Networking.Generated
 			dirtyFieldsData.Append(_dirtyFields);
 
 			if ((0x1 & _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Movement);
+				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Health);
 			if ((0x2 & _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Rotation);
+				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Score);
 			if ((0x4 & _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _HeadRotation);
+				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Movement);
 			if ((0x8 & _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Fire);
+				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Rotation);
 			if ((0x10 & _dirtyFields[0]) != 0)
+				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Fire);
+			if ((0x20 & _dirtyFields[0]) != 0)
 				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Powerup);
 
 			// Reset all the dirty fields
@@ -256,6 +295,32 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 			if ((0x1 & readDirtyFlags[0]) != 0)
 			{
+				if (HealthInterpolation.Enabled)
+				{
+					HealthInterpolation.target = UnityObjectMapper.Instance.Map<int>(data);
+					HealthInterpolation.Timestep = timestep;
+				}
+				else
+				{
+					_Health = UnityObjectMapper.Instance.Map<int>(data);
+					RunChange_Health(timestep);
+				}
+			}
+			if ((0x2 & readDirtyFlags[0]) != 0)
+			{
+				if (ScoreInterpolation.Enabled)
+				{
+					ScoreInterpolation.target = UnityObjectMapper.Instance.Map<int>(data);
+					ScoreInterpolation.Timestep = timestep;
+				}
+				else
+				{
+					_Score = UnityObjectMapper.Instance.Map<int>(data);
+					RunChange_Score(timestep);
+				}
+			}
+			if ((0x4 & readDirtyFlags[0]) != 0)
+			{
 				if (MovementInterpolation.Enabled)
 				{
 					MovementInterpolation.target = UnityObjectMapper.Instance.Map<Vector2>(data);
@@ -267,7 +332,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 					RunChange_Movement(timestep);
 				}
 			}
-			if ((0x2 & readDirtyFlags[0]) != 0)
+			if ((0x8 & readDirtyFlags[0]) != 0)
 			{
 				if (RotationInterpolation.Enabled)
 				{
@@ -280,20 +345,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 					RunChange_Rotation(timestep);
 				}
 			}
-			if ((0x4 & readDirtyFlags[0]) != 0)
-			{
-				if (HeadRotationInterpolation.Enabled)
-				{
-					HeadRotationInterpolation.target = UnityObjectMapper.Instance.Map<float>(data);
-					HeadRotationInterpolation.Timestep = timestep;
-				}
-				else
-				{
-					_HeadRotation = UnityObjectMapper.Instance.Map<float>(data);
-					RunChange_HeadRotation(timestep);
-				}
-			}
-			if ((0x8 & readDirtyFlags[0]) != 0)
+			if ((0x10 & readDirtyFlags[0]) != 0)
 			{
 				if (FireInterpolation.Enabled)
 				{
@@ -306,7 +358,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 					RunChange_Fire(timestep);
 				}
 			}
-			if ((0x10 & readDirtyFlags[0]) != 0)
+			if ((0x20 & readDirtyFlags[0]) != 0)
 			{
 				if (PowerupInterpolation.Enabled)
 				{
@@ -326,6 +378,16 @@ namespace BeardedManStudios.Forge.Networking.Generated
 			if (IsOwner)
 				return;
 
+			if (HealthInterpolation.Enabled && !HealthInterpolation.current.UnityNear(HealthInterpolation.target, 0.0015f))
+			{
+				_Health = (int)HealthInterpolation.Interpolate();
+				//RunChange_Health(HealthInterpolation.Timestep);
+			}
+			if (ScoreInterpolation.Enabled && !ScoreInterpolation.current.UnityNear(ScoreInterpolation.target, 0.0015f))
+			{
+				_Score = (int)ScoreInterpolation.Interpolate();
+				//RunChange_Score(ScoreInterpolation.Timestep);
+			}
 			if (MovementInterpolation.Enabled && !MovementInterpolation.current.UnityNear(MovementInterpolation.target, 0.0015f))
 			{
 				_Movement = (Vector2)MovementInterpolation.Interpolate();
@@ -335,11 +397,6 @@ namespace BeardedManStudios.Forge.Networking.Generated
 			{
 				_Rotation = (float)RotationInterpolation.Interpolate();
 				//RunChange_Rotation(RotationInterpolation.Timestep);
-			}
-			if (HeadRotationInterpolation.Enabled && !HeadRotationInterpolation.current.UnityNear(HeadRotationInterpolation.target, 0.0015f))
-			{
-				_HeadRotation = (float)HeadRotationInterpolation.Interpolate();
-				//RunChange_HeadRotation(HeadRotationInterpolation.Timestep);
 			}
 			if (FireInterpolation.Enabled && !FireInterpolation.current.UnityNear(FireInterpolation.target, 0.0015f))
 			{
@@ -360,9 +417,9 @@ namespace BeardedManStudios.Forge.Networking.Generated
 
 		}
 
-		public TankControlsNetworkObject() : base() { Initialize(); }
-		public TankControlsNetworkObject(NetWorker networker, INetworkBehavior networkBehavior = null, int createCode = 0, byte[] metadata = null) : base(networker, networkBehavior, createCode, metadata) { Initialize(); }
-		public TankControlsNetworkObject(NetWorker networker, uint serverId, FrameStream frame) : base(networker, serverId, frame) { Initialize(); }
+		public TankNetworkingNetworkObject() : base() { Initialize(); }
+		public TankNetworkingNetworkObject(NetWorker networker, INetworkBehavior networkBehavior = null, int createCode = 0, byte[] metadata = null) : base(networker, networkBehavior, createCode, metadata) { Initialize(); }
+		public TankNetworkingNetworkObject(NetWorker networker, uint serverId, FrameStream frame) : base(networker, serverId, frame) { Initialize(); }
 
 		// DO NOT TOUCH, THIS GETS GENERATED PLEASE EXTEND THIS CLASS IF YOU WISH TO HAVE CUSTOM CODE ADDITIONS
 	}

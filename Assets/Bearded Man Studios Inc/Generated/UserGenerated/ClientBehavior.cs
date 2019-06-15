@@ -4,13 +4,14 @@ using UnityEngine;
 
 namespace BeardedManStudios.Forge.Networking.Generated
 {
-	[GeneratedRPC("{\"types\":[[\"byte\", \"byte\", \"string\", \"byte\"][][\"string\"]]")]
-	[GeneratedRPCVariableNames("{\"types\":[[\"ID\", \"Color\", \"Name\", \"Ready\"][][\"name\"]]")]
+	[GeneratedRPC("{\"types\":[[\"byte\", \"byte\", \"string\", \"byte\"][][\"string\"][\"uint\"]]")]
+	[GeneratedRPCVariableNames("{\"types\":[[\"ID\", \"Color\", \"Name\", \"Ready\"][][\"name\"][\"PlayerID\"]]")]
 	public abstract partial class ClientBehavior : NetworkBehavior
 	{
 		public const byte RPC_UPDATE_CLIENT_RPC = 0 + 5;
 		public const byte RPC_TOGGLE_COLOR_RPC = 1 + 5;
 		public const byte RPC_CHANGE_NAME_RPC = 2 + 5;
+		public const byte RPC_SET_NETWORK_PLAYER_I_D_R_P_C = 3 + 5;
 		
 		public ClientNetworkObject networkObject = null;
 
@@ -27,6 +28,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 			networkObject.RegisterRpc("UpdateClientRpc", UpdateClientRpc, typeof(byte), typeof(byte), typeof(string), typeof(byte));
 			networkObject.RegisterRpc("ToggleColorRpc", ToggleColorRpc);
 			networkObject.RegisterRpc("ChangeNameRpc", ChangeNameRpc, typeof(string));
+			networkObject.RegisterRpc("SetNetworkPlayerIDRPC", SetNetworkPlayerIDRPC, typeof(uint));
 
 			networkObject.onDestroy += DestroyGameObject;
 
@@ -119,6 +121,10 @@ namespace BeardedManStudios.Forge.Networking.Generated
 		/// Arguments:
 		/// </summary>
 		public abstract void ChangeNameRpc(RpcArgs args);
+		/// <summary>
+		/// Arguments:
+		/// </summary>
+		public abstract void SetNetworkPlayerIDRPC(RpcArgs args);
 
 		// DO NOT TOUCH, THIS GETS GENERATED PLEASE EXTEND THIS CLASS IF YOU WISH TO HAVE CUSTOM CODE ADDITIONS
 	}
