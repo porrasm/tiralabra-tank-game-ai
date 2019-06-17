@@ -12,8 +12,8 @@ public class TankController : MonoBehaviour {
     private float speed, rotateSpeed;
 
     private TankControls controls;
+    private TankWeapon weapon;
 
-    private Transform bulletSpawn;
     private Rigidbody rb;
 
     [SerializeField]
@@ -27,16 +27,17 @@ public class TankController : MonoBehaviour {
 
         player = GetComponent<TankPlayer>();
 
-        bulletSpawn = transform.GetChild(0).GetChild(2).GetChild(0);
+        
         rb = GetComponent<Rigidbody>();
         controls = GetComponent<TankControls>();
+        weapon = GetComponent<TankWeapon>();
 
         speed = TankSettings.TankSpeed;
         rotateSpeed = TankSettings.TankRotateSpeed;
 
         net = GetComponent<TankNetworking>();
 
-        if (!Server.Networker.IsServer) {
+        if (Server.Networker != null && !Server.Networker.IsServer) {
             Destroy(this);
             return;
         }
@@ -63,16 +64,9 @@ public class TankController : MonoBehaviour {
             return;
         }
 
+        FireAndPowerup();
         StopTank();
         MoveTank();
-
-        if (net.Fire > fireIndex) {
-            fireIndex = net.Fire;
-            GameObject newBullet = Instantiate(bulletPrefab);
-            newBullet.transform.position = bulletSpawn.position;
-            newBullet.transform.forward = bulletSpawn.forward;
-            newBullet.GetComponent<TankBullet>().Owner = player;
-        }
     }
 
     public void StopTank() {
@@ -89,5 +83,9 @@ public class TankController : MonoBehaviour {
         // transform.eulerAngles += Vector3.forward * rotation;
         rb.MoveRotation(rb.rotation * deltaRotation);
         rb.MovePosition(rb.position + velocity);
+    }
+    private void FireAndPowerup() {
+        weapon.Fire(net.Fire);
+        weapon.Powerup(net.Powerup);
     }
 }

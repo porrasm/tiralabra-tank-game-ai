@@ -37,4 +37,7 @@ public class TankGameUI : MonoBehaviour {
     public void Powerup() {
         controls.Powerup();
     }
+    public void CalibrateGyro() {
+        controls.CalibrateGyro();
+    }
 }

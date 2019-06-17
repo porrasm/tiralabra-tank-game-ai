@@ -52,6 +52,13 @@ public class TankSettings : MonoBehaviour {
     public static float MultiKillFactor = 1.25f;
 
     #endregion
+
+    #region Tank
+    public static int ClipAmount = 5;
+    public static float ReloadTime = 2;
+    public static float FireRate = 5;
+
+    #endregion
 }
 
 /*

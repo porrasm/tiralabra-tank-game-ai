@@ -49,6 +49,7 @@ public class TankNetworking : TankNetworkingBehavior {
 
         GetComponent<TankPlayer>().enabled = true;
         GetComponent<TankControls>().enabled = true;
+        GetComponent<TankWeapon>().enabled = true;
     }
 
     private void Update() {

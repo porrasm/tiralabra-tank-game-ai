@@ -8,13 +8,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Assets/_Scenes/_StartMenu.unity
     guid: 0c66393c43bd7a74aa24c47d5be9542b
-  - enabled: 0
+  - enabled: 1
     path: Assets/_Assets/_Scenes/Host_Lobby.unity
     guid: 0f9c0956905f0eb4781ec8f07696b337
   - enabled: 1
     path: Assets/_Assets/_Scenes/Client_Lobby.unity
     guid: e3fd9f4ef06748f47b97f0243ae4a3fc
-  - enabled: 0
+  - enabled: 1
     path: Assets/_Assets/_Scenes/Host_TankGame.unity
     guid: ecae2c129abd4304990b40cee821465e
   - enabled: 1

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
+// Most things breaks if width != height, fix later :):)
 public class TankLevelGenerator : MonoBehaviour {
 
     #region fields
@@ -86,6 +87,7 @@ public class TankLevelGenerator : MonoBehaviour {
 
     private void InitializeVariables() {
 
+        // Values are swapped
         width = TankSettings.LevelWidth;
         height = TankSettings.LevelHeight;
 
@@ -110,15 +112,16 @@ public class TankLevelGenerator : MonoBehaviour {
         RemoveEdgeWalls();
     }
 
+    // Initialization needs to swap width & height
     private void InitializeLevelArea() {
-        levelFloor.localScale = new Vector3(0.1f * width, 1, 0.1f * height);
+        levelFloor.localScale = new Vector3(0.1f * height, 1, 0.1f * width);
     }
     private void InitializeCamera() {
 
-        Vector3 position = new Vector3(1.0f * width / 2, 10, 1.0f * height / 2);
+        Vector3 position = new Vector3(1.0f * height / 2, 10, 1.0f * width / 2);
         float size;
 
-        if (width > height) {
+        if (height > width) {
             size = position.x * TankSettings.CameraSizeFactorX;
         } else {
             size = position.z * TankSettings.CameraSizeFactorY;

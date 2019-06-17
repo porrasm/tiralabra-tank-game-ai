@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 771754110}
   - component: {fileID: 771754111}
   - component: {fileID: 771754112}
+  - component: {fileID: 4335061727227312846}
   m_Layer: 0
   m_Name: Tank
   m_TagString: Player
@@ -104,6 +105,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dbe437eefe8b6d488bcdd99abac11d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4335061727227312846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3916300988557135650}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c0e9b2b280cfa74aba490625542860e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bulletPrefab: {fileID: 3971886460923043060, guid: 207da618ee3524546bea670f1c9e2d31,
+    type: 3}
 --- !u!1 &4064324444861972710
 GameObject:
   m_ObjectHideFlags: 0

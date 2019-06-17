@@ -75,7 +75,7 @@ public class TankGameManager : MonoBehaviour {
 
         SetPlayerStates(TankPlayer.PlayerState.Enabled);
 
-        while (roundTime < TankSettings.RoundTime && AliveCount(players) > 1) {
+        while (roundTime < TankSettings.RoundTime && AliveCount(players) >= 1) {
             roundTime += Time.deltaTime;
             yield return null;
         }
