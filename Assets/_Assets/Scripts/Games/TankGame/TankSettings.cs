@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+// Find out if iterating through class fields is possible like in javascript
 public class TankSettings : MonoBehaviour {
 
     #region Level
@@ -56,7 +58,13 @@ public class TankSettings : MonoBehaviour {
     #region Tank
     public static int ClipAmount = 5;
     public static float ReloadTime = 2;
-    public static float FireRate = 5;
+    public static float FireRate = 57;
+
+    #endregion
+
+    #region Powerup
+    public static float P_ChargeSpeedFactor = 5;
+    public static float P_ChargeTime = 0.4f;
 
     #endregion
 }

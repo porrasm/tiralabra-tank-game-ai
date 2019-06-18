@@ -4,16 +4,22 @@ using UnityEngine;
 
 public class TankWeapon : MonoBehaviour {
 
+
+    #region fields
     private Transform bulletSpawn;
     private TankPlayer player;
 
     [SerializeField]
     private GameObject bulletPrefab;
 
+    private TankPowerup powerup;
+
     private int clip;
     private bool reloading;
     private bool fireWait;
     private float fireDelay;
+    #endregion
+
 
     private void Start() {
         bulletSpawn = transform.GetChild(0).GetChild(2).GetChild(0);
@@ -23,6 +29,8 @@ public class TankWeapon : MonoBehaviour {
         fireDelay = 1.0f / TankSettings.FireRate;
 
         Reload();
+
+        powerup = TankPowerup.GivePowerup(TankPowerup.Type.Charge, gameObject);
     }
 
     private int fireIndex;
@@ -30,7 +38,7 @@ public class TankWeapon : MonoBehaviour {
 
     public void Fire(int index) {
         if (index > fireIndex) {
-            if (!reloading) {            
+            if (!BlockFire()) {
                 if (!fireWait) {
                     fireIndex = index;
                     Fire();
@@ -40,6 +48,17 @@ public class TankWeapon : MonoBehaviour {
             }
         }
     }
+    private bool BlockFire() {
+        if (reloading) {
+            return false;
+        }
+        if (powerup != null && powerup.BehaviourType == TankPowerup.Behaviour.BlockFire) {
+            return false;
+        }
+
+        return true;
+    }
+
     private void Fire() {
 
         clip--;
@@ -106,7 +125,9 @@ public class TankWeapon : MonoBehaviour {
         if (index > powerupIndex) {
             powerupIndex = index;
 
-            // Powerup instantiation
+            if (powerup != null) {
+                powerup.Use();
+            }
         }
     }
 

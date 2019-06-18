@@ -14,6 +14,8 @@ public class TankController : MonoBehaviour {
     private TankControls controls;
     private TankWeapon weapon;
 
+    public bool BlockMove { get; set; }
+
     private Rigidbody rb;
 
     [SerializeField]
@@ -75,6 +77,10 @@ public class TankController : MonoBehaviour {
     }
 
     private void MoveTank() {
+
+        if (BlockMove) {
+            return;
+        }
 
         Vector3 velocity = net.Movement.y * transform.forward * speed * Time.deltaTime;
         Vector3 eulerRotation = Vector3.up * net.Movement.x * rotateSpeed;

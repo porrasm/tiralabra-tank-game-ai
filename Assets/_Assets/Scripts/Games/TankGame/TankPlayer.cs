@@ -12,7 +12,10 @@ public class TankPlayer : MonoBehaviour {
     private int roundWins;
     private int kills;
     private int assists;
-     
+    
+    // Switch with common class for special settings
+    public bool Invulnerable { get; set; }
+
     public enum PlayerState { Disabled = 0, Locked = 1, Enabled = 2 }
     #endregion
 
