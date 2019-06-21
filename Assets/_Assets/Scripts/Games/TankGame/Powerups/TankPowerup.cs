@@ -22,6 +22,12 @@ public class TankPowerup : MonoBehaviour {
     public virtual void Remove() {
         Destroy(this);
     }
+    public virtual bool BlockFire() {
+        return false;
+    }
+    public virtual bool CustomFire() {
+        return false;
+    }
 
     public void SetTankObject(GameObject tank) {
         tankObject = tank;

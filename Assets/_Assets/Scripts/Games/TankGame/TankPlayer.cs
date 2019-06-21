@@ -21,6 +21,7 @@ public class TankPlayer : MonoBehaviour {
 
     private void Start() {
         net = GetComponent<TankNetworking>();
+        print("Set net in start");
     }
 
     #region Game
@@ -38,6 +39,13 @@ public class TankPlayer : MonoBehaviour {
         SetPlayerState(PlayerState.Disabled);
     }
     public void SetPlayerState(PlayerState state) {
+
+        if (net == null) {
+            print("net was null");
+        }
+        if (net.networkObject == null) {
+            print("net object was null");
+        }
 
         if (!net.networkObject.IsServer) {
             return;

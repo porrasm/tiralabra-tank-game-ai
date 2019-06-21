@@ -50,16 +50,19 @@ public class TankWeapon : MonoBehaviour {
     }
     private bool BlockFire() {
         if (reloading) {
-            return false;
+            return true;
         }
-        if (powerup != null && powerup.BehaviourType == TankPowerup.Behaviour.BlockFire) {
+        if (powerup == null) {
             return false;
         }
 
-        return true;
+        return powerup.BlockFire();
     }
 
     private void Fire() {
+
+        print(reloading);
+        print(clip);
 
         clip--;
 

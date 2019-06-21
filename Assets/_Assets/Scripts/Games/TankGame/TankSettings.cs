@@ -65,7 +65,7 @@ public class TankSettings : MonoBehaviour {
     #region Powerup
     public static float P_ChargeSpeedFactor = 5;
     public static float P_ChargeTime = 0.4f;
-
+    public static int P_ChargeDamage = 200;
     #endregion
 }
 

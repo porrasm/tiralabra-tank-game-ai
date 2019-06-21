@@ -5,13 +5,21 @@ using UnityEngine;
 
 public class TankGameManager : MonoBehaviour {
 
+    private const float INITIALIZE_WAIT_TIME = 1f;
+
     private bool roundIsOn = false;
 
     private TankLevelGenerator generator;
 
     private void Start() {
         generator = GameObject.FindGameObjectWithTag("Level").GetComponent<TankLevelGenerator>();
+        roundIsOn = true;
+        Invoke("Enable", INITIALIZE_WAIT_TIME);
     }
+    private void Enable() {
+        roundIsOn = false;
+    }
+
     private void Update() {
         StartRound();
     }
@@ -29,7 +37,7 @@ public class TankGameManager : MonoBehaviour {
     private bool AllInitialized() {
 
         foreach (TankNetworking p in Players) {
-            if (p.networkObject == null) {
+            if (p.networkObject == null || !p.networkObject.NetworkReady) {
                 return false;
             }
         }
@@ -61,6 +69,7 @@ public class TankGameManager : MonoBehaviour {
         generator.GenerateLevel();
 
         SetPlayerPositions();
+        print("Setting player states");
         SetPlayerStates(TankPlayer.PlayerState.Locked);
 
         generator.BuildGeneratedLevel();

@@ -25,7 +25,7 @@ public class TankLevelGenerator : MonoBehaviour {
     private int width, height;
     //private float cellDiameter;
 
-    private System.Random rnd;
+    private System.Random rnd = new System.Random();
 
     public bool Building { get; set; }
 
@@ -50,7 +50,6 @@ public class TankLevelGenerator : MonoBehaviour {
 
     private void Start() {
         levelParent = GameObject.FindGameObjectWithTag("Level").transform;
-        rnd = new System.Random();
     }
     private void Update() {
         if (Input.GetKeyDown(KeyCode.R)) {
