@@ -12,7 +12,9 @@ public class TankPlayer : MonoBehaviour {
     private int roundWins;
     private int kills;
     private int assists;
-    
+
+    private float healthDegen;
+
     // Switch with common class for special settings
     public bool Invulnerable { get; set; }
 
@@ -22,6 +24,9 @@ public class TankPlayer : MonoBehaviour {
     private void Start() {
         net = GetComponent<TankNetworking>();
         print("Set net in start");
+    }
+    private void Update() {
+        UpdateHealth();
     }
 
     #region Game
@@ -73,6 +78,30 @@ public class TankPlayer : MonoBehaviour {
             Kill();
         }
     }
+
+    private void UpdateHealth() {
+
+        print(net.Health);
+
+        // DO NOT LOWER HEALTH WHEN REGENERATING
+
+        if (net.State != PlayerState.Enabled) {
+            return;
+        }
+
+        if (net.Health > TankSettings.MaxHealth) {
+            net.Health = TankSettings.MaxHealth;
+        }
+
+        if (net.Health >= TankSettings.Health) {
+            healthDegen += Time.deltaTime * TankSettings.HealthLossRatePerSecond;
+        }
+
+        if (healthDegen > 1) {
+            net.Health -= (int)healthDegen;
+            healthDegen -= (int)healthDegen;
+        }
+    }
     #endregion
 
     #region Events
@@ -115,5 +144,5 @@ public class TankPlayer : MonoBehaviour {
         }
 
         return net.Owner.ID == p.net.Owner.ID;
-    }  
+    }
 }

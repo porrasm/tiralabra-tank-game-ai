@@ -38,6 +38,8 @@ public class TankSettings : MonoBehaviour {
     public static float RoundEndWaitTime = 2;
 
     public static int Health = 100;
+    public static int MaxHealth = 300;
+    public static float HealthLossRatePerSecond = 2;
 
     public static int BulletDamage = 60;
     public static int BulletBounces = 5;
@@ -66,6 +68,9 @@ public class TankSettings : MonoBehaviour {
     public static float P_ChargeSpeedFactor = 5;
     public static float P_ChargeTime = 0.4f;
     public static int P_ChargeDamage = 200;
+
+    public static float P_RegenerateAmount = 150;
+    public static float P_RegenerateTime = 20;
     #endregion
 }
 

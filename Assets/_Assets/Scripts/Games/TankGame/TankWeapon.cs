@@ -13,6 +13,9 @@ public class TankWeapon : MonoBehaviour {
     private GameObject bulletPrefab;
 
     private TankPowerup powerup;
+    public void NullifyPowerup() {
+        powerup = null;
+    }
 
     private int clip;
     private bool reloading;
@@ -30,7 +33,7 @@ public class TankWeapon : MonoBehaviour {
 
         Reload();
 
-        powerup = TankPowerup.GivePowerup(TankPowerup.Type.Charge, gameObject);
+        powerup = TankPowerup.GivePowerup(TankPowerup.Type.Regenerate, gameObject);
     }
 
     private int fireIndex;
