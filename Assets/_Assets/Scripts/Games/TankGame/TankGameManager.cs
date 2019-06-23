@@ -69,7 +69,6 @@ public class TankGameManager : MonoBehaviour {
         generator.GenerateLevel();
 
         SetPlayerPositions();
-        print("Setting player states");
         SetPlayerStates(TankPlayer.PlayerState.Locked);
 
         generator.BuildGeneratedLevel();

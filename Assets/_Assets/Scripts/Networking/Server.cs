@@ -20,7 +20,6 @@ public class Server {
         SetIP();
 
         Networker = new TCPServer(64);
-        MonoBehaviour.print("Hosting: " + IP + ":" + PORT);
         ((TCPServer)Networker).Connect(IP, PORT);
 
         Networker.playerTimeout += PlayerTimeout;

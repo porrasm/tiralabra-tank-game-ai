@@ -16,8 +16,6 @@ public class TankHealthbar : MonoBehaviour {
 
     private Vector3 defaultScale;
 
-    private GameObject collider;
-
     private ColliderCallback colliderCallback;
 
     private int barColliderCount;
@@ -53,8 +51,7 @@ public class TankHealthbar : MonoBehaviour {
         bars[1] = transform.GetChild(0).GetChild(1);
         bars[2] = transform.GetChild(0).GetChild(2);
 
-        collider = transform.GetChild(1).gameObject;
-        colliderCallback = collider.AddComponent<ColliderCallback>();
+        colliderCallback = transform.GetChild(1).gameObject.AddComponent<ColliderCallback>();
         colliderCallback.AddTriggerEnterCallback(BarEnter);
         colliderCallback.AddTriggerExitCallback(BarExit);
 
@@ -120,8 +117,6 @@ public class TankHealthbar : MonoBehaviour {
     }
 
     private void SetToTransparent() {
-
-        print("To trans: " + state);
 
         if (state == TransparencyState.Transparent || state == TransparencyState.ToTransparent) {
             return;
@@ -207,7 +202,6 @@ public class TankHealthbar : MonoBehaviour {
     private void BarEnter(Collider collider) {
 
         if (collider.transform.parent != null && collider.transform.parent.GetComponent<TankPlayer>() != null) {
-            print("Bar enter");
             barColliderCount++;
             ChangeTransparency();
         }
@@ -215,16 +209,12 @@ public class TankHealthbar : MonoBehaviour {
     private void BarExit(Collider collider) {
 
         if (collider.transform.parent != null && collider.transform.parent.GetComponent<TankPlayer>() != null) {
-            print("Bar exit");
             barColliderCount--;
             ChangeTransparency();
         }
     }
 
     private void ChangeTransparency() {
-
-        print("bars: " + barColliderCount);
-        print("Change trans; " + state);
 
         if (barColliderCount == 0 && (state == TransparencyState.Transparent || state == TransparencyState.ToTransparent)) {
             SetToOpaque();

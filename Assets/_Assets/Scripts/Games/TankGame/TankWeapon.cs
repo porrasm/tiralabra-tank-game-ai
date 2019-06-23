@@ -64,9 +64,6 @@ public class TankWeapon : MonoBehaviour {
 
     private void Fire() {
 
-        print(reloading);
-        print(clip);
-
         clip--;
 
         if (clip <= 0) {

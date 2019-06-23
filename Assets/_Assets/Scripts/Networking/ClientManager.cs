@@ -79,7 +79,6 @@ public class ClientManager : MonoBehaviour {
     }
     public void AddPlayer(Player client) {
         NewClientInfo(client, GetFreeID());
-        print("Adding player to list");
         players[client.ID] = client;
     }
 

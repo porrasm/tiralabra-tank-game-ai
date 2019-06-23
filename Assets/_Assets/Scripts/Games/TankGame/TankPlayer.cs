@@ -64,8 +64,6 @@ public class TankPlayer : MonoBehaviour {
     }
     private void UpdateState() {
 
-        print("Player update state: " + net.State);
-
         if (net.State == PlayerState.Enabled) {
             EnableChildren(true);
             SetAlive();

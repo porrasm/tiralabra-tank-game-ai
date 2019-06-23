@@ -19,8 +19,6 @@ public class Games : GamesBehavior {
     }
     protected override void NetworkStart() {
         base.NetworkStart();
-
-        print("Network start");
     }
 
     public static void StartGame() {

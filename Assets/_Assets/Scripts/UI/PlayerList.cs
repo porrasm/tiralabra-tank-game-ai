@@ -50,8 +50,6 @@ public class PlayerList : MonoBehaviour {
 
     private void UpdateList(Player[] players) {
 
-        print("Updating player list");
-
         for (int i = 0; i < 8; i++) {
             transform.GetChild(i).GetComponent<PlayerListObject>().SetInfo(players[i]);
         }

@@ -68,11 +68,7 @@ public class Player : ClientBehavior {
             return;
         }
 
-        print("Initializing client");
-
         Scripts.GetScriptComponent<ClientManager>().AddPlayer(this);
-
-        print("Initialized to " + Name);
 
         UpdateClient();
     }
@@ -106,8 +102,6 @@ public class Player : ClientBehavior {
     #region RPCs
     public override void UpdateClientRpc(RpcArgs args) {
 
-        print("Received RPC to update client");
-
         ID = args.GetAt<byte>(0);
         Color = (PlayerColor)args.GetAt<byte>(1);
         Name = args.GetAt<string>(2);
@@ -116,13 +110,10 @@ public class Player : ClientBehavior {
     public override void ToggleColorRpc(RpcArgs args) {
 
         if (!networkObject.IsServer) {
-            print("TOGGLE COLOR: not server");
             return;
         }
 
-        print("Toggling player color");
         Color = Scripts.GetScriptComponent<ClientManager>().GetNextFreeColor(Color);
-        print("New color is: " + Color);
         UpdateClient();
     }
     public override void ChangeNameRpc(RpcArgs args) {
@@ -132,10 +123,6 @@ public class Player : ClientBehavior {
         }
 
         string name = args.GetAt<string>(0);
-
-        if (name == null) {
-            print("Name was null");
-        }
 
         Name = Scripts.GetScriptComponent<ClientManager>().GetFreeName(name);
         UpdateClient();
