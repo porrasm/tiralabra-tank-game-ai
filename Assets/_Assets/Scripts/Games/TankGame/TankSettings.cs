@@ -69,8 +69,8 @@ public class TankSettings : MonoBehaviour {
     public static float P_ChargeTime = 0.4f;
     public static int P_ChargeDamage = 200;
 
-    public static float P_RegenerateAmount = 150;
-    public static float P_RegenerateTime = 20;
+    public static float P_RegenerateAmount = 200;
+    public static float P_RegenerateTime = 25;
     #endregion
 }
 
