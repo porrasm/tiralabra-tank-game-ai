@@ -67,21 +67,24 @@ public class TankPlayer : MonoBehaviour {
         print("Player update state: " + net.State);
 
         if (net.State == PlayerState.Enabled) {
-            transform.GetChild(0).gameObject.SetActive(true);
+            EnableChildren(true);
             SetAlive();
         }
         if (net.State == PlayerState.Locked) {
-            transform.GetChild(0).gameObject.SetActive(true);
+            EnableChildren(true);
         }
         if (net.State == PlayerState.Disabled) {
-            transform.GetChild(0).gameObject.SetActive(false);
+            EnableChildren(false);
             Kill();
+        }
+    }
+    private void EnableChildren(bool enable) {
+        foreach (Transform child in transform) {
+            child.gameObject.SetActive(enable);
         }
     }
 
     private void UpdateHealth() {
-
-        print(net.Health);
 
         // DO NOT LOWER HEALTH WHEN REGENERATING
 

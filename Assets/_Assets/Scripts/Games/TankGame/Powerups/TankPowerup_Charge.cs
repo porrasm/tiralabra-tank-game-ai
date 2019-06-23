@@ -17,7 +17,7 @@ public class TankPowerup_Charge : TankPowerup {
 
         speed = TankSettings.P_ChargeSpeedFactor * TankSettings.TankSpeed;
         colliderCallback = gameObject.AddComponent<ColliderCallback>();
-        colliderCallback.AddCallback(CollisionCallback);
+        colliderCallback.AddCollisionCallback(CollisionCallback);
     }
 
     public override void Remove() {
