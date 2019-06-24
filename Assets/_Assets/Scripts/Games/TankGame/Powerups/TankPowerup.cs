@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TankPowerup : MonoBehaviour {
 
-    public enum Type { Charge, Regenerate }
+    public enum Type { Charge, Regenerate, SpeedBoost }
     public enum Behaviour { Passive, Fire, BlockFire }
 
     protected GameObject tankObject;
@@ -43,6 +43,8 @@ public class TankPowerup : MonoBehaviour {
                 return GiveCharge(tank);
             case Type.Regenerate:
                 return GiveRegenerate(tank);
+            case Type.SpeedBoost:
+                return GiveSpeedBoost(tank);
         }
 
         return null;
@@ -66,6 +68,13 @@ public class TankPowerup : MonoBehaviour {
     private static TankPowerup GiveRegenerate(GameObject tank) {
 
         TankPowerup_Regenerate powerup = tank.AddComponent<TankPowerup_Regenerate>();
+        powerup.tankObject = tank;
+
+        return powerup;
+    }
+    private static TankPowerup GiveSpeedBoost(GameObject tank) {
+
+        TankPowerup_Speedboost powerup = tank.AddComponent<TankPowerup_Speedboost>();
         powerup.tankObject = tank;
 
         return powerup;

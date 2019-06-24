@@ -42,7 +42,7 @@ public class TankSettings : MonoBehaviour {
     public static float HealthLossRatePerSecond = 2;
 
     public static int BulletDamage = 60;
-    public static int BulletBounces = 5;
+    public static int BulletBounces = 1;
     public static int BulletDamageBounceReduction = 10;
     public static float BulletAliveTime = 10f;
 
@@ -71,6 +71,12 @@ public class TankSettings : MonoBehaviour {
 
     public static float P_RegenerateAmount = 200;
     public static float P_RegenerateTime = 25;
+
+    public static float P_SpeedboostStartLength = 2;
+    public static float P_SpeedboostLength = 4;
+    public static float P_SpeedboostEndLength = 2;
+    
+    public static float P_SpeedboostAmount = 2;
     #endregion
 }
 

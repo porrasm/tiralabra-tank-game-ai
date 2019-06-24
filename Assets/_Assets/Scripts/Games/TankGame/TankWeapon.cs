@@ -33,7 +33,7 @@ public class TankWeapon : MonoBehaviour {
 
         Reload();
 
-        powerup = TankPowerup.GivePowerup(TankPowerup.Type.Regenerate, gameObject);
+        powerup = TankPowerup.GivePowerup(TankPowerup.Type.SpeedBoost, gameObject);
     }
 
     private int fireIndex;

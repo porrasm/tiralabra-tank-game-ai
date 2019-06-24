@@ -10,6 +10,10 @@ public class TankController : MonoBehaviour {
 
     [SerializeField]
     private float speed, rotateSpeed;
+    public void SetSpeeds(float speed, float rotateSpeed) {
+        this.speed = speed;
+        this.rotateSpeed = rotateSpeed;
+    }
 
     private TankControls controls;
     private TankWeapon weapon;
