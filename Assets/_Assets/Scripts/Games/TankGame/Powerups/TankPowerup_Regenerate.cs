@@ -41,6 +41,7 @@ public class TankPowerup_Regenerate : TankPowerup {
             }
 
             used = true;
+            Remove();
         }
 
         StartCoroutine(RegenCoroutine());
@@ -48,23 +49,20 @@ public class TankPowerup_Regenerate : TankPowerup {
 
     public override void Remove() {
 
-        IEnumerator RemoveCoroutine() {
+        StopAllCoroutines();
 
-            GetComponent<TankWeapon>().NullifyPowerup();
+        GetComponent<TankWeapon>().NullifyPowerup();
 
-            while (!used) {
-                yield return null;
-            }
+        //while (!used) {
+        //    yield return null;
+        //}
 
-            Destroy(this);
+        Destroy(this);
 
-            ParticleSystem par = particle.GetComponent<ParticleSystem>();
-            var emission = par.emission;
-            emission.rateOverTime = 0;
+        ParticleSystem par = particle.GetComponent<ParticleSystem>();
+        var emission = par.emission;
+        emission.rateOverTime = 0;
 
-            Lifetime.SetLifetime(particle, par.main.startLifetime.constant);
-        }
-
-        StartCoroutine(RemoveCoroutine());
+        Lifetime.SetLifetime(particle, par.main.startLifetime.constant);
     }
 }

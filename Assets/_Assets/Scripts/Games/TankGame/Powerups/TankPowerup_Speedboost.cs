@@ -50,6 +50,7 @@ public class TankPowerup_Speedboost : TankPowerup {
             }
 
             controller.SetSpeeds(speed, rotSpeed);
+            Remove();
         }
 
         StartCoroutine(UseCoroutine());

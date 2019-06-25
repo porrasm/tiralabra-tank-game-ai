@@ -61,6 +61,7 @@ public class TankPowerup : MonoBehaviour {
     private static TankPowerup GiveCharge(GameObject tank) {
 
         TankPowerup_Charge powerup = tank.AddComponent<TankPowerup_Charge>();
+        powerup.powerupType = Type.Charge;
         powerup.tankObject = tank;
 
         return powerup;
@@ -68,6 +69,7 @@ public class TankPowerup : MonoBehaviour {
     private static TankPowerup GiveRegenerate(GameObject tank) {
 
         TankPowerup_Regenerate powerup = tank.AddComponent<TankPowerup_Regenerate>();
+        powerup.powerupType = Type.Regenerate;
         powerup.tankObject = tank;
 
         return powerup;
@@ -75,6 +77,7 @@ public class TankPowerup : MonoBehaviour {
     private static TankPowerup GiveSpeedBoost(GameObject tank) {
 
         TankPowerup_Speedboost powerup = tank.AddComponent<TankPowerup_Speedboost>();
+        powerup.powerupType = Type.SpeedBoost;
         powerup.tankObject = tank;
 
         return powerup;
