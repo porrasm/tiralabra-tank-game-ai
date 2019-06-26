@@ -1,0 +1,39 @@
+Powerups to implement:
+
+-steal powerup
+-turret
+-destroy walls
+-laser power up
+-laser powerup tick
+-laser bolt powerup
+-missile powerup
+-nuke/bomb powerup
+-shield powerup
+-triple random powerup
+-magnet shieid blast
+-teleport / bullet bill
+-shockwave push blast
+-invert controls
+-freeze players
+-slow time
+-earthquake
+-instakill random player
+-dissappear walls
+-claymore/mine/timebomb/detonate bomb
+-poison square/poison fart
+-meteor storm
+-blizzard / ice groun / ice spike walls
+-regen area
+-kill player with least health
+-darkness powerup
+-summon ai tank
+-lifesteal
+-revival / double lives
+-boomerang
+
+
+-reverse time
+-chaos / random event
+
+Other:
+Nat punchthrough, map ip to string

@@ -7,7 +7,12 @@ public class TankGameHost : SceneScript {
 
     [SerializeField]
     private GameObject healthRegenParticlePrefab;
+
+    [SerializeField]
+    private GameObject powerupCrosshairObject;
+
     public GameObject HealthRegenParticlePrefab { get => healthRegenParticlePrefab; }
+    public GameObject PowerupCrosshairObject { get => powerupCrosshairObject; set => powerupCrosshairObject = value; }
 
     private void Start() {
         Initialize();

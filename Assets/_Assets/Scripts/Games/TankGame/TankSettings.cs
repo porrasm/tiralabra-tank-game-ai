@@ -74,9 +74,12 @@ public class TankSettings : MonoBehaviour {
 
     public static float P_SpeedboostStartLength = 2;
     public static float P_SpeedboostLength = 4;
-    public static float P_SpeedboostEndLength = 2;
-    
+    public static float P_SpeedboostEndLength = 2; 
     public static float P_SpeedboostAmount = 2;
+
+    public static float P_MissileTime = 7;
+    public static float P_MissileSpeed = 2.5f;
+    public static float P_MissileTargetChangeMax = 3.5f;
     #endregion
 }
 

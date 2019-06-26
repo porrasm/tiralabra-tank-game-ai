@@ -19,8 +19,8 @@ public class Server {
 
         SetIP();
 
-        Networker = new TCPServer(64);
-        ((TCPServer)Networker).Connect(IP, PORT);
+        Networker = new UDPServer(64);
+        ((UDPServer)Networker).Connect(IP, PORT);
 
         Networker.playerTimeout += PlayerTimeout;
 
@@ -43,11 +43,19 @@ public class Server {
     }
 
     public static bool ConnectToServer() {
+
+        //NetWorker.localServerLocated += LocalServerLocated;
+        //NetWorker.RefreshLocalUdpListings(PORT);
+
+        return ConnectToAddress(IP, PORT);
+    }
+
+    private static bool ConnectToAddress(string IP, ushort PORT) {
         MonoBehaviour.print("Joining game");
 
-        Networker = new TCPClient();
+        Networker = new UDPClient();
         MonoBehaviour.print("Joining: " + IP + ":" + PORT);
-        ((TCPClient)Networker).Connect(IP, PORT);
+        ((UDPClient)Networker).Connect(IP, PORT);
 
         bool connected = Connected(Networker);
 
