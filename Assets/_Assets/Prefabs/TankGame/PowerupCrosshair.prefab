@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5349685535117484431}
   - component: {fileID: 5349685535117484430}
   - component: {fileID: 5349685535117484429}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: PowerupCrosshair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -88,7 +88,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7884067241392109342}
   - component: {fileID: 6275099156868702074}
-  m_Layer: 11
+  m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
