@@ -33,7 +33,7 @@ public class TankWeapon : MonoBehaviour {
 
         Reload();
 
-        powerup = TankPowerup.GivePowerup(TankPowerup.Type.Missile, gameObject);
+        powerup = TankPowerup.GivePowerup(TankPowerup.Type.MultiBall, gameObject);
     }
 
     private int fireIndex;
@@ -44,7 +44,7 @@ public class TankWeapon : MonoBehaviour {
             if (!BlockFire()) {
                 if (!fireWait) {
                     fireIndex = index;
-                    Fire();
+                    FirePrefab();
                 }
             } else {
                 fireIndex = index;
@@ -62,7 +62,10 @@ public class TankWeapon : MonoBehaviour {
         return powerup.BlockFire();
     }
 
-    private void Fire() {
+    private GameObject FirePrefab() {
+        return FirePrefab(bulletPrefab);
+    }
+    public GameObject FirePrefab(GameObject bulletPrefab) {
 
         clip--;
 
@@ -76,6 +79,8 @@ public class TankWeapon : MonoBehaviour {
         newBullet.transform.position = bulletSpawn.position;
         newBullet.transform.forward = bulletSpawn.forward;
         newBullet.GetComponent<TankBullet>().Owner = player;
+
+        return newBullet;
     }
 
     private void WaitFire() {

@@ -81,6 +81,10 @@ public class TankHealthbar : MonoBehaviour {
 
         int barIndex = net.Health / 100;
 
+        if (barIndex < 0) {
+            return;
+        }
+
         for (int i = 0; i < barIndex; i++) {
             bars[i].localScale = defaultScale;
             Vector3 pos = bars[i].localPosition;
@@ -199,14 +203,14 @@ public class TankHealthbar : MonoBehaviour {
         }
     }
 
-    private void BarEnter(Collider collider) {
+    private void BarEnter(GameObject obj, Collider collider) {
 
         if (collider.transform.parent != null && collider.transform.parent.GetComponent<TankPlayer>() != null) {
             barColliderCount++;
             ChangeTransparency();
         }
     }
-    private void BarExit(Collider collider) {
+    private void BarExit(GameObject obj, Collider collider) {
 
         if (collider.transform.parent != null && collider.transform.parent.GetComponent<TankPlayer>() != null) {
             barColliderCount--;

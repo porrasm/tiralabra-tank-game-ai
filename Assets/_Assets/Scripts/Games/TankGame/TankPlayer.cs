@@ -32,6 +32,8 @@ public class TankPlayer : MonoBehaviour {
     #region Game
     public void DoDamage(int damage, TankPlayer player) {
 
+        print("Doing damage; " + damage);
+
         net.Health -= damage;
 
         if (net.Health <= 0) {

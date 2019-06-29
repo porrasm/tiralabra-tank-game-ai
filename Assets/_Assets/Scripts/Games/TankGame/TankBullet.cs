@@ -4,30 +4,46 @@ using UnityEngine;
 
 public class TankBullet : MonoBehaviour {
 
+    #region fields
     public TankPlayer Owner { get; set; }
-    private int damage;
-    private float speed;
+    public int Bounces { get => bounces; set => bounces = value; }
+    public float AliveTime { get => aliveTime; set => aliveTime = value; }
+    public bool ConstantDamage { get; set; }
+    public int Damage { get => damage; set => damage = value; }
+    public Vector3 Velocity { get => velocity; set => velocity = value; }
 
-    private Rigidbody rb;
+    protected int damage;
+    protected float speed;
+
+    protected Rigidbody rb;
     private Vector3 velocity;
 
-    private float harmlessTime = 0.3f;
-    private float aliveTime;
-    private int bounces;
+    protected float harmlessTime = 0.3f;
+    protected float aliveTime;
+    protected int bounces;
+
+    protected int collisionFrames;
+    #endregion
+
 
     private void Awake() {
         transform.position = transform.position += transform.forward * speed * Time.deltaTime;
     }
     private void Start() {
-        damage = TankSettings.BulletDamage;
+
+        Damage = TankSettings.BulletDamage;
         speed = TankSettings.BulletSpeed;
         rb = GetComponent<Rigidbody>();
 
-        velocity = transform.forward * speed;
-        transform.eulerAngles = Vector3.zero;
+        Velocity = transform.forward * speed;
 
-        aliveTime = TankSettings.BulletAliveTime;
-        bounces = TankSettings.BulletBounces;
+        AliveTime = TankSettings.BulletAliveTime;
+        Bounces = TankSettings.BulletBounces;
+    }
+
+    public void SetDirection(Vector3 direction) {
+        direction.y = 0;
+        Velocity = direction.normalized * speed;
     }
 
     private void Update() {
@@ -36,46 +52,71 @@ public class TankBullet : MonoBehaviour {
     }
     private void UpdateTime() {
 
-        if (aliveTime > 0) {
-            aliveTime -= Time.deltaTime;
+        if (AliveTime > 0) {
+            AliveTime -= Time.deltaTime;
         } else {
             Kill();
         }
 
         if (harmlessTime > 0) {
             harmlessTime -= Time.deltaTime;
-        }  
+        }
     }
     private void FixVelocity() {
-        rb.velocity = velocity;
+        rb.velocity = Velocity;
         rb.angularVelocity = Vector3.zero;
     }
 
-    public void OnCollisionEnter(Collision collision) {
-        
+    #region Collision
+    protected void OnCollisionEnter(Collision collision) {
+        collisionFrames = 0;
+        CollisionHappened(collision, false);
+    }
+    protected void OnCollisionStay(Collision collision) {
+        collisionFrames++;
+        if (collisionFrames > 2) {
+            FixCollision(collision);
+        }
+    }
+    protected void OnCollisionExit(Collision collision) {
+        collisionFrames = 0;
+    }
+    protected virtual void FixCollision(Collision collision) {
+        if (collisionFrames > 6) {
+            SetDirection(new Vector3(Random.value, 0, Random.value));
+        } else {
+            CollisionHappened(collision, true);
+        }
+    }
+    protected virtual void CollisionHappened(Collision collision, bool fix) {
         if (HitPlayer(collision.gameObject)) {
             return;
         }
 
-        if (bounces == 0) {
+        if (Bounces == 0) {
             Kill();
         }
 
         Bounce(collision.contacts[0]);
 
-        damage -= TankSettings.BulletDamageBounceReduction;
-        bounces--;
+        if (!ConstantDamage) {
+            Damage -= TankSettings.BulletDamageBounceReduction;
+        }
+
+        if (!fix) {
+            Bounces--;
+        }
     }
-    private void Bounce(ContactPoint point) {
-        Vector3 newDirection = Vector3.Reflect(velocity, point.normal);
-        velocity = newDirection.normalized * speed; 
+    protected void Bounce(ContactPoint point) {
+        Vector3 newDirection = Vector3.Reflect(Velocity, point.normal);
+        Velocity = newDirection.normalized * speed;
     }
 
-    private void Kill() {
+    protected void Kill() {
         Destroy(gameObject);
     }
 
-    private bool HitPlayer(GameObject obj) {   
+    protected bool HitPlayer(GameObject obj) {
 
         TankPlayer p = obj.GetComponent<TankPlayer>();
 
@@ -89,8 +130,9 @@ public class TankBullet : MonoBehaviour {
             }
         }
 
-        p.DoDamage(damage, Owner);
+        p.DoDamage(Damage, Owner);
         Kill();
         return true;
     }
+    #endregion
 }

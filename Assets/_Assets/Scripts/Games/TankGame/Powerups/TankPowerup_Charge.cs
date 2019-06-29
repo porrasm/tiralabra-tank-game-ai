@@ -29,7 +29,7 @@ public class TankPowerup_Charge : TankPowerup {
         Destroy(colliderCallback);
     }
 
-    private void CollisionCallback(Collision collision) {
+    private void CollisionCallback(GameObject obj, Collision collision) {
 
         if (!used) {
             return;

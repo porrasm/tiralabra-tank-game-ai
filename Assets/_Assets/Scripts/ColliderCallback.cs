@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class ColliderCallback : MonoBehaviour {
 
-    public delegate void CollisionCallback(Collision collision);
-    public delegate void TriggerCallback(Collider collider);
+    public delegate void CollisionCallback(GameObject obj, Collision collision);
+    public delegate void TriggerCallback(GameObject obj, Collider collider);
     private CollisionCallback collisions;
     private TriggerCallback tEnter;
     private TriggerCallback tExit;
@@ -28,7 +28,7 @@ public class ColliderCallback : MonoBehaviour {
             return;
         }
 
-        collisions(collision);
+        collisions(gameObject, collision);
     }
     private void OnTriggerEnter(Collider collider) {
 
@@ -36,7 +36,7 @@ public class ColliderCallback : MonoBehaviour {
             return;
         }
 
-        tEnter(collider);
+        tEnter(gameObject, collider);
     }
     private void OnTriggerExit(Collider collider) {
 
@@ -44,6 +44,6 @@ public class ColliderCallback : MonoBehaviour {
             return;
         }
 
-        tExit(collider);
+        tExit(gameObject, collider);
     }
 }
