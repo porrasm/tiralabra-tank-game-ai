@@ -24,6 +24,7 @@ public class TankPlayer : MonoBehaviour {
     private void Start() {
         net = GetComponent<TankNetworking>();
         print("Set net in start");
+        net.Health = TankSettings.Health;
     }
     private void Update() {
         UpdateHealth();

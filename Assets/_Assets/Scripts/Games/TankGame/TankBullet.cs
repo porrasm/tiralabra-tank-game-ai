@@ -83,7 +83,9 @@ public class TankBullet : MonoBehaviour {
     }
     protected virtual void FixCollision(Collision collision) {
         if (collisionFrames > 6) {
-            SetDirection(new Vector3(Random.value, 0, Random.value));
+            Vector3 rnd = new Vector3(Random.value, 0, Random.value);
+            collisionFrames = 0;
+            SetDirection(rnd);
         } else {
             CollisionHappened(collision, true);
         }

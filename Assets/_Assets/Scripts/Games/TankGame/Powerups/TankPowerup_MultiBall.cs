@@ -12,7 +12,7 @@ class TankPowerup_MultiBall : TankPowerup {
         TankWeapon weapon = GetComponent<TankWeapon>();
 
         TankPowerup_MultiBall_Bullet bullet = weapon.FirePrefab(TankGameHost.Game().MultiballPrefab).GetComponent<TankPowerup_MultiBall_Bullet>();
-        int damage = TankSettings.P_MultiBall_Damage * (int)Mathf.Pow(2, bounces - 1);
+        int damage = TankSettings.P_MultiBall_Damage * (int)Mathf.Pow(2, bounces);
 
         bullet.Initialize(bullet.transform, bounces, damage, bullet.transform.forward, false);
         print("multiball fired: " + bullet);
