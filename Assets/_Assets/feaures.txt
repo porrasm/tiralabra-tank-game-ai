@@ -31,6 +31,7 @@ Powerups to implement:
 -revival / double lives
 -boomerang
 
+0.7764669
 
 -reverse time
 -chaos / random event
