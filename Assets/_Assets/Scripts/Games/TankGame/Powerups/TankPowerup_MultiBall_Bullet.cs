@@ -10,7 +10,8 @@ class TankPowerup_MultiBall_Bullet : TankBullet {
     void Start() {
     }
 
-    public void Initialize(Transform other, int bounces, int damage, Vector3 velocity, bool ignoreFirst) {
+    public void Initialize(TankPlayer owner, Transform other, int bounces, int damage, Vector3 velocity, bool ignoreFirst) {
+        Owner = owner;
         transform.position = other.position;
         transform.eulerAngles = other.eulerAngles;
         speed = TankSettings.BulletSpeed;
@@ -35,7 +36,7 @@ class TankPowerup_MultiBall_Bullet : TankBullet {
             return;
         }
 
-        Bounce(collision.contacts[0]);
+        Bounce(collision.contacts[0].normal);
         
         if (fix || harmlessTime > 0 || ignoreFirst) {
             ignoreFirst = false;
@@ -61,7 +62,7 @@ class TankPowerup_MultiBall_Bullet : TankBullet {
 
     private void InitializeCopy(TankPowerup_MultiBall_Bullet bullet) {
 
-        bullet.Initialize(transform, Bounces, Damage, Velocity, true);
+        bullet.Initialize(Owner, transform, Bounces, Damage, Velocity, true);
 
         bullet.TiltDirection(false);
     }

@@ -99,7 +99,7 @@ public class TankBullet : MonoBehaviour {
             Kill();
         }
 
-        Bounce(collision.contacts[0]);
+        Bounce(collision.contacts[0].normal);
 
         if (!ConstantDamage) {
             Damage -= TankSettings.BulletDamageBounceReduction;
@@ -109,8 +109,8 @@ public class TankBullet : MonoBehaviour {
             Bounces--;
         }
     }
-    protected void Bounce(ContactPoint point) {
-        Vector3 newDirection = Vector3.Reflect(Velocity, point.normal);
+    public void Bounce(Vector3 normal) {
+        Vector3 newDirection = Vector3.Reflect(Velocity, normal);
         Velocity = newDirection.normalized * speed;
     }
 

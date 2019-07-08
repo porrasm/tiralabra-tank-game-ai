@@ -82,6 +82,8 @@ public class TankSettings : MonoBehaviour {
     public static float P_MissileTargetChangeMax = 3.5f;
 
     public static int P_MultiBall_Damage = 20;
+
+    public static int P_ShieldTime = 10;
     #endregion
 }
 

@@ -5,13 +5,13 @@ using UnityEngine;
 
 public class TankPowerup : MonoBehaviour {
 
-    public enum Type { Charge, Regenerate, SpeedBoost, Missile, MultiBall }
-    public enum Behaviour { Passive, Fire, BlockFire }
+    public enum Type { Charge, Regenerate, SpeedBoost, Missile, MultiBall, Shield }
+    public enum Behaviour { Passive, OverrideFire, BlockFire }
 
     protected GameObject tankObject;
 
     protected Type powerupType;
-    protected Behaviour behaviourType;
+    protected Behaviour behaviourType = Behaviour.Passive;
 
     public Behaviour BehaviourType { get => behaviourType; set => behaviourType = value; }
     public Type PowerupType { get => powerupType; set => powerupType = value; }
@@ -49,6 +49,8 @@ public class TankPowerup : MonoBehaviour {
                 return GiveMissile(tank);
             case Type.MultiBall:
                 return GiveMultiBall(tank);
+            case Type.Shield:
+                return GiveShield(tank);
         }
 
         return null;
@@ -98,6 +100,14 @@ public class TankPowerup : MonoBehaviour {
 
         TankPowerup_MultiBall powerup = tank.AddComponent<TankPowerup_MultiBall>();
         powerup.powerupType = Type.MultiBall;
+        powerup.tankObject = tank;
+
+        return powerup;
+    }
+    private static TankPowerup GiveShield(GameObject tank) {
+
+        TankPowerup_Shield powerup = tank.AddComponent<TankPowerup_Shield>();
+        powerup.powerupType = Type.Shield;
         powerup.tankObject = tank;
 
         return powerup;

@@ -14,20 +14,8 @@ class TankPowerup_MultiBall : TankPowerup {
         TankPowerup_MultiBall_Bullet bullet = weapon.FirePrefab(TankGameHost.Game().MultiballPrefab).GetComponent<TankPowerup_MultiBall_Bullet>();
         int damage = TankSettings.P_MultiBall_Damage * (int)Mathf.Pow(2, bounces);
 
-        bullet.Initialize(bullet.transform, bounces, damage, bullet.transform.forward, false);
+        bullet.Initialize(GetComponent<TankPlayer>(), bullet.transform, bounces, damage, bullet.transform.forward, false);
         print("multiball fired: " + bullet);
-    }
-
-    public override void Remove() {
-
-        IEnumerator RemoveCoroutine() {
-
-            yield return null;
-
-            base.Remove();
-        }
-
-        StartCoroutine(RemoveCoroutine());
     }
 
     private void AddMultiball(TankBullet bullet, int bouncesLeft) {

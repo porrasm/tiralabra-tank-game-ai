@@ -21,6 +21,8 @@ public class TankWeapon : MonoBehaviour {
     private bool reloading;
     private bool fireWait;
     private float fireDelay;
+
+    private float reloadTime;
     #endregion
 
 
@@ -33,7 +35,7 @@ public class TankWeapon : MonoBehaviour {
 
         Reload();
 
-        powerup = TankPowerup.GivePowerup(TankPowerup.Type.MultiBall, gameObject);
+        powerup = TankPowerup.GivePowerup(TankPowerup.Type.Shield, gameObject);
     }
 
     private int fireIndex;
@@ -52,14 +54,19 @@ public class TankWeapon : MonoBehaviour {
         }
     }
     private bool BlockFire() {
-        if (reloading) {
+        if (clip < 1) {
             return true;
         }
         if (powerup == null) {
             return false;
         }
 
-        return powerup.BlockFire();
+        if (powerup.BehaviourType == TankPowerup.Behaviour.OverrideFire) {
+            Powerup(powerupIndex + 1);
+            return false;
+        }
+
+        return powerup.BehaviourType == TankPowerup.Behaviour.BlockFire;
     }
 
     private GameObject FirePrefab() {
@@ -69,11 +76,8 @@ public class TankWeapon : MonoBehaviour {
 
         clip--;
 
-        if (clip <= 0) {
-            Reload();
-        } else {
-            WaitFire();
-        }
+        Reload();
+        WaitFire();
 
         GameObject newBullet = Instantiate(bulletPrefab);
         newBullet.transform.position = bulletSpawn.position;
@@ -106,25 +110,28 @@ public class TankWeapon : MonoBehaviour {
 
     public void Reload() {
 
-        if (reloading) {
+        if (reloading && clip > 0) {
+            reloadTime = TankSettings.ReloadTime;
+            return;
+        } else if (reloading && clip == 0) {
             return;
         }
 
         IEnumerator ReloadCoroutine() {
 
-            float time = TankSettings.ReloadTime;
+            reloadTime = TankSettings.ReloadTime;
 
-            while (time > 0) {
-                time -= Time.deltaTime;
+            while (reloadTime > 0) {
+                reloadTime -= Time.deltaTime;
                 yield return null;
             }
 
             reloading = false;
+
+            clip = TankSettings.ClipAmount;
         }
 
         reloading = true;
-
-        clip = TankSettings.ClipAmount;
 
         StartCoroutine(ReloadCoroutine());
     }
