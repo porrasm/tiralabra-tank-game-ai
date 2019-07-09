@@ -7,8 +7,9 @@ public class TankGameUI : MonoBehaviour {
     private TankControls controls;
 
     private void Start() {
-        StartCoroutine(GetControls());
+        TankNetworking.MyTank(delegate(TankControls controls) { this.controls = controls; });
     }
+
     private IEnumerator GetControls() {
 
         while (true) {

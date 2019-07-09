@@ -11,11 +11,13 @@ public class TankControls : MonoBehaviour {
     private Matrix4x4 calibrationMatrix;
     private Vector3 calibration;
 
-    private bool uiControls;
+    private bool testControls;
+
+    public enum Control { Movement, Rotation, HeadRotation, Fire, Powerup }
     #endregion
 
     private void Start() {
-        uiControls = true;
+        testControls = false;
         net = GetComponent<TankNetworking>();
 
         calibrationMatrix = Matrix4x4.identity;
@@ -32,7 +34,6 @@ public class TankControls : MonoBehaviour {
         }
 
         PCTestControls();
-        GyroControls();
     }
     private void PCTestControls() {
 
@@ -55,10 +56,10 @@ public class TankControls : MonoBehaviour {
         }
 
         if (movement != Vector2.zero || rotation != 0) {
-            uiControls = false;
+            testControls = true;
         }
 
-        if (uiControls) {
+        if (!testControls) {
             return;
         }
 
@@ -74,7 +75,7 @@ public class TankControls : MonoBehaviour {
     }
     private void GyroControls() {
 
-        if (!uiControls) {
+        if (testControls) {
             return;
         }
 
@@ -165,6 +166,28 @@ public class TankControls : MonoBehaviour {
 
     public void Powerup() {
         net.Powerup++;
+    }
+
+    public void ProcessControl(Control control) {
+        ProcessControl(control, 0);
+    }
+    public void ProcessControl(Control control, float value) {
+
+        if (control == Control.Movement) {
+            Vector2 movement = net.Movement;
+            movement.y = value;
+            net.Movement = movement;
+        } else if (control == Control.Rotation) {
+            Vector2 movement = net.Movement;
+            movement.x = value;
+            net.Movement = movement;
+        } else if (control == Control.HeadRotation) {
+            net.Rotation = value;
+        } else if (control == Control.Fire) {
+            Fire();
+        } else if (control == Control.Powerup) {
+            Powerup();
+        }
     }
     #endregion
 }

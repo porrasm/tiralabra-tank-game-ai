@@ -59,8 +59,8 @@ public class TankSettings : MonoBehaviour {
 
     #region Tank
     public static int ClipAmount = 5;
-    public static float ReloadTime = 2;
-    public static float FireRate = 57;
+    public static float ReloadTime = 3.5f;
+    public static float FireRate = 400;
 
     #endregion
 

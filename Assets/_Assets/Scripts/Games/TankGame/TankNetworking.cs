@@ -1,5 +1,6 @@
 ﻿using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Generated;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,6 +13,7 @@ public class TankNetworking : TankNetworkingBehavior {
     private int health;
     private int tankScore;
     private Vector2 movement;
+
     private float rotation;
     private int fire;
     private int powerup;
@@ -131,5 +133,34 @@ public class TankNetworking : TankNetworkingBehavior {
         }
 
         return null;
+    }
+    public static void MyTank(Action<TankControls> callback) {
+
+        IEnumerator SearchCoroutine() {
+            GameObject tank;
+
+            float time = 10;
+
+            while (true) {
+                yield return null;
+
+                time -= Time.deltaTime;
+
+                tank = MyTank();
+
+                if (tank != null) {
+                    break;
+                }
+
+                if (time < 0) {
+                    print("Tank not found");
+                    yield break;
+                }
+            }
+
+            callback(tank.GetComponent<TankControls>());
+        }
+
+        Scripts.RunCoroutine(SearchCoroutine());
     }
 }

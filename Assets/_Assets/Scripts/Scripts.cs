@@ -1,8 +1,11 @@
 ﻿using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Unity;
+using System.Collections;
 using UnityEngine;
 
 public class Scripts : MonoBehaviour {
+
+    private const float CoroutineTimeout = 10;
 
     private void Start() {
         DontDestroyOnLoad(gameObject);
@@ -18,6 +21,11 @@ public class Scripts : MonoBehaviour {
 
         GameObject obj = GetGameObject();
 
+        if (obj == null) {
+            Debug.LogError("Scripts object was null");
+            return default;
+        }
+
         T component = obj.GetComponent<T>();
 
         if (component != null) {
@@ -32,6 +40,18 @@ public class Scripts : MonoBehaviour {
         }
 
         return default;
+    }
+
+    public static void RunCoroutine(IEnumerator coroutine) {
+        Scripts scr = GetScriptComponent<Scripts>();
+        if (scr != null) {
+            scr.InstanceRunCoroutine(coroutine);
+        }
+    }
+
+    private void InstanceRunCoroutine(IEnumerator coroutine) {
+        print("Starting coroutine: " + coroutine);
+        StartCoroutine(coroutine);
     }
 
     public static void Print(object obj) {
