@@ -1,4 +1,5 @@
-﻿using BeardedManStudios.Forge.Networking;
+﻿//Backup
+using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Unity;
 using System.Net;
 using System.Net.Sockets;
@@ -10,17 +11,41 @@ public class Server {
     public const ushort PORT = 15937;
     public static string IP = "127.0.0.1";
 
+    public static string natServerHost = string.Empty;
+    public static ushort natServerPort = 15938;
+
     private static NetworkManager manager;
 
     public static NetWorker Networker { get; private set; }
+
+    public static bool useTCP = true;
     #endregion
+
+    public static void Initialize() {
+        Rpc.MainThreadRunner = MainThreadManager.Instance;
+
+        if (!useTCP) {
+            // Do any firewall opening requests on the operating system
+            NetWorker.PingForFirewall(PORT);
+        }
+    }
 
     public static bool StartServer() {
 
         SetIP();
 
-        Networker = new UDPServer(64);
-        ((UDPServer)Networker).Connect(IP, PORT);
+        if (useTCP) {
+            Networker = new TCPServer(64);
+            ((TCPServer)Networker).Connect(IP, PORT);
+        } else {
+            Networker = new UDPServer(64);
+
+            if (natServerHost.Trim().Length == 0) {
+                ((UDPServer)Networker).Connect(IP, PORT);
+            } else {
+                ((UDPServer)Networker).Connect(port: PORT, natHost: natServerHost, natPort: natServerPort);
+            }
+        }
 
         Networker.playerTimeout += PlayerTimeout;
 
@@ -47,17 +72,33 @@ public class Server {
         //NetWorker.localServerLocated += LocalServerLocated;
         //NetWorker.RefreshLocalUdpListings(PORT);
 
+        MonoBehaviour.print("Connecting to :" + IP);
+
         return ConnectToAddress(IP, PORT);
     }
 
     private static bool ConnectToAddress(string IP, ushort PORT) {
         MonoBehaviour.print("Joining game");
 
-        Networker = new UDPClient();
-        MonoBehaviour.print("Joining: " + IP + ":" + PORT);
-        ((UDPClient)Networker).Connect(IP, PORT);
+        //
+        if (useTCP) {
+            Networker = new TCPClient();
+            MonoBehaviour.print("Joining: " + IP + ":" + PORT);
+            ((TCPClient)Networker).Connect(IP, PORT);
+        } else {
+            Networker = new UDPClient();
+            if (natServerHost.Trim().Length == 0) {
+                ((UDPClient)Networker).Connect(IP, PORT);
+            } else {
+                ((UDPClient)Networker).Connect(IP, PORT, natServerHost, natServerPort);
+            }
+        }
+        //
 
         bool connected = Connected(Networker);
+
+        MonoBehaviour.print("Connected: " + connected);
+        MonoBehaviour.print("Client: " + Networker);
 
         if (connected) {
             Networker.serverAccepted += new NetWorker.BaseNetworkEvent(OnServerConnect);

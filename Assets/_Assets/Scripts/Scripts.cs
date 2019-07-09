@@ -10,7 +10,7 @@ public class Scripts : MonoBehaviour {
     private void Start() {
         DontDestroyOnLoad(gameObject);
         DontDestroyOnLoad(GameObject.FindGameObjectWithTag("Players"));
-        Rpc.MainThreadRunner = MainThreadManager.Instance;
+        Server.Initialize();
     }
 
     public static GameObject GetGameObject() {
