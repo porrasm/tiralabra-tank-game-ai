@@ -5,23 +5,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class Games : GamesBehavior {
+public class GameManager : GamesBehavior {
 
-    private GameList currentGame;
+    private static Game currentGame;
 
-    public enum GameList { Menu = -2, Lobby = -1, TankGame = 1 }
+    public enum Game { Menu = -2, Lobby = -1, TankGame = 1 }
 
     private void Start() {
 
         transform.SetParent(Scripts.GetGameObject().transform);
 
-        currentGame = GameList.Menu;
+        currentGame = Game.Menu;
     }
     protected override void NetworkStart() {
         base.NetworkStart();
     }
 
-    public static void StartGame() {
+    public static void InitGames() {
 
         string start = null;
         if (Server.Networker.IsServer) {
@@ -34,14 +34,18 @@ public class Games : GamesBehavior {
         SceneManager.LoadScene(start + "Lobby");
     }
 
-    public static void SetScene(GameList game) {
-        Games g = Scripts.GetScriptComponent<Games>();
+    public static void StartGame(Game game) {
+        GameManager g = Scripts.GetScriptComponent<GameManager>();
 
         if (g != null) {
             g.SetSceneComp(game);
         }
     }
-    private void SetSceneComp(GameList game) {
+    public static void StartGame() {
+        StartGame(Game.TankGame);
+    }
+
+    private void SetSceneComp(Game game) {
 
         if (networkObject.IsServer) {
             networkObject.SendRpc(RPC_START_GAME_RPC, Receivers.All, (int)game);
@@ -57,10 +61,10 @@ public class Games : GamesBehavior {
             start = "Client_";
         }
 
-        if (currentGame == GameList.Lobby) {
+        if (currentGame == Game.Lobby) {
 
             SceneManager.LoadScene(start + "Lobby");
-        } else if (currentGame == GameList.TankGame) {
+        } else if (currentGame == Game.TankGame) {
 
             SceneManager.LoadScene(start + "TankGame");
         }
@@ -72,7 +76,7 @@ public class Games : GamesBehavior {
 
         int game = args.GetNext<int>();
 
-        currentGame = (GameList)game;
+        currentGame = (Game)game;
         LoadGameScene();
     }
     #endregion

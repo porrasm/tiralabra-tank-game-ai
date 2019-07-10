@@ -58,7 +58,7 @@ public class ClientManager : MonoBehaviour {
 
             Player p = child.GetComponent<Player>();
 
-            if (!p.Ready) {
+            if (p.Ready == 0) {
                 return false;
             }
         }

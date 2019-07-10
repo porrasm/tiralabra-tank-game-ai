@@ -39,7 +39,7 @@ public class Player : ClientBehavior {
                 networkObject.Score = score;
             } 
         } }
-    public bool Ready { get; set; }
+    public byte Ready { get; set; }
     public bool Primary { get { return ID == 0; } }
 
     public NetworkingPlayer NetPlayer { get; set; }
@@ -79,13 +79,8 @@ public class Player : ClientBehavior {
             return;
         }
 
-        byte ready = 0;
-        if (Ready) {
-            ready = 1;
-        }
-
         print("Sending client info over RPC: " + Name);
-        networkObject.SendRpc(RPC_UPDATE_CLIENT_RPC, Receivers.AllBuffered, (byte)ID, (byte)Color, Name, ready);
+        networkObject.SendRpc(RPC_UPDATE_CLIENT_RPC, Receivers.AllBuffered, (byte)ID, (byte)Color, Name, Ready);
     }
     public void ToggleColor() {
         print("Toggling player color");
@@ -106,7 +101,15 @@ public class Player : ClientBehavior {
         ID = args.GetAt<byte>(0);
         Color = (PlayerColor)args.GetAt<byte>(1);
         Name = args.GetAt<string>(2);
-        Ready = args.GetAt<byte>(3) == 1;
+        Ready = args.GetAt<byte>(3);
+
+
+        // If byte value is 2, the game will start
+        if (networkObject.IsServer) {
+            if (Ready == 2) {
+                GameManager.StartGame();
+            }
+        }
     }
     public override void ToggleColorRpc(RpcArgs args) {
 

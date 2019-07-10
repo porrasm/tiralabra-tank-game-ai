@@ -34,11 +34,11 @@ public class MainMenuUI : MonoBehaviour {
     public void CreateGame() {
         bool success = Server.StartServer();
         if (success) {
-            Games.StartGame();
+            GameManager.InitGames();
         }
     }
     public void StartGame() {
-        Games.SetScene(Games.GameList.TankGame);
+        GameManager.StartGame();
     }
 
     public void CancelGame() {
@@ -54,7 +54,7 @@ public class MainMenuUI : MonoBehaviour {
     public void JoinGame() {
         bool success = Server.ConnectToServer();
         if (success) {   
-            Games.StartGame();
+            GameManager.InitGames();
         }
     }
 

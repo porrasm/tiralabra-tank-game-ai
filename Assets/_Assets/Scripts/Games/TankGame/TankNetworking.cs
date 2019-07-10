@@ -158,6 +158,7 @@ public class TankNetworking : TankNetworkingBehavior {
                 }
             }
 
+            print("Tank found: " + tank.name);
             callback(tank.GetComponent<TankControls>());
         }
 

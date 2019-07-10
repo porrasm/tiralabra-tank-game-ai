@@ -84,12 +84,10 @@ public class UI_Slider : MonoBehaviour {
     }
 
     public void OnPointerUp(PointerEventData eventData) {
-        print("Pointer uo");
         SetPosition(transform.position);
     }
 
     private void SetPosition(Vector3 pos) {
-
         stick.position = pos;
         Value = GetValue(transform.position.y, pos.y);
     }
@@ -101,10 +99,6 @@ public class UI_Slider : MonoBehaviour {
 
         int mult = GetMultiplier(distance);
 
-        if (mult == 0) {
-            return 0;
-        }
-
         value *= 1 + endLimit;
         value -= endLimit * mult;
 
@@ -115,7 +109,7 @@ public class UI_Slider : MonoBehaviour {
             } else if (value > limitHigh) {
                 value = 1;
             }
-        } else {
+        } else if (mult < 0) {
             if (value > -limitLow) {
                 value = 0;
             } else if (value < -limitHigh) {
@@ -127,7 +121,6 @@ public class UI_Slider : MonoBehaviour {
             controls.ProcessControl(control, value);
         }
 
-        print("val: " + value);
         return value;
     }
     private int GetMultiplier(float distance) {

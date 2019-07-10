@@ -29,6 +29,10 @@ public class TankControls : MonoBehaviour {
             net.ChangeState(TankPlayer.PlayerState.Enabled);
         }
 
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            testControls = !testControls;
+        }
+
         if (net.State != TankPlayer.PlayerState.Enabled) {
             return;
         }
@@ -53,10 +57,6 @@ public class TankControls : MonoBehaviour {
         }
         if (Input.GetKey(KeyCode.A)) {
             movement.x -= 1;
-        }
-
-        if (movement != Vector2.zero || rotation != 0) {
-            testControls = true;
         }
 
         if (!testControls) {
@@ -172,6 +172,8 @@ public class TankControls : MonoBehaviour {
         ProcessControl(control, 0);
     }
     public void ProcessControl(Control control, float value) {
+
+        print(control + ": " + value);
 
         if (control == Control.Movement) {
             Vector2 movement = net.Movement;

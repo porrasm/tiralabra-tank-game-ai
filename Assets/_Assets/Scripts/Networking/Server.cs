@@ -18,7 +18,7 @@ public class Server {
 
     public static NetWorker Networker { get; private set; }
 
-    public static bool useTCP = true;
+    public static bool useTCP = false;
     #endregion
 
     public static void Initialize() {

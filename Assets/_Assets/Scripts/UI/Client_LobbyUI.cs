@@ -55,14 +55,26 @@ public class Client_LobbyUI : MonoBehaviour {
 
         print("Updating client name: " + name);
 
-        Player.Ready = false;
+        Player.Ready = 0;
         Player.UpdateClient();
         Player.ChangeName(name);
     }
 
     public void ToggleReady() {
-        Player.Ready = !Player.Ready;
+        if (Player.Ready > 0) {
+            Player.Ready = 0;
+        } else {
+            Player.Ready = 1;
+        }
         Player.UpdateClient();
+    }
+
+    public void StartGame() {
+
+        if (ClientManager.AllReady() && Player.Primary) {
+            Player.Ready = 2;
+            Player.UpdateClient();
+        }
     }
 
     private void UpdateUI() {
@@ -84,10 +96,10 @@ public class Client_LobbyUI : MonoBehaviour {
         // Ready button
         Image bImage = readyButton.GetComponent<Image>();
 
-        if (Player.Ready && bImage.color != Color.green) {
+        if (Player.Ready > 0 && bImage.color != Color.green) {
             bImage.color = Color.green;
             readyButton.transform.GetChild(0).GetComponent<Text>().text = "Ready";
-        } else if (!Player.Ready && bImage.color != Color.red) {
+        } else if (Player.Ready == 0 && bImage.color != Color.red) {
             bImage.color = Color.red;
             readyButton.transform.GetChild(0).GetComponent<Text>().text = "Not Ready";
         }
@@ -102,7 +114,7 @@ public class Client_LobbyUI : MonoBehaviour {
     }
 
     public void ToggleColor() {
-        Player.Ready = false;
+        Player.Ready = 0;
         Player.UpdateClient();
         Player.MyPlayer().ToggleColor();
     }
