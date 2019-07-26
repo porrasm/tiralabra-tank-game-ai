@@ -8,6 +8,8 @@ public class UI_Slider : MonoBehaviour {
     #region fields
     [SerializeField]
     private TankControls.Control control;
+    [SerializeField]
+    private int multiplier;
 
     private TankControls controls;
     private RectTransform stick;
@@ -58,7 +60,7 @@ public class UI_Slider : MonoBehaviour {
         trigger.triggers.Add(upEntry);
     }
 
-    void Update() {
+    private void Update() {
         UpdateStickPosition();
     }
 
@@ -116,6 +118,8 @@ public class UI_Slider : MonoBehaviour {
                 value = -1;
             }
         }
+
+        value *= multiplier;
 
         if (controls != null) {
             controls.ProcessControl(control, value);

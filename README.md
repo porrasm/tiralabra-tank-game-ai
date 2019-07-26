@@ -1,3 +1,3 @@
-# Unity Mini Games Project
+# Tank Game AI
 
-A Unity game which contains multiple multiplayer mini games.
+This is a project for the tiralabra2019 course.
