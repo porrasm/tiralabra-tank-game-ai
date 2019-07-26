@@ -2,9 +2,9 @@
 
 [Main Page](https://github.com/porrasm/tiralabra-tank-game-ai)
 
-[Documentation](https://github.com/porrasm/tiralabra-tank-game-ai/Documentation/)
+[Documentation](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/)
 
-[Code Directory](https://github.com/porrasm/tiralabra-tank-game-ai/Assets/_Assets/Scripts/Games/TankGame/TankAI/)
+[Code Directory](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Assets/_Assets/Scripts/Games/TankGame/TankAI/)
 
 ## Requirements Specification
 
