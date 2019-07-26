@@ -10,6 +10,6 @@
 
 ### Week 1
 
-| Date        | Description           | Hour  |
+| Date        | Description           | Hours  |
 | ------------- |-------------| -----|
 | 26.7     | Documentation & project initialization | 1.5 |
