@@ -26,5 +26,14 @@ The level is built from cells which have an upper & right wall. From each cell t
 
 Each bit in the array value corresponds to a possible direction. First bit is for up, second for left, 3rd for down and so on.
 
+Below is an example image which shows which bit value corresponds to which direction. In the example you can move to every direction from the center cell, which means that the byte value for that cell is 1111 1111.
+
 <img src="https://github.com/porrasm/tiralabra-tank-game-ai/blob/master/Documentation/weeks/level_cells_demonstration.png" width="300" height="300" />
 
+### Pathfinding
+
+Since the shortest possible route is not very important in this case I decided to start this with a simple depth first search modification. In a normal maze this would not work but the levels in this game are very open.
+
+The DFS modification always chooses the closest cell next.
+
+After the initial route is found, it re-searches from every node to the next few nodes to see if the route can become shorter.

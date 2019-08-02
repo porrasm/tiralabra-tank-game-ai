@@ -18,6 +18,11 @@ public class TankControls : MonoBehaviour {
 
     private void Start() {
         testControls = false;
+
+        if (Player.MyPlayer().Local) {
+            testControls = true;
+        }
+
         net = GetComponent<TankNetworking>();
 
         calibrationMatrix = Matrix4x4.identity;

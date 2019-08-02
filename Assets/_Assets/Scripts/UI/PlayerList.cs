@@ -19,6 +19,11 @@ public class PlayerList : MonoBehaviour {
         public Player Player;
         public GameObject Object;
     }
+
+    [SerializeField]
+    private bool game;
+
+    private float time;
     #endregion
 
     private void Start() {
@@ -36,15 +41,25 @@ public class PlayerList : MonoBehaviour {
 
     public void CheckUpdate() {
 
-        Player[] players = manager.GetPlayers();
+        if (!game) {
+            Player[] players = manager.GetPlayers();
 
-        if (Input.GetKeyDown(KeyCode.Space)) {
-            UpdateList(players);
-            return;
-        }
+            if (Input.GetKeyDown(KeyCode.Space)) {
+                UpdateList(players);
+                return;
+            }
 
-        if (NeedToUpdate(players)) {
-            UpdateList(players);
+            if (NeedToUpdate(players)) {
+                UpdateList(players);
+            }
+        } else {
+
+            time -= Time.deltaTime;
+
+            if (time < 0) {
+                time = 1;
+                UpdateList(manager.GetPlayers());
+            }
         }
     }
 

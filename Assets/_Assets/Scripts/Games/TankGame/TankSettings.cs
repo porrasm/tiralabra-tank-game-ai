@@ -12,7 +12,7 @@ public class TankSettings : MonoBehaviour {
 
     public static float AreaWidth = 1000;
 
-    public static float GenerateTime = 3;
+    public static float GenerateTime = 0;
 
     public static float Scale = 1;
 

@@ -6,10 +6,14 @@ public class Tank_AI : MonoBehaviour {
 
     #region fields
     TankControls controls;
+
+    TankDFSPath pf;
 	#endregion
 
     private void Start() {
         controls = GetComponent<TankControls>();
+
+        pf = new TankDFSPath();
     }
 
     private void Update() {

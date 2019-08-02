@@ -116,7 +116,7 @@ public class TankGameManager : MonoBehaviour {
         foreach (TankNetworking p in Players) {
             if (p.State == TankPlayer.PlayerState.Enabled) {
                 Debug.LogWarning("Not implemented");
-                // p.WinRound();
+                p.TankScore += TankSettings.WinScore;
             }
         }
     }

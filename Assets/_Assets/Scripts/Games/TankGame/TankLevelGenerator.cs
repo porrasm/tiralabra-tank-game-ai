@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
@@ -49,12 +50,14 @@ public class TankLevelGenerator : MonoBehaviour {
     private enum Direction { Start = -1, Up = 0, Right = 1, Down = 2, Left = 3, UpRight = 4, DownRight = 5, DownLeft = 6, UpLeft = 7 }
     #endregion
 
+    #region Basic
     private void Start() {
         levelParent = GameObject.FindGameObjectWithTag("Level").transform;
     }
     private void Update() {
         if (Input.GetKeyDown(KeyCode.R)) {
             GenerateLevel();
+            BuildGeneratedLevel();
         }
     }
 
@@ -78,6 +81,8 @@ public class TankLevelGenerator : MonoBehaviour {
         Step step = new Step() { Coords = new Coords() { X = x, Y = y }, Wall = wall, Silent = silent };
         steps.Add(step);
     }
+    #endregion
+
     #region Initialization
     private void Initialize() {
         ClearLevel();
@@ -319,6 +324,14 @@ public class TankLevelGenerator : MonoBehaviour {
     private void SetLevelArray() {
         SetBasicDirections();
         SetAdvancedDirections();
+
+        print("Set level array");
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                print("(" + x + ", " + y + ") " + Convert.ToString(Level[x, y], 2));
+            }
+        }
     }
 
     private void SetBasicDirections() {
@@ -328,10 +341,10 @@ public class TankLevelGenerator : MonoBehaviour {
 
                 TankCell cell = cells[x, y];
 
-                if (cell == null || cell.Top) {
+                if (cell == null || !cell.Top) {
                     LinkDirection(x, y, Direction.Up);
                 }
-                if (cell == null || cell.Right) {
+                if (cell == null || !cell.Right) {
                     LinkDirection(x, y, Direction.Right);
                 }
             }
@@ -473,7 +486,7 @@ public class TankLevelGenerator : MonoBehaviour {
         for (int i = 0; i < width; i++) {
 
             int amount = rnd.Next(0, 4) + 2;
-            bool deleting = Random.value > TankSettings.CleanProbability;
+            bool deleting = UnityEngine.Random.value > TankSettings.CleanProbability;
             int n = 2;
 
             for (int j = 0; j < height; j++) {
@@ -486,7 +499,7 @@ public class TankLevelGenerator : MonoBehaviour {
                     if (n >= amount) {
                         deleting = false;
                     }
-                } else if (Random.value > TankSettings.CleanProbability) {
+                } else if (UnityEngine.Random.value > TankSettings.CleanProbability) {
                     AddStep(i, j, TankCell.CellWall.Both, false);
                     deleting = true;
                 }
