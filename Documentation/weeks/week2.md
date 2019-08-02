@@ -22,5 +22,5 @@ The level is built from cells which have an upper & right wall. From each cell t
 
 Each bit in the array value corresponds to a possible direction. First bit is for up, second for left, 3rd for down and so on.
 
-![cells image](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/weeks/level_cells_demonstration.png "Movement directions")
+![alt text](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/weeks/level_cells_demonstration.png "Movement directions")
 
