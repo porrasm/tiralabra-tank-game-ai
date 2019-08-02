@@ -23,7 +23,6 @@ public class TankPlayer : MonoBehaviour {
 
     private void Start() {
         net = GetComponent<TankNetworking>();
-        print("Set net in start");
         net.Health = TankSettings.Health;
     }
     private void Update() {
@@ -32,8 +31,6 @@ public class TankPlayer : MonoBehaviour {
 
     #region Game
     public void DoDamage(int damage, TankPlayer player) {
-
-        print("Doing damage; " + damage);
 
         net.Health -= damage;
 
@@ -126,9 +123,6 @@ public class TankPlayer : MonoBehaviour {
     #endregion
 
     private void SetAlive() {
-
-        print("Setting health to: " + TankSettings.Health);
-
         net.Health = TankSettings.Health;
     }
     private void Kill() {

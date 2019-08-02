@@ -55,10 +55,6 @@ public class TankController : MonoBehaviour {
         string textureName = "text_tank_body" + (net.Owner.ID + 1);
         Texture tex = Resources.Load<Texture>("TankGame/Textures/" + textureName);
 
-        if (tex == null) {
-            print("Texture was null");
-        }
-
         print("Setting " + net.Owner.Name + " color to " + net.Owner.Color + " " + textureName);
         material.SetTexture(textureName, tex);
         material.color = Colors.GetBasicColor(net.Owner.Color);

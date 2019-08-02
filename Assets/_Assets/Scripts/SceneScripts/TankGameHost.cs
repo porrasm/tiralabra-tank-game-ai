@@ -29,6 +29,7 @@ public class TankGameHost : SceneScript {
     protected override void Initialize() {
         base.Initialize();
 
+        Scripts.GetGameObject().AddComponent<TankAIManager>();
     }
 
     public static TankGameHost Game() {

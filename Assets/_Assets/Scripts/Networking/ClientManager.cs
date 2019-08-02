@@ -111,8 +111,6 @@ public class ClientManager : MonoBehaviour {
     #region Colors
     public PlayerColor GetNextFreeColor(PlayerColor oldColor) {
 
-        Debug.Log("Getting next free color after: " + oldColor);
-
         for (int i = 0; i < 8; i++) {
 
             PlayerColor newColor = (PlayerColor)((int)(oldColor + i) % 8);

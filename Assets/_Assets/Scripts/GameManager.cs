@@ -39,6 +39,8 @@ public class GameManager : GamesBehavior {
 
         if (g != null) {
             g.SetSceneComp(game);
+        } else {
+            print("GameManager was null");
         }
     }
     public static void StartGame() {

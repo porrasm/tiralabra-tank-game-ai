@@ -28,6 +28,7 @@ public class TankLevelGenerator : MonoBehaviour {
     private System.Random rnd = new System.Random();
 
     public bool Building { get; set; }
+    public static byte[,] Level { get; private set; }
 
     private struct Step {
         public Coords Coords;
@@ -45,7 +46,7 @@ public class TankLevelGenerator : MonoBehaviour {
         }
     }
 
-    private enum Direction { Start = -1, Up = 0, Right = 1, Down = 2, Left = 3 }
+    private enum Direction { Start = -1, Up = 0, Right = 1, Down = 2, Left = 3, UpRight = 4, DownRight = 5, DownLeft = 6, UpLeft = 7 }
     #endregion
 
     private void Start() {
@@ -60,7 +61,7 @@ public class TankLevelGenerator : MonoBehaviour {
     public void GenerateLevel() {
         Initialize();
         DFSGenerateMaze();
-        CleanLevel();    
+        CleanLevel();
     }
     public void BuildGeneratedLevel() {
 
@@ -96,6 +97,8 @@ public class TankLevelGenerator : MonoBehaviour {
         cells = new TankCell[width, height];
 
         steps = new List<Step>();
+
+        Level = new byte[width, height];
     }
     private void ClearLevel() {
         foreach (Transform child in cellParent) {
@@ -312,6 +315,127 @@ public class TankLevelGenerator : MonoBehaviour {
     }
     #endregion
 
+    #region LevelField
+    private void SetLevelArray() {
+        SetBasicDirections();
+        SetAdvancedDirections();
+    }
+
+    private void SetBasicDirections() {
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+
+                TankCell cell = cells[x, y];
+
+                if (cell == null || cell.Top) {
+                    LinkDirection(x, y, Direction.Up);
+                }
+                if (cell == null || cell.Right) {
+                    LinkDirection(x, y, Direction.Right);
+                }
+            }
+        }
+    }
+    private void SetAdvancedDirections() {
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+
+                byte b = Level[x, y];
+               
+                if (PossibleDirection(b, Direction.Up) && PossibleDirection(b, Direction.Right)) {
+                    LinkDirection(x, y, Direction.UpRight);
+                }
+                if (PossibleDirection(b, Direction.Down) && PossibleDirection(b, Direction.Right)) {
+                    LinkDirection(x, y, Direction.DownRight);
+                }
+                if (PossibleDirection(b, Direction.Down) && PossibleDirection(b, Direction.Left)) {
+                    LinkDirection(x, y, Direction.DownLeft);
+                }
+                if (PossibleDirection(b, Direction.Up) && PossibleDirection(b, Direction.Left)) {
+                    LinkDirection(x, y, Direction.UpLeft);
+                }
+            }
+        }
+    }
+
+    private void LinkDirection(int x, int y, Direction direction) {
+
+        SetDirectionBit(ref Level[x, y], direction);
+        IncrementAndSwitch(ref x, ref y, ref direction);
+        
+        if (PossibleCoords(x, y)) {
+            SetDirectionBit(ref Level[x, y], direction);
+        }
+    }
+    private void IncrementAndSwitch(ref int x, ref int y, ref Direction direction) {
+
+        switch (direction) {
+            case Direction.Up:
+                y++;
+                direction = Direction.Down;
+                break;
+            case Direction.Right:
+                x++;
+                direction = Direction.Left;
+                break;
+            case Direction.Down:
+                y--;
+                direction = Direction.Up;
+                break;
+            case Direction.Left:
+                x--;
+                direction = Direction.Right;
+                break;
+            case Direction.UpRight:
+                x++;
+                y++;
+                direction = Direction.DownLeft;
+                break;
+            case Direction.DownRight:
+                x++;
+                y--;
+                direction = Direction.UpLeft;
+                break;
+            case Direction.DownLeft:
+                x--;
+                y--;
+                direction = Direction.UpRight;
+                break;
+            case Direction.UpLeft:
+                x--;
+                y++;
+                direction = Direction.DownRight;
+                break;
+        }
+    }
+
+    
+    private bool PossibleCoords(int x, int y) {
+        if (x < 0 || x >= width) {
+            return false;
+        }
+        if (y < 0 || y >= height) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool PossibleDirection(byte b, Direction direction) {
+        return (b & DirectionToByte(direction)) != 0;
+    }
+
+    private void SetDirectionBit(ref byte value, Direction direction) {
+        byte bit = DirectionToByte(direction);
+        value = (byte)(value | bit);
+    }
+    private byte DirectionToByte(Direction direction) {
+        return (byte)(1 << (int)direction);
+    }
+    #endregion
+
     #region Cleaning
     private void CleanLevel() {
         CleanSpawns();
@@ -399,6 +523,8 @@ public class TankLevelGenerator : MonoBehaviour {
             yield return new WaitForSeconds(waitTime + additional);
             additional = 0;
         }
+
+        SetLevelArray();
 
         Building = false;
     }

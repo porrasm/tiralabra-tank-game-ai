@@ -7,6 +7,9 @@ using UnityEngine;
 public class Player : ClientBehavior {
 
     #region fields
+    private bool local;
+    private bool ai;
+
     private string playerName;
     private int score;
 
@@ -43,8 +46,21 @@ public class Player : ClientBehavior {
     public bool Primary { get { return ID == 0; } }
 
     public NetworkingPlayer NetPlayer { get; set; }
+    public bool Local { get => local; set {
+            if (Server.Networker.IsServer) {
+                local = value;
+            } else {
+                Debug.LogError("Setting local failed");
+            }
+        } }
+    public bool AI { get => ai; set {
+            if (Server.Networker.IsServer) {
+                ai = value;
+            }
+        } }
     #endregion
 
+    #region Initialization
     protected override void NetworkStart() {
         base.NetworkStart();
 
@@ -54,10 +70,15 @@ public class Player : ClientBehavior {
     private void Start() {
         transform.SetParent(GameObject.FindGameObjectWithTag("Players").transform);
     }
-
+    
     public static void CreateNewClient() {
-        print("Creating new client object");
         NetworkManager.Instance.InstantiateClient();
+    }
+    public static void CreateNewAI() {
+        ClientBehavior beh = NetworkManager.Instance.InstantiateClient();
+    }
+    public static void CreateNewLocalPlayer() {
+
     }
 
     public void InitializeClient() {
@@ -73,17 +94,17 @@ public class Player : ClientBehavior {
 
         UpdateClient();
     }
+    #endregion
+
     public void UpdateClient() {
         if (!networkObject.IsOwner && !Server.Networker.IsServer) {
             print("Was not server or owner");
             return;
         }
 
-        print("Sending client info over RPC: " + Name);
         networkObject.SendRpc(RPC_UPDATE_CLIENT_RPC, Receivers.AllBuffered, (byte)ID, (byte)Color, Name, Ready);
     }
     public void ToggleColor() {
-        print("Toggling player color");
         networkObject.SendRpc(RPC_TOGGLE_COLOR_RPC, Receivers.AllBuffered);
     }
     public void ChangeName(string name) {
@@ -171,6 +192,8 @@ public class Player : ClientBehavior {
             Player p = child.GetComponent<Player>();
 
             if (p.networkObject.IsOwner) {
+                return p;
+            } else if (p.local) {
                 return p;
             }
         }

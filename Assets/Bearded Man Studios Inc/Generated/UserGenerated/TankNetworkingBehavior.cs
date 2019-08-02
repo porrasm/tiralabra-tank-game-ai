@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace BeardedManStudios.Forge.Networking.Generated
 {
-	[GeneratedRPC("{\"types\":[[\"int\"][\"byte\"]]")]
-	[GeneratedRPCVariableNames("{\"types\":[[\"PlayerID\"][\"State\"]]")]
+	[GeneratedRPC("{\"types\":[[\"int\", \"bool\"][\"byte\"]]")]
+	[GeneratedRPCVariableNames("{\"types\":[[\"PlayerID\", \"Force\"][\"State\"]]")]
 	public abstract partial class TankNetworkingBehavior : NetworkBehavior
 	{
 		public const byte RPC_SET_OWNER_R_P_C = 0 + 5;
@@ -23,7 +23,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 			networkObject.AttachedBehavior = this;
 
 			base.SetupHelperRpcs(networkObject);
-			networkObject.RegisterRpc("SetOwnerRPC", SetOwnerRPC, typeof(int));
+			networkObject.RegisterRpc("SetOwnerRPC", SetOwnerRPC, typeof(int), typeof(bool));
 			networkObject.RegisterRpc("ChangeStateRPC", ChangeStateRPC, typeof(byte));
 
 			networkObject.onDestroy += DestroyGameObject;
@@ -104,6 +104,7 @@ namespace BeardedManStudios.Forge.Networking.Generated
 		/// <summary>
 		/// Arguments:
 		/// int PlayerID
+		/// bool Force
 		/// </summary>
 		public abstract void SetOwnerRPC(RpcArgs args);
 		/// <summary>

@@ -25,6 +25,10 @@ public class TankControls : MonoBehaviour {
 
     private void Update() {
 
+        if (net.Owner == null || net.Owner.AI) {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.Alpha1)) {
             net.ChangeState(TankPlayer.PlayerState.Enabled);
         }
@@ -40,6 +44,10 @@ public class TankControls : MonoBehaviour {
         PCTestControls();
     }
     private void PCTestControls() {
+
+        if (!testControls) {
+            return;
+        }
 
         // PC CONTROLS FOR TESTING
 
@@ -57,10 +65,6 @@ public class TankControls : MonoBehaviour {
         }
         if (Input.GetKey(KeyCode.A)) {
             movement.x -= 1;
-        }
-
-        if (!testControls) {
-            return;
         }
 
         if (Input.GetKeyDown(KeyCode.Mouse0)) {
@@ -172,8 +176,6 @@ public class TankControls : MonoBehaviour {
         ProcessControl(control, 0);
     }
     public void ProcessControl(Control control, float value) {
-
-        print(control + ": " + value);
 
         if (control == Control.Movement) {
             Vector2 movement = net.Movement;

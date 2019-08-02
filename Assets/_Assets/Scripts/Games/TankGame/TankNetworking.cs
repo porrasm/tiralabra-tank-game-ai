@@ -44,9 +44,10 @@ public class TankNetworking : TankNetworkingBehavior {
 
         if (networkObject.IsServer) {
             GetComponent<TankController>().enabled = true;
-        } else if (networkObject.IsOwner) {
-            owner = Player.MyPlayer();
-            networkObject.SendRpc(RPC_SET_OWNER_R_P_C, Receivers.ServerAndOwner, owner.ID);
+        }
+
+        if (networkObject.IsOwner || Player.MyPlayer().Local) {
+            SetOwner(Player.MyPlayer(), false);
         }
 
         GetComponent<TankPlayer>().enabled = true;
@@ -56,7 +57,7 @@ public class TankNetworking : TankNetworkingBehavior {
 
     private void Update() {
 
-        if (networkObject == null) {
+        if (networkObject == null || Owner == null) {
             return;
         }
 
@@ -64,13 +65,27 @@ public class TankNetworking : TankNetworkingBehavior {
     }
 
     public void UpdateFields() {
+
         if (networkObject.IsServer) {
-            ServerFieldUpdate();
+            if (Owner.Local || Owner.AI) {
+                ServerOwnerFieldUpdate();
+            } else {
+                ServerFieldUpdate();
+            }
         } else if (networkObject.IsOwner) {
             OwnerFieldUpdate();
         } else {
             ClientFieldUpdate();
         }
+    }
+    private void ServerOwnerFieldUpdate() {
+        networkObject.Health = health;
+        networkObject.Score = tankScore;
+
+        networkObject.Movement = movement;
+        networkObject.Rotation = rotation;
+        networkObject.Fire = fire;
+        networkObject.Powerup = powerup;
     }
     private void ServerFieldUpdate() {
         networkObject.Health = health;
@@ -90,6 +105,7 @@ public class TankNetworking : TankNetworkingBehavior {
         health = networkObject.Health;
         tankScore = networkObject.Score;
     }
+
     private void ClientFieldUpdate() {
 
         // Necessary?
@@ -107,11 +123,37 @@ public class TankNetworking : TankNetworkingBehavior {
         State = (TankPlayer.PlayerState)stateByte;
     }
 
+    public void SetOwner(Player player, bool force) {
+
+        if (networkObject == null) {
+            print("Setting owner before net init");
+        }
+        if (player == null) {
+            Debug.LogError("given player was null");
+        }
+
+        print("SetOwner: " + player.Name + ", " + force + ", " + player.Color);
+
+        networkObject.SendRpc(RPC_SET_OWNER_R_P_C, Receivers.All, player.ID, force);
+    }
     public override void SetOwnerRPC(RpcArgs args) {
+
+        print("OWNER RPC -----------------------");
+
         int id = args.GetNext<int>();
+        bool force = args.GetNext<bool>();
+
+        if (owner != null && !force) {
+            print("Owner not set");
+            return;
+        }
+
         owner = Player.PlayerByID(id);
 
+        print("Owner set to " + owner.Name);
+
         if (networkObject.IsServer) {
+            print("Setting color to " + owner.Color);
             GetComponent<TankController>().SetMaterial();
         }
     }

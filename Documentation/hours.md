@@ -13,3 +13,11 @@
 | Date        | Description           | Hours  |
 | ------------- |-------------| -----|
 | 26.7     | Documentation & project initialization | 1.5 |
+
+### Week 2
+
+| Date        | Description           | Hours  |
+| ------------- |-------------| -----|
+| 31.7     | AI testing environment initialization | 2 |
+| 1.8     | AI testing environment initialization | 1.5 |
+| 2.8     | AI testing environment initialization | 2 |
