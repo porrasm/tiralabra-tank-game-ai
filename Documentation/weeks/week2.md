@@ -12,7 +12,11 @@
 
 ### Initialization
 
-The idea in the 2nd week was to get an AI with pathfinding and simple shooting skills up and running. However I ran into several problems with the game and initializing the testing environment. Normally the game would require a host instance and then other clients would connect to the game. In order to easily test the AI everything should be run on the same application instance. Implementing this took more time than expected but it is now working properly.
+The idea in the 2nd week was to get an AI with pathfinding and simple shooting skills up and running. However I ran into several problems with the game and initializing the testing environment. 
+
+### Problems
+
+Normally the game would require a host instance and then other clients would connect to the game. In order to easily test the AI everything should run on the same application instance. Implementing this took more time than expected but it is now working properly.
 
 ### Level
 
@@ -22,5 +26,5 @@ The level is built from cells which have an upper & right wall. From each cell t
 
 Each bit in the array value corresponds to a possible direction. First bit is for up, second for left, 3rd for down and so on.
 
-![alt text](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/weeks/level_cells_demonstration.png "Movement directions")
+<img src="https://github.com/porrasm/tiralabra-tank-game-ai/blob/master/Documentation/weeks/level_cells_demonstration.png" width="300" height="300" />
 
