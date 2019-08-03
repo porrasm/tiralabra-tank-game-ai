@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-class Maths {
+public class Maths {
 
     // Replace
     public static float Sqrt(float f) {
@@ -10,7 +10,7 @@ class Maths {
 
     public static float Power(float f, int power) {
 
-        float result = 1;
+        double result = 1;
 
         if (power > 0) {
             for (int i = 0; i < power; i++) {
@@ -22,8 +22,7 @@ class Maths {
             }
         }
 
-
-        return result;
+        return (float)result;
     }
 
     public static int Power(int n, int power) {

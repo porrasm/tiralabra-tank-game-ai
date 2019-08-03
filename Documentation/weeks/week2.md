@@ -39,3 +39,8 @@ The DFS modification always chooses the closest cell next.
 After the initial route is found, it re-searches from every node to the closest other node to see if the route can be shortened.
 
 The implementation is not yet ready.
+
+
+### Testign
+
+This week I started writing tests on IntCoords, Maths and Vector classes. The test directory can be found [here](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Assets/_Assets/Tests/)
