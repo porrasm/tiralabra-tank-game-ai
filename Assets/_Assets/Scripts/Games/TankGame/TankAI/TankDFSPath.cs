@@ -15,124 +15,71 @@ public class TankDFSPath {
     // Replace list
     public bool building;
     public Stack<IntCoords> route;
+
+    private bool found;
     #endregion
 
     public TankDFSPath() {
         level = TankLevelGenerator.Level;
-        visited = new byte[level.GetLength(0), level.GetLength(1)];
     }
 
-    public Stack<IntCoords> DFSPath(IntCoords start, IntCoords end) {
 
+    public Stack<IntCoords> DFSRecursive(IntCoords start, IntCoords end) {
         this.start = start;
         this.end = end;
 
+        visited = new byte[level.GetLength(0), level.GetLength(1)];
         route = new Stack<IntCoords>();
 
+        found = false;
+
         Visit(start, 1);
-        //DFSSearch();
+        DFSRecursiveSearch(start, BestDirection2(start));
 
         return route;
     }
+    private void DFSRecursiveSearch(IntCoords coords, TankDirection direction) {
 
-    public IEnumerator DFSSearchSafe(IntCoords start, IntCoords end) {
+        if (coords == end) {
+            found = true;
+            return;
+        }
 
-        building = true;
+        if (found) {
+            return;
+        }
 
-        this.start = start;
-        this.end = end;
+        IntCoords newCoords = coords.MoveToDirection(direction);
 
-        route = new Stack<IntCoords>();
 
-        Visit(start, 1);
+        if (InvalidCoords(newCoords, false)) {
+            return;
+        }
 
-        route.Push(start);
+        Visit(newCoords, 1);
+        route.Push(coords);   
 
-        coords = start;
-
-        while (true) {
-
-            yield return null;
-
-            Debug.DrawLine(Vector.ToVector3(Vector.CoordsToPosition(coords)), Vector.ToVector3(Vector.CoordsToPosition(coords)) + Vector3.one * 0.2f);
-
-            Move();
-
-            MonoBehaviour.print("Current pos: " + coords);
-
-            if (Finished()) {
+        for (int i = 0; i < 8; i++) {
+            TankDirection newDirection = BestDirection2(newCoords);
+            if (newDirection == TankDirection.None) {
+                Visit(newCoords, 2);
+                break;
+            } else if (newDirection == TankDirection.Backtrack) {
                 break;
             }
-
-            if (!CanMove(coords)) {
-                Backtrack();
-            }
+            DFSRecursiveSearch(newCoords, newDirection);
         }
 
-        building = false;
-        MonoBehaviour.print("Done");
-    }
-
-    private void Backtrack() {
-
-        MonoBehaviour.print("Backtrack");
-
-        while (true) {
-            Visit(route.Pop(), 2);
-            if (route.Count == 0) {
-                return;
-            }
-            if (CanMove(route.Peek())) {
-                return;
-            }
+        if (!found) {
+            route.Pop();
         }
     }
 
-    private bool Finished() {
-        MonoBehaviour.print(coords + " == " + end);
-        return coords == end;
-    }
+    private TankDirection BestDirection2(IntCoords coords) {
 
-    private void Move() {
-
-        TankDirection best = BestDirection(coords);
-
-        MonoBehaviour.print("Moving " + best);
-
-        coords = coords.MoveToDirection(best);
-        route.Push(coords);
-        Visit(coords, 1);
-    }
-
-    private bool CanMove(IntCoords coords) {
-
-        byte allowed = level[coords.x, coords.y];
-
-        for (int i = 0; i < 8; i++) {
-            TankDirection direction = (TankDirection)i;
-
-            if (!TankDirectionTools.AllowedDirection(allowed, direction)) {
-                MonoBehaviour.print("Not allowed dir: " + Convert.ToString(allowed, 2) + ", dir: " + direction);
-                continue;
-            }
-
-            IntCoords newCoords = coords.MoveToDirection(direction);
-
-            if (!InvalidCoords(newCoords, true)) {
-                MonoBehaviour.print("Invalid coords");
-                return true;
-            }
-        }
-
-        MonoBehaviour.print("Cant move");
-        return false;
-    }
-
-
-    private TankDirection BestDirection(IntCoords coords) {
-
-        TankDirection optDirection = TankDirection.Start;
+        TankDirection optDirection = TankDirection.None;
         float distance = float.MaxValue;
+        IntCoords shortestCoords = new IntCoords(0, 0);
 
         byte allowed = level[coords.x, coords.y];
 
@@ -140,28 +87,29 @@ public class TankDFSPath {
             TankDirection direction = (TankDirection)i;
 
             if (!TankDirectionTools.AllowedDirection(allowed, direction)) {
-                MonoBehaviour.print(direction + " was not allowed from " + coords + ", allowed: " + Convert.ToString(allowed, 2));
                 continue;
             }
 
             IntCoords newCoords = coords.MoveToDirection(direction);
 
-            if (InvalidCoords(newCoords, false)) {
-                MonoBehaviour.print("Moving to " + direction + " was not allowed from " + coords + ", allowed: " + Convert.ToString(allowed, 2));
+            if (Visited(newCoords) > 0) {
                 continue;
             }
 
             float newDistance = Vector.Distance(Vector.CoordsToPosition(newCoords), Vector.CoordsToPosition(end));
 
-            MonoBehaviour.print("New distance: " + newDistance + ", prev distance: " + distance);
-
-            if (newDistance < distance) {
+            if (newDistance < distance || (Visited(newCoords) == 0 && newDistance <= distance)) {
                 distance = newDistance;
                 optDirection = direction;
+                shortestCoords = newCoords;
             }
         }
 
         return optDirection;
+    }
+
+    private int Visited(IntCoords coords) {
+        return visited[coords.x, coords.y];
     }
 
     private void Visit(IntCoords coords, byte value) {
@@ -177,11 +125,9 @@ public class TankDFSPath {
             if (strict) {
                 limit = 1;
             }
-            MonoBehaviour.print(visited[coords.x, coords.y] + " >= " + limit);
             return visited[coords.x, coords.y] >= limit;
         }
 
-        MonoBehaviour.print("out of bounds");
         return true;
     }
 }

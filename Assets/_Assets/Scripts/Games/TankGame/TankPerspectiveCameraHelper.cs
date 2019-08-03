@@ -9,6 +9,9 @@ public class TankPerspectiveCameraHelper : MonoBehaviour {
     private GameObject level;
 
     void Start() {
+
+        print("Perspective start: " + gameObject.name);
+
         prsCamera = transform.GetChild(0);
         prsArea = new GameObject().transform;
         prsArea.name = "Perspective Level";
@@ -44,6 +47,7 @@ public class TankPerspectiveCameraHelper : MonoBehaviour {
     private void CleanLevel(Transform level) {
 
         Destroy(level.Find("Spawns").gameObject);
+        Destroy(level.GetComponent<TankLevelGenerator>());
 
     }
     private void SetCamera() {

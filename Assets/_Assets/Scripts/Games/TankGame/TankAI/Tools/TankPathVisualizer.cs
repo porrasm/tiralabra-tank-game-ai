@@ -7,6 +7,8 @@ public class TankPathVisualizer : MonoBehaviour {
     #region fields
     TankDFSPath dfs;
     LineRenderer line;
+
+    private IntCoords start;
     #endregion
 
     private void Init() {
@@ -22,11 +24,45 @@ public class TankPathVisualizer : MonoBehaviour {
             Init();
         }
 
-        if (Input.GetKeyDown(KeyCode.Space)) {
+        if (Input.GetKeyDown(KeyCode.Mouse1)) {
+            Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            start = Vector.PositionToCoords(Vector.FromVector3(world));
+        }
+        if (Input.GetKey(KeyCode.Mouse0)) {
             UpdateRoute();
         }
 
-        DrawRoute();
+        DrawLevel();
+    }
+
+    private void DrawLevel() {
+
+        if (TankLevelGenerator.Level == null) {
+            return;
+        }
+
+        for (int x = 0; x < 10; x++) {
+            for (int y = 0; y < 10; y++) {
+                DrawAvailable(new IntCoords(x, y), TankLevelGenerator.Level[x, y]);
+            }
+        }
+
+    }
+    private void DrawAvailable(IntCoords coords, byte allowed) {
+
+        for (int i = 0; i < 8; i++) {
+
+            TankDirection direction = (TankDirection)i;
+
+            if (TankDirectionTools.AllowedDirection(allowed, direction)) {
+                IntCoords newCoords = coords.MoveToDirection(direction);
+                DrawLine(coords, newCoords);
+            }
+        }
+
+    }
+    private void DrawLine(IntCoords a, IntCoords b) {
+        Debug.DrawLine(Vector.ToVector3(Vector.CoordsToPosition(a)), Vector.ToVector3(Vector.CoordsToPosition(b)));
     }
 
     private void UpdateRoute() {
@@ -36,9 +72,11 @@ public class TankPathVisualizer : MonoBehaviour {
         }
 
         IntCoords coords = MouseToCoords();
-        StartCoroutine(dfs.DFSSearchSafe(new IntCoords(0, 0), coords));
+        //StartCoroutine(dfs.DFSSearchSafe(new IntCoords(0, 0), coords));
 
+        dfs.DFSRecursive(start, coords);
 
+        DrawRoute();
 
         //DrawRoute(route);
     }
@@ -58,23 +96,23 @@ public class TankPathVisualizer : MonoBehaviour {
         if (dfs == null) {
             return;
         }
-        if (dfs.building) {
-            return;
-        }
+        //if (dfs.building) {
+        //    return;
+        //}
 
-        dfs.building = true;
+        //dfs.building = true;
 
-        line.SetPositions(RouteToPos(dfs.route));
+        Vector3[] positions = RouteToPos(dfs.route);
+        line.positionCount = positions.Length;
+        line.SetPositions(positions);
     }
     private Vector3[] RouteToPos(Stack<IntCoords> route) {
 
         Vector3[] pos = new Vector3[route.Count];
 
         for (int i = 0; i < pos.Length; i++) {
-            pos[i] = Vector.ToVector3(Vector.CoordsToPosition(route.Pop()));
+            pos[pos.Length - 1 - i] = Vector.ToVector3(Vector.CoordsToPosition(route.Pop()));
         }
-
-        print("Building line: " + pos.Length);
 
         return pos;
     }

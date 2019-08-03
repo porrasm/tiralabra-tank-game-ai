@@ -36,4 +36,6 @@ Since the shortest possible route is not very important in this case I decided t
 
 The DFS modification always chooses the closest cell next.
 
-After the initial route is found, it re-searches from every node to the next few nodes to see if the route can become shorter.
+After the initial route is found, it re-searches from every node to the closest other node to see if the route can be shortened.
+
+The implementation is not yet ready.

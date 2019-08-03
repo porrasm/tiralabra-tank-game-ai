@@ -6,7 +6,17 @@ public class TankCell : MonoBehaviour {
 
     public enum CellWall { Top, Right, Both }
 
-    public bool Top, Right;
+    public bool Top {
+        get {
+            return transform.GetChild(0).GetChild(0).gameObject.activeInHierarchy;
+        }
+    }
+    public bool Right {
+        get {
+            return transform.GetChild(1).GetChild(0).gameObject.activeInHierarchy;
+        }
+    }
+
     private GameObject topWall, rightWall;
 
     private bool active;
@@ -26,15 +36,13 @@ public class TankCell : MonoBehaviour {
     public void DisableWall(CellWall type) {
         if (type == CellWall.Top || type == CellWall.Both) {
             TopWall().SetActive(false);
-            Top = false;
         }
         if (type == CellWall.Right || type == CellWall.Both) {
             RightWall().SetActive(false);
-            Right = false;
         }
 
         if (BothDisabled()) {
-            Destroy(gameObject);
+            //Destroy(gameObject);
         }
     }
 
@@ -45,9 +53,6 @@ public class TankCell : MonoBehaviour {
     public void SetWalls(bool enabled) {
 
         active = enabled;
-
-        Top = enabled;
-        Right = enabled;
 
         transform.GetChild(0).gameObject.SetActive(enabled);
         transform.GetChild(1).gameObject.SetActive(enabled);

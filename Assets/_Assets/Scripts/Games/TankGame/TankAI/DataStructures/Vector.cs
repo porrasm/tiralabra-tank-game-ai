@@ -64,7 +64,7 @@ public struct Vector {
         position.x -= 0.5f;
         position.z -= 0.5f;
 
-        return new IntCoords((int)position.x, (int)position.z);
+        return new IntCoords(Maths.Ceil(position.x), Maths.Ceil(position.z));
     }
 
     public static float Distance(Vector vector1, Vector vector2) {

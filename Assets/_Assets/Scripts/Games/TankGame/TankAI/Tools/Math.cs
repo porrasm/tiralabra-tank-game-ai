@@ -49,4 +49,15 @@ class Maths {
         }
         return f;
     }
+
+    public static int Ceil(float f) {
+
+        int i = (int)f;
+
+        if (f > i) {
+            i++;
+        }
+
+        return i;
+    }
 }

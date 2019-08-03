@@ -46,8 +46,6 @@ public class TankLevelGenerator : MonoBehaviour {
             return "(" + X + ", " + Y + ")";
         }
     }
-
-    private enum Direction { Start = -1, Up = 0, Right = 1, Down = 2, Left = 3, UpRight = 4, DownRight = 5, DownLeft = 6, UpLeft = 7 }
     #endregion
 
     #region Basic
@@ -92,7 +90,6 @@ public class TankLevelGenerator : MonoBehaviour {
 
     private void InitializeVariables() {
 
-        // Values are swapped
         width = TankSettings.LevelWidth;
         height = TankSettings.LevelHeight;
 
@@ -119,7 +116,6 @@ public class TankLevelGenerator : MonoBehaviour {
         RemoveEdgeWalls();
     }
 
-    // Initialization needs to swap width & height
     private void InitializeLevelArea() {
         levelFloor.localScale = new Vector3(0.1f * height, 1, 0.1f * width);
     }
@@ -196,8 +192,7 @@ public class TankLevelGenerator : MonoBehaviour {
         t.localPosition = CellPosition(x, y);
     }
     private Vector3 CellPosition(int x, int y) {
-        // X & Y are swapped for some reason, works now
-        return new Vector3(y, 0, x);
+        return new Vector3(x, 0, y);
     }
 
     private void RemoveEdgeWalls() {
@@ -215,15 +210,15 @@ public class TankLevelGenerator : MonoBehaviour {
         visited[0, 0] = true;
         DFSGenerateMazeRecursive(new Coords(), StartDirection());
     }
-    private Direction StartDirection() {
+    private TankDirection StartDirection() {
         if (rnd.Next(2) == 0) {
-            return Direction.Right;
+            return TankDirection.Right;
         }
 
-        return Direction.Up;
+        return TankDirection.Up;
     }
 
-    private void DFSGenerateMazeRecursive(Coords coords, Direction direction) {
+    private void DFSGenerateMazeRecursive(Coords coords, TankDirection direction) {
 
         Coords newCoords = MoveCoords(coords, direction);
 
@@ -233,33 +228,33 @@ public class TankLevelGenerator : MonoBehaviour {
 
         DFSMove(newCoords, direction);
 
-        foreach (Direction dir in RandomDirection()) {
+        foreach (TankDirection dir in RandomDirection()) {
             DFSGenerateMazeRecursive(newCoords, dir);
         }
     }
 
-    private void DFSMove(Coords coords, Direction direction) {
+    private void DFSMove(Coords coords, TankDirection direction) {
 
         Step step = new Step();
 
         visited[coords.X, coords.Y] = true;
 
-        if (direction == Direction.Up) {
+        if (direction == TankDirection.Up) {
 
-            step.Coords = MoveCoords(coords, Direction.Down);
+            step.Coords = MoveCoords(coords, TankDirection.Down);
             step.Wall = TankCell.CellWall.Top;
 
-        } else if (direction == Direction.Right) {
+        } else if (direction == TankDirection.Right) {
 
-            step.Coords = MoveCoords(coords, Direction.Left);
+            step.Coords = MoveCoords(coords, TankDirection.Left);
             step.Wall = TankCell.CellWall.Right;
 
-        } else if (direction == Direction.Down) {
+        } else if (direction == TankDirection.Down) {
 
             step.Coords = coords;
             step.Wall = TankCell.CellWall.Top;
 
-        } else if (direction == Direction.Left) {
+        } else if (direction == TankDirection.Left) {
 
             step.Coords = coords;
             step.Wall = TankCell.CellWall.Right;
@@ -280,19 +275,19 @@ public class TankLevelGenerator : MonoBehaviour {
         return visited[coords.X, coords.Y];
     }
 
-    private Coords MoveCoords(Coords coords, Direction direction) {
+    private Coords MoveCoords(Coords coords, TankDirection direction) {
 
         switch (direction) {
-            case Direction.Up:
+            case TankDirection.Up:
                 coords.Y++;
                 break;
-            case Direction.Down:
+            case TankDirection.Down:
                 coords.Y--;
                 break;
-            case Direction.Right:
+            case TankDirection.Right:
                 coords.X++;
                 break;
-            case Direction.Left:
+            case TankDirection.Left:
                 coords.X--;
                 break;
         }
@@ -300,15 +295,15 @@ public class TankLevelGenerator : MonoBehaviour {
         return coords;
     }
 
-    private Direction[] RandomDirection() {
+    private TankDirection[] RandomDirection() {
 
-        Direction[] dir = new Direction[4];
+        TankDirection[] dir = new TankDirection[4];
 
-        List<Direction> order = new List<Direction>();
-        order.Add(Direction.Up);
-        order.Add(Direction.Right);
-        order.Add(Direction.Down);
-        order.Add(Direction.Left);
+        List<TankDirection> order = new List<TankDirection>();
+        order.Add(TankDirection.Up);
+        order.Add(TankDirection.Right);
+        order.Add(TankDirection.Down);
+        order.Add(TankDirection.Left);
 
         for (int i = 0; i < 4; i++) {
             int dirIndex = rnd.Next(order.Count);
@@ -317,135 +312,6 @@ public class TankLevelGenerator : MonoBehaviour {
         }
 
         return dir;
-    }
-    #endregion
-
-    #region LevelField
-    private void SetLevelArray() {
-        SetBasicDirections();
-        SetAdvancedDirections();
-
-        print("Set level array");
-
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                print("(" + x + ", " + y + ") " + Convert.ToString(Level[x, y], 2));
-            }
-        }
-    }
-
-    private void SetBasicDirections() {
-
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-
-                TankCell cell = cells[x, y];
-
-                if (cell == null || !cell.Top) {
-                    LinkDirection(x, y, Direction.Up);
-                }
-                if (cell == null || !cell.Right) {
-                    LinkDirection(x, y, Direction.Right);
-                }
-            }
-        }
-    }
-    private void SetAdvancedDirections() {
-
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-
-                byte b = Level[x, y];
-               
-                if (PossibleDirection(b, Direction.Up) && PossibleDirection(b, Direction.Right)) {
-                    LinkDirection(x, y, Direction.UpRight);
-                }
-                if (PossibleDirection(b, Direction.Down) && PossibleDirection(b, Direction.Right)) {
-                    LinkDirection(x, y, Direction.DownRight);
-                }
-                if (PossibleDirection(b, Direction.Down) && PossibleDirection(b, Direction.Left)) {
-                    LinkDirection(x, y, Direction.DownLeft);
-                }
-                if (PossibleDirection(b, Direction.Up) && PossibleDirection(b, Direction.Left)) {
-                    LinkDirection(x, y, Direction.UpLeft);
-                }
-            }
-        }
-    }
-
-    private void LinkDirection(int x, int y, Direction direction) {
-
-        SetDirectionBit(ref Level[x, y], direction);
-        IncrementAndSwitch(ref x, ref y, ref direction);
-        
-        if (PossibleCoords(x, y)) {
-            SetDirectionBit(ref Level[x, y], direction);
-        }
-    }
-    private void IncrementAndSwitch(ref int x, ref int y, ref Direction direction) {
-
-        switch (direction) {
-            case Direction.Up:
-                y++;
-                direction = Direction.Down;
-                break;
-            case Direction.Right:
-                x++;
-                direction = Direction.Left;
-                break;
-            case Direction.Down:
-                y--;
-                direction = Direction.Up;
-                break;
-            case Direction.Left:
-                x--;
-                direction = Direction.Right;
-                break;
-            case Direction.UpRight:
-                x++;
-                y++;
-                direction = Direction.DownLeft;
-                break;
-            case Direction.DownRight:
-                x++;
-                y--;
-                direction = Direction.UpLeft;
-                break;
-            case Direction.DownLeft:
-                x--;
-                y--;
-                direction = Direction.UpRight;
-                break;
-            case Direction.UpLeft:
-                x--;
-                y++;
-                direction = Direction.DownRight;
-                break;
-        }
-    }
-
-    
-    private bool PossibleCoords(int x, int y) {
-        if (x < 0 || x >= width) {
-            return false;
-        }
-        if (y < 0 || y >= height) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private bool PossibleDirection(byte b, Direction direction) {
-        return (b & DirectionToByte(direction)) != 0;
-    }
-
-    private void SetDirectionBit(ref byte value, Direction direction) {
-        byte bit = DirectionToByte(direction);
-        value = (byte)(value | bit);
-    }
-    private byte DirectionToByte(Direction direction) {
-        return (byte)(1 << (int)direction);
     }
     #endregion
 
@@ -555,4 +421,120 @@ public class TankLevelGenerator : MonoBehaviour {
         return step.Silent;
     }
     #endregion
+
+    #region LevelField
+    private void SetLevelArray() {
+        SetBasicDirections();
+        //SetAdvancedDirections();
+    }
+
+    private void SetBasicDirections() {
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+
+                TankCell cell = cells[x, y];
+
+                if (cell == null || !cell.Top) {
+                    LinkDirection(x, y, TankDirection.Up);
+                }
+                if (cell == null || !cell.Right) {
+                    LinkDirection(x, y, TankDirection.Right);
+                }
+            }
+        }
+    }
+    private void SetAdvancedDirections() {
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+
+                byte b = Level[x, y];
+
+                if (TankDirectionTools.AllowedDirection(b, TankDirection.Up) && TankDirectionTools.AllowedDirection(b, TankDirection.Right)) {
+                    LinkDirection(x, y, TankDirection.UpRight);
+                }
+                if (TankDirectionTools.AllowedDirection(b, TankDirection.Down) && TankDirectionTools.AllowedDirection(b, TankDirection.Right)) {
+                    LinkDirection(x, y, TankDirection.DownRight);
+                }
+                if (TankDirectionTools.AllowedDirection(b, TankDirection.Down) && TankDirectionTools.AllowedDirection(b, TankDirection.Left)) {
+                    LinkDirection(x, y, TankDirection.DownLeft);
+                }
+                if (TankDirectionTools.AllowedDirection(b, TankDirection.Up) && TankDirectionTools.AllowedDirection(b, TankDirection.Left)) {
+                    LinkDirection(x, y, TankDirection.UpLeft);
+                }
+            }
+        }
+    }
+
+    private void LinkDirection(int x, int y, TankDirection direction) {
+
+        int newX = x;
+        int newY = y;
+        TankDirection newDirection = direction;
+
+        IncrementAndSwitch(ref newX, ref newY, ref newDirection);
+
+        if (!PossibleCoords(newX, newY)) {
+            return;
+        }
+
+        TankDirectionTools.SetDirectionBit(ref Level[x, y], direction);
+        TankDirectionTools.SetDirectionBit(ref Level[newX, newY], newDirection);
+    }
+    private void IncrementAndSwitch(ref int x, ref int y, ref TankDirection direction) {
+
+        switch (direction) {
+            case TankDirection.Up:
+                y++;
+                direction = TankDirection.Down;
+                break;
+            case TankDirection.Right:
+                x++;
+                direction = TankDirection.Left;
+                break;
+            case TankDirection.Down:
+                y--;
+                direction = TankDirection.Up;
+                break;
+            case TankDirection.Left:
+                x--;
+                direction = TankDirection.Right;
+                break;
+            case TankDirection.UpRight:
+                x++;
+                y++;
+                direction = TankDirection.DownLeft;
+                break;
+            case TankDirection.DownRight:
+                x++;
+                y--;
+                direction = TankDirection.UpLeft;
+                break;
+            case TankDirection.DownLeft:
+                x--;
+                y--;
+                direction = TankDirection.UpRight;
+                break;
+            case TankDirection.UpLeft:
+                x--;
+                y++;
+                direction = TankDirection.DownRight;
+                break;
+        }
+    }
+
+
+    private bool PossibleCoords(int x, int y) {
+        if (x < 0 || x >= width) {
+            return false;
+        }
+        if (y < 0 || y >= height) {
+            return false;
+        }
+
+        return true;
+    }
+    #endregion
+
 }
