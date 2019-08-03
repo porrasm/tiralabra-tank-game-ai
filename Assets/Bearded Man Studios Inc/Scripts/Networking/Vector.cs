@@ -16,7 +16,7 @@ namespace BeardedManStudios
 		/// </summary>
 		public float Magnitude
 		{
-			get { return (float)Maths.Sqrt((x * x) + (y * y) + (z * z)); }
+			get { return (float)Math.Sqrt((x * x) + (y * y) + (z * z)); }
 		}
 
         public float SqrMagnitude
@@ -86,7 +86,7 @@ namespace BeardedManStudios
 		/// <returns>The distance between this Vector and the supplied Vector</returns>
 		public float Distance(Vector vector)
 		{
-			return (float)Maths.Sqrt(((vector.x - x) * (vector.x - x)) + ((y - vector.y) * (y - vector.y)) + ((z - vector.z) * (z - vector.z)));
+			return (float)Math.Sqrt(((vector.x - x) * (vector.x - x)) + ((y - vector.y) * (y - vector.y)) + ((z - vector.z) * (z - vector.z)));
 		}
 
         public float DistanceSquared(Vector vector)
