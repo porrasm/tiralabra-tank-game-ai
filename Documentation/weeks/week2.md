@@ -32,13 +32,7 @@ Below is an example image which shows which bit value corresponds to which direc
 
 ### Pathfinding
 
-Since the shortest possible route is not very important in this case I decided to start this with a simple depth first search modification. In a normal maze this would not work but the levels in this game are very open.
-
-The DFS modification always chooses the closest cell next.
-
-After the initial route is found, it re-searches from every node to the closest other node to see if the route can be shortened.
-
-The implementation is not yet ready.
+Since the shortest possible route is not very important in this case I decided to start this with a simple depth first search modification, just to get started. I will implement A* or LPA* soon to improve the pathfinding.
 
 
 ### Testign

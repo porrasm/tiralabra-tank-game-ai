@@ -14,19 +14,24 @@ public struct Vector {
         this.y = y;
         this.z = z;
     }
-
+    public Vector(double x, double y, double z) {
+        this.x = (float)x;
+        this.y = (float)y;
+        this.z = (float)z;
+    }
 
     public float Magnitude() {
         float value = Maths.Power(x, 2) + Maths.Power(y, 2) + Maths.Power(z, 2);
-
-        Vector a = Vector.Zero * 1;
-
         return Maths.Sqrt(value);
     }
 
     public Vector Normalized {
         get {
-            return this / Magnitude();
+            double magnitude = Magnitude();
+            if (magnitude == 0) {
+                return this;
+            }
+            return this / magnitude;
         }
     }
 
@@ -94,6 +99,9 @@ public struct Vector {
         return new Vector(a.x * b, a.y * b, a.z * b);
     }
     public static Vector operator /(Vector a, float b) {
+        return new Vector(a.x / b, a.y / b, a.z / b);
+    }
+    public static Vector operator /(Vector a, double b) {
         return new Vector(a.x / b, a.y / b, a.z / b);
     }
 
