@@ -42,6 +42,7 @@ public class TankDFSPath {
 
         if (coords == end) {
             found = true;
+            route.Push(coords);
             return;
         }
 

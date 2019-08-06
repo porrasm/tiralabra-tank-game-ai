@@ -22,3 +22,10 @@
 | 1.8     | AI testing environment initialization | 1.5 |
 | 2.8     | AI testing environment initialization | 2 |
 |2.8 | Pathfinding & fixing horrendous bugs | 7 |
+|3.8 | Testing | 2 |
+
+### Week 3
+
+| Date        | Description           | Hours  |
+| ------------- |-------------| -----|
+| 6.8     | A* algorithm, priority linked list | 3 |
