@@ -34,6 +34,11 @@ public struct Vector {
             return this / magnitude;
         }
     }
+    public Vector3 Vector3 {
+        get {
+            return new Vector3(x, y, z);
+        }
+    }
 
     #region Vector tools
     public static Vector FromVector3(Vector3 vector) {
@@ -64,14 +69,17 @@ public struct Vector {
 
         return vector;
     }
+
+    public static IntCoords PositionToCoords(Vector3 vector) {
+        return PositionToCoords(FromVector3(vector));
+    }
     public static IntCoords PositionToCoords(Vector position) {
-
-        position.x -= 0.5f;
-        position.z -= 0.5f;
-
-        return new IntCoords(Maths.Ceil(position.x), Maths.Ceil(position.z));
+        return new IntCoords((int)position.x, (int)position.z);
     }
 
+    public static float Distance(Vector3 vector1, Vector3 vector2) {
+        return Distance(FromVector3(vector1), FromVector3(vector2));
+    }
     public static float Distance(Vector vector1, Vector vector2) {
         Vector distance = vector2 - vector1;
         return Maths.Abs(distance.Magnitude());

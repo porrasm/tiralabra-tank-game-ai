@@ -118,6 +118,7 @@ public class TankLevelGenerator : MonoBehaviour {
 
     private void InitializeLevelArea() {
         levelFloor.localScale = new Vector3(0.1f * height, 1, 0.1f * width);
+        levelFloor.position = new Vector3(0.5f * width, levelFloor.position.y, 0.5f * height);
     }
     private void InitializeCamera() {
 

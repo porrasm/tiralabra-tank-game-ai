@@ -27,6 +27,10 @@ public class TankPathVisualizer : MonoBehaviour {
             Init();
         }
 
+        if (Input.GetKeyDown(KeyCode.LeftShift)) {
+            Comparison();
+        }
+
         if (Input.GetKeyDown(KeyCode.Space)) {
             Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             start = Vector.PositionToCoords(Vector.FromVector3(world));
@@ -68,7 +72,42 @@ public class TankPathVisualizer : MonoBehaviour {
 
     }
     private void DrawLine(IntCoords a, IntCoords b) {
-        Debug.DrawLine(Vector.ToVector3(Vector.CoordsToPosition(a)), Vector.ToVector3(Vector.CoordsToPosition(b)));
+        UnityEngine.Debug.DrawLine(Vector.ToVector3(Vector.CoordsToPosition(a)), Vector.ToVector3(Vector.CoordsToPosition(b)));
+    }
+
+    private void Comparison() {
+
+        IntCoords start = new IntCoords();
+
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+
+        for (int x = 1; x < TankSettings.LevelWidth; x++) {
+            for (int y = 1; y < TankSettings.LevelHeight; y++) {
+                dfs.DFSRecursive(start, new IntCoords(x, y));
+            }
+        }
+
+        watch.Stop();
+
+        long elapsedDFS = watch.ElapsedMilliseconds;
+
+        print("For DFS it took " + elapsedDFS + " millisecond to complete");
+
+        watch = System.Diagnostics.Stopwatch.StartNew();
+        for (int x = 1; x < TankSettings.LevelWidth; x++) {
+            for (int y = 1; y < TankSettings.LevelHeight; y++) {
+                aStar.FindPath(start, new IntCoords(x, y));
+            }
+        }
+
+        watch.Stop();
+
+        long elapsedAStar = watch.ElapsedMilliseconds;
+
+        print("For A* it took " + elapsedAStar + " millisecond to complete");
+
+        print("A* / DFS = " + (1.0 * elapsedAStar / elapsedDFS));
+        print("DFS / A* = " + (1.0 * elapsedDFS / elapsedAStar));
     }
 
     private void UpdateRouteDFS() {
@@ -107,7 +146,7 @@ public class TankPathVisualizer : MonoBehaviour {
         Vector3 mouse = Input.mousePosition;
         Vector3 world = Camera.main.ScreenToWorldPoint(mouse);
 
-        Debug.DrawLine(Vector3.zero, world);
+        UnityEngine.Debug.DrawLine(Vector3.zero, world);
 
         return Vector.PositionToCoords(Vector.FromVector3(world));
     }

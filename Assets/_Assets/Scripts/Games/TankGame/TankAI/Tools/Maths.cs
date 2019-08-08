@@ -59,4 +59,12 @@ public class Maths {
 
         return i;
     }
+
+    public static float Min(float a, float b) {
+        if (a < b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
 }

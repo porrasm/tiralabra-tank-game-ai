@@ -1,4 +1,5 @@
 ﻿using BeardedManStudios.Forge.Networking.Generated;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -33,6 +34,8 @@ public class TankControls : MonoBehaviour {
         if (net.Owner == null || net.Owner.AI) {
             return;
         }
+
+        ResetControls();
 
         if (Input.GetKeyDown(KeyCode.Alpha1)) {
             net.ChangeState(TankPlayer.PlayerState.Enabled);
@@ -82,6 +85,12 @@ public class TankControls : MonoBehaviour {
         net.Movement = movement;
         net.Rotation = rotation;
     }
+
+    public void ResetControls() {
+        net.Movement = Vector3.zero;
+        net.Rotation = 0;
+    }
+
     private void GyroControls() {
 
         if (testControls) {

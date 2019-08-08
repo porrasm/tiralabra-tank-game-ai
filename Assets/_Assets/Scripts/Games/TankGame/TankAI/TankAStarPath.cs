@@ -55,6 +55,10 @@ public class TankAStarPath {
 
     public IntCoords[] FindPath(IntCoords start, IntCoords end) {
 
+        if (end.x >= level.Length || end.y >= level.GetLength(1)) {
+            return new IntCoords[]{start};
+        }
+
         this.start = start;
         this.end = end;
 
@@ -75,7 +79,6 @@ public class TankAStarPath {
 
             closed.Add(n.Coords);
 
-            
             byte allowed = level[n.Coords.x, n.Coords.y];
             for (int i = 0; i < 8; i++) {
 

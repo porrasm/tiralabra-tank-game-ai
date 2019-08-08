@@ -11,6 +11,9 @@ public class TankGameManager : MonoBehaviour {
 
     private TankLevelGenerator generator;
 
+    public delegate void RoundStart();
+    private RoundStart roundCallbacks;
+
     private void Start() {
         generator = GameObject.FindGameObjectWithTag("Level").GetComponent<TankLevelGenerator>();
         roundIsOn = true;
@@ -85,6 +88,8 @@ public class TankGameManager : MonoBehaviour {
         TankNetworking[] players = Players;
 
         SetPlayerStates(TankPlayer.PlayerState.Enabled);
+
+        CallRoundStart();
 
         while (roundTime < TankSettings.RoundTime && AliveCount(players) > 1) {
             roundTime += Time.deltaTime;
@@ -177,4 +182,20 @@ public class TankGameManager : MonoBehaviour {
         return rSpawns;
     }
     #endregion
+
+    #region Callbacks
+    public void SubscribeRoundStart(RoundStart callback) {
+        roundCallbacks += callback;
+    }
+
+    private void CallRoundStart() {
+        if (roundCallbacks != null) {
+            roundCallbacks();
+        }
+    }
+    #endregion
+
+    public static TankGameManager Instance() {
+        return GameObject.FindGameObjectWithTag("Game").GetComponent<TankGameManager>();
+    }
 }

@@ -7,7 +7,9 @@ using UnityEngine;
 public class Player : ClientBehavior {
 
     #region fields
+    [SerializeField]
     private bool local;
+    [SerializeField]
     private bool ai;
 
     private string playerName;

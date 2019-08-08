@@ -57,7 +57,7 @@ public class TankAIManager : MonoBehaviour {
                 if (players[i].Local) {
                     players[i].ChangeName("Local player");
                 } else {
-                    tanks[i].gameObject.AddComponent<Tank_AI>();
+                    tanks[i].gameObject.AddComponent<TankAI>();
                     players[i].AI = true;
                     players[i].ChangeName("AI " + ai);
                     ai++;
