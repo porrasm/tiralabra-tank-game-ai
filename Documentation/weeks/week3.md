@@ -28,3 +28,8 @@ A*: 30-34 ms
 So the DFS is considerably faster. This could be the result of poor implementation of A* or DFS and I will definitely look into it.
 
 When the map size was increased A* became increasingly slow while DFS. At 50x50 level, DFS was more than 35 times faster than A*.
+
+
+### Th 8.8.2019
+
+Today I worked on the tank AIs movement. The AIs can now follow a path of (x, y) integer coordinates. Adding support for float coordinates will be useful in the future. The AIs also have a simple stuck prevention. 

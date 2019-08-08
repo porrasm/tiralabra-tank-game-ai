@@ -29,3 +29,4 @@
 | Date        | Description           | Hours  |
 | ------------- |-------------| -----|
 | 6.8     | A* algorithm, priority linked list | 3 |
+| 8.8     | Tank path movement in maze, bugfixes | 3 |
