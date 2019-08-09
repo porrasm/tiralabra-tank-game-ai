@@ -9,6 +9,11 @@ public struct Vector {
 
     public float x, y, z;
 
+    public Vector(Vector3 vector3) {
+        x = vector3.x;
+        y = vector3.y;
+        z = vector3.z;
+    }
     public Vector(float x, float y, float z) {
         this.x = x;
         this.y = y;
@@ -88,6 +93,43 @@ public struct Vector {
 
     #endregion
 
+    #region Math
+    public static float Dot(Vector a, Vector b) {
+
+        double xA = a.x;
+        double xB = b.x;
+        double yA = a.y;
+        double yB = b.y;
+        double zA = a.z;
+        double zB = b.z;
+
+        return (float)(xA * xB + yA * yB + zA * zB);
+    }
+    public static double DotAccurate(Vector a, Vector b) {
+
+        double xA = a.x;
+        double xB = b.x;
+        double yA = a.y;
+        double yB = b.y;
+        double zA = a.z;
+        double zB = b.z;
+
+        return xA * xB + yA * yB + zA * zB;
+    }
+
+    // Replace this
+    public static Vector Reflect(Vector d, Vector n) {
+
+        return new Vector(Vector3.Reflect(d.Vector3, n.Vector3));
+
+        double dot = DotAccurate(d, n);
+
+        Vector v2dn = 2 * dot * n;
+
+        return d - v2dn;
+    }
+    #endregion
+
     #region Operators
     public static Vector operator +(Vector a, Vector b) {
         return new Vector(a.x + b.x, a.y + b.y, a.z + b.z);
@@ -103,8 +145,11 @@ public struct Vector {
         return new Vector(a.x / b.x, a.y / b.y, a.z / b.z);
     }
 
-    public static Vector operator *(Vector a, float b) {
-        return new Vector(a.x * b, a.y * b, a.z * b);
+    public static Vector operator *(float f, Vector v) {
+        return new Vector(v.x * f, v.y * f, v.z * f);
+    }
+    public static Vector operator *(double f, Vector v) {
+        return new Vector(v.x * f, v.y * f, v.z * f);
     }
     public static Vector operator /(Vector a, float b) {
         return new Vector(a.x / b, a.y / b, a.z / b);

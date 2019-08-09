@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class TankDFSPath {
+public class TankDFSPath : TankAIPathfinding {
 
     #region fields
-    private byte[,] level;
     private byte[,] visited;
 
     private IntCoords start, end;
@@ -14,19 +14,22 @@ public class TankDFSPath {
     private IntCoords coords;
     // Replace list
     public bool building;
-    public Stack<IntCoords> route;
+    private Stack<IntCoords> route;
 
     private bool found;
+
+    private FoundCondition foundCondition;
     #endregion
 
-    public TankDFSPath() {
-        level = TankLevelGenerator.Level;
+    public TankDFSPath(byte[,] level) :base(level) {
+
     }
 
-
-    public Stack<IntCoords> DFSRecursive(IntCoords start, IntCoords end) {
+    public override Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
         this.start = start;
         this.end = end;
+
+        this.foundCondition = foundCondition;
 
         visited = new byte[level.GetLength(0), level.GetLength(1)];
         route = new Stack<IntCoords>();
@@ -36,11 +39,12 @@ public class TankDFSPath {
         Visit(start, 1);
         DFSRecursiveSearch(start, BestDirection2(start));
 
-        return route;
+        // Replace this
+        return route.Select(o => Vector.CoordsToPosition(o)).ToArray();
     }
     private void DFSRecursiveSearch(IntCoords coords, TankDirection direction) {
 
-        if (coords == end) {
+        if (foundCondition(coords)) {
             found = true;
             route.Push(coords);
             return;

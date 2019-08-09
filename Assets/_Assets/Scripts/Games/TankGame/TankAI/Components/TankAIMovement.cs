@@ -1,16 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
 
 public class TankAIMovement : TankAIComponent {
 
     #region fields
-    private IntCoords[] path;
+    private Vector[] path;
     private TankControls controls;
 
     private bool stuck;
@@ -27,13 +23,11 @@ public class TankAIMovement : TankAIComponent {
     }
 
     #region Traversal
-    public void TraversePath(IntCoords[] path) {
+    public void TraversePath(Vector[] path) {
 
-        // debugging purposes
-        Vector3[] linePos = path.Select(o => Vector.CoordsToPosition(o).Vector3).ToArray();
-        Scripts.GetScriptComponent<LineRenderer>().positionCount = linePos.Length;
-        Scripts.GetScriptComponent<LineRenderer>().SetPositions(linePos);
+        TankPathVisualizer.DrawRoute(path);
 
+        ai.StopCoroutine(TraversePathCoroutine());
         ai.StopCoroutine(RemoveStuck());
 
         this.path = path;
@@ -48,8 +42,7 @@ public class TankAIMovement : TankAIComponent {
 
             ResetStuck();
 
-            Vector targetPos = Vector.CoordsToPosition(path[index]);
-            MonoBehaviour.print("Target pos: " + targetPos);
+            Vector targetPos = path[index];
 
             while (!InCoords(index)) {
 
@@ -64,12 +57,8 @@ public class TankAIMovement : TankAIComponent {
                 yield return null;
             }
 
-            MonoBehaviour.print("Finished goal, index: " + index + ", path len: " + path.Length);
             index++;
         }
-
-
-        MonoBehaviour.print("Goal finished");
     }
 
     private void StuckCheck() {
@@ -108,7 +97,7 @@ public class TankAIMovement : TankAIComponent {
 
     private bool InCoords(int i) {
 
-        Vector target = Vector.CoordsToPosition(path[i]);
+        Vector target = path[i];
         Vector current = Vector.FromVector3(ai.transform.position);
 
         return Vector.Distance(target, current) < AISettings.DistanceLimit;

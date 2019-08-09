@@ -12,6 +12,7 @@ TagManager:
   - Level
   - Environment
   - Game
+  - Bullet
   layers:
   - Default
   - TransparentFX

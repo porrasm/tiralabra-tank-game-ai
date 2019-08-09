@@ -30,3 +30,4 @@
 | ------------- |-------------| -----|
 | 6.8     | A* algorithm, priority linked list | 3 |
 | 8.8     | Tank path movement in maze, bugfixes | 3 |
+| 9.8     | Bullet trajectory prediction & tank AI bullet dodging | 6 |

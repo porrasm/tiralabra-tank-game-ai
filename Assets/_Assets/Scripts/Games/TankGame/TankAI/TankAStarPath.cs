@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TankAStarPath {
+public class TankAStarPath : TankAIPathfinding {
 
     #region fields
-    private byte[,] level;
     private Node[,] nodes;
     private double cost, costDiag;
 
@@ -44,20 +43,13 @@ public class TankAStarPath {
     }
     #endregion
 
-    public TankAStarPath(byte[,] level) {
-
-        this.level = level;
-
+    public TankAStarPath(byte[,] level) :base(level) {
         cost = 1;
         costDiag = Maths.Sqrt(2);
-
     }
 
-    public IntCoords[] FindPath(IntCoords start, IntCoords end) {
-
-        if (end.x >= level.Length || end.y >= level.GetLength(1)) {
-            return new IntCoords[]{start};
-        }
+    
+    public override Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
 
         this.start = start;
         this.end = end;
@@ -73,7 +65,7 @@ public class TankAStarPath {
 
             n = open.Remove();
 
-            if (n.Coords == end) {
+            if (foundCondition(n.Coords)) {
                 return NodeToPath(n);
             }
 
@@ -136,7 +128,7 @@ public class TankAStarPath {
     }
 
     // Improve
-    private IntCoords[] NodeToPath(Node node) {
+    private Vector[] NodeToPath(Node node) {
 
         int count = 0;
 
@@ -147,13 +139,13 @@ public class TankAStarPath {
             n = n.prev;
         }
 
-        IntCoords[] route = new IntCoords[count+1];
+        Vector[] route = new Vector[count+1];
 
         for (int i = count; i > 0; i--) {
-            route[i] = node.Coords;
+            route[i] = Vector.CoordsToPosition(node.Coords);
             node = node.prev;
         }
-        route[0] = start;
+        route[0] = Vector.CoordsToPosition(start);
 
         return route;
     }

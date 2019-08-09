@@ -11,9 +11,10 @@ public class TankAI : MonoBehaviour {
     private TankDFSPath dfs;
     private TankAStarPath aStar;
 
-    private IntCoords[] path;
+    private Vector[] path;
 
     private TankAIMovement movement;
+    private TankAIBulletChecker bullets;
     #endregion
 
     private void Start() {
@@ -29,16 +30,29 @@ public class TankAI : MonoBehaviour {
 
         StopAllCoroutines();
 
-        dfs = new TankDFSPath();
+        dfs = new TankDFSPath(TankLevelGenerator.Level);
         aStar = new TankAStarPath(TankLevelGenerator.Level);
         path = null;
 
         movement = new TankAIMovement(this);
+        bullets = new TankAIBulletChecker(this);
 
         path = aStar.FindPath(Vector.PositionToCoords(transform.position),
             Vector.PositionToCoords(TankNetworking.MyTank().transform.position));
 
         movement.TraversePath(path);
+
+        TankEvents.Instance.SubscribeToEvent(BulletEvent, TankEvents.EventType.BulletEvent);
+    }
+
+    private void BulletEvent() {
+
+        print("Bullet event");
+
+        bullets.CheckCollisionStatus();
+        if (bullets.BulletWillHit) {
+            DodgeBullets();
+        }
     }
 
     private void Update() {
@@ -49,16 +63,25 @@ public class TankAI : MonoBehaviour {
 
         ResetControls();
 
+
         if (Input.GetKeyDown(KeyCode.R)) {
             ResetAI();
         }
+    }
+
+    private void DodgeBullets() {
+
+        print("Dodging bullet");
+
+        IntCoords current = Vector.PositionToCoords(transform.position);
+        movement.TraversePath(bullets.GetPathToSafeCoords(current, aStar));
     }
 
     private void ResetControls() {
         controls.ResetControls();
     }
 
-   
+
 }
 
 public class AISettings {

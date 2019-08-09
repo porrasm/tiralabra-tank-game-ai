@@ -70,7 +70,7 @@ namespace Tests {
             Assert.AreEqual(a, d - b, "a == d - b");
 
             Assert.AreEqual(c, c * a, "c == c * a");
-            Assert.AreEqual(d, a * 2, "d == a * 2");
+            Assert.AreEqual(d, 2 * a, "d == a * 2");
             Assert.AreEqual(d, a * d, "d == a * d");
 
             Assert.AreEqual(d, d / a, "d == d / a");

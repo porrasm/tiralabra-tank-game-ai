@@ -39,6 +39,9 @@ public class TankBullet : MonoBehaviour {
 
         AliveTime = TankSettings.BulletAliveTime;
         Bounces = TankSettings.BulletBounces;
+
+        print("Calling event");
+        TankEvents.Instance.CallEvent(TankEvents.EventType.BulletEvent);
     }
 
     public void SetDirection(Vector3 direction) {
@@ -71,6 +74,7 @@ public class TankBullet : MonoBehaviour {
     protected void OnCollisionEnter(Collision collision) {
         collisionFrames = 0;
         CollisionHappened(collision, false);
+        TankEvents.Instance.CallEvent(TankEvents.EventType.BulletEvent);
     }
     protected void OnCollisionStay(Collision collision) {
         collisionFrames++;

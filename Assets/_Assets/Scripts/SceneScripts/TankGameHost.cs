@@ -30,6 +30,7 @@ public class TankGameHost : SceneScript {
         base.Initialize();
 
         Scripts.GetGameObject().AddComponent<TankAIManager>();
+        Scripts.GetGameObject().AddComponent<TankEvents>();
     }
 
     public static TankGameHost Game() {

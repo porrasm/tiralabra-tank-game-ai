@@ -21,6 +21,4 @@ public class TankPath {
         Coords = new IntCoords(x, y);
         Next = null;
     }
-
-   
 }

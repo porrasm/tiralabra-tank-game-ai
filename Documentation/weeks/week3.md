@@ -33,3 +33,20 @@ When the map size was increased A* became increasingly slow while DFS. At 50x50 
 ### Th 8.8.2019
 
 Today I worked on the tank AIs movement. The AIs can now follow a path of (x, y) integer coordinates. Adding support for float coordinates will be useful in the future. The AIs also have a simple stuck prevention. 
+
+
+### Fr 9.8.2019
+
+Today I've mostly worked on predicting bullet movements and having the AI dodge an incoming bullet. The script should work now (in theory) but I have a slight problem with predicting the correct bullet trajectory. 
+
+The bouncing off a wall is slightly different for the physics object (bullet) and the raytracing so the AI can't perfectly predict a bullets trajectory. This is only a slight problem since the AI updates the trajectory after every collision so the miscalculations are corrected.
+
+A more major issue right now is that when a ray hits the tank, it stops and the bullets last known predicted location is the AIs position. However when the AI moves the bullets trajectory changes since the tank isn't blocking it anymore. This is a problem because the AI start dodging the bullet at this point and has no idea that the bullet can pass through it's 'old' position. I have not yet figured out a fix for this problem.
+
+All in all the dodging script is very very buggy.
+
+### Testing release
+
+I have made a release if you wish to test out the game (Windows required). Press R to have the AI come to your position, click to shoot a bullet.
+
+[Releases](https://github.com/porrasm/tiralabra-tank-game-ai/releases)
