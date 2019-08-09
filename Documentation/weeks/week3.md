@@ -45,8 +45,14 @@ A more major issue right now is that when a ray hits the tank, it stops and the 
 
 All in all the dodging script is very very buggy.
 
+## Notes
+
 ### Testing release
 
 I have made a release if you wish to test out the game (Windows required). Press R to have the AI come to your position, click to shoot a bullet.
 
 [Releases](https://github.com/porrasm/tiralabra-tank-game-ai/releases)
+
+## Meta tiedostot
+
+.meta tiedostojen kuuluu olla repossa. Unity generoi jokaiselle assetille oman .meta filen jossa on tallessa esimerkiksi sen assetin asetukset. Koodi tiedostoilla nämä .meta filet on yleensä turhia sille ne eivät useimmiten tarvitse mitään asetuksia yms, mutta esim textureille nämä meta tiedostot ovat tärkeitä sillä niissä on asetuksia esim. texturen filtteröinnistä, import tyylistä ja kuinka alpha-kanava tulkitaan.
