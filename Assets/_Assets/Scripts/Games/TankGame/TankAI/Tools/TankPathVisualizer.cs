@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// This class is used for testing/debugging the pathfinding and level generation.
+/// </summary>
 public class TankPathVisualizer : MonoBehaviour {
 
     #region fields

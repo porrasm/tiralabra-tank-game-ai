@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
+/// <summary>
+/// Class used to determine where a bullet will go
+/// </summary>
 public class TankBulletTrajectory {
 
     #region fields;
@@ -25,6 +28,9 @@ public class TankBulletTrajectory {
         this.bullet = bullet;
     }
 
+    /// <summary>
+    /// Approximates the future trajectory of a bullet
+    /// </summary>
     public void CalculateTrajectory() {
 
         HitAI = false;
@@ -34,6 +40,7 @@ public class TankBulletTrajectory {
 
         SetTrajectory();
     }
+
     private void SetTrajectory() {
 
         Vector direction = new Vector(bullet.Velocity.normalized);
@@ -53,6 +60,13 @@ public class TankBulletTrajectory {
         }
     }
 
+    /// <summary>
+    /// Calculates the bullets next collision position and approximates the bounce of the bullet
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <param name="currentPos"></param>
+    /// <param name="index"></param>
+    /// <returns></returns>
     private bool CalculateNextHit(ref Vector direction, Vector currentPos, int index) {
 
         RaycastHit hit;
@@ -83,6 +97,13 @@ public class TankBulletTrajectory {
 
         return true;
     }
+
+    /// <summary>
+    /// Increments the values in the TankAIBulletChecker.CellBulletCounts based on whether or not the bullet will pass over certain coordinates.
+    /// </summary>
+    /// <param name="position"></param>
+    /// <param name="endPos"></param>
+    /// <param name="direction"></param>
     private void IncrementValues(Vector position, Vector endPos, Vector direction) {
 
         bool xTest = position.x > endPos.x;

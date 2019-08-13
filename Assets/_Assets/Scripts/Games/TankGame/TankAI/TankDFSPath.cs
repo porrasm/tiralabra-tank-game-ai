@@ -25,6 +25,13 @@ public class TankDFSPath : TankAIPathfinding {
 
     }
 
+    /// <summary>
+    /// Finds a path from start towards the end with an independent route found condition. The FoundCondition(IntCoords current) function is called on every cell and if it returns true the current route is returned.
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <param name="foundCondition"></param>
+    /// <returns>Path as Vector array</returns>
     public override Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
         this.start = start;
         this.end = end;
@@ -37,11 +44,17 @@ public class TankDFSPath : TankAIPathfinding {
         found = false;
 
         Visit(start, 1);
-        DFSRecursiveSearch(start, BestDirection2(start));
+        DFSRecursiveSearch(start, BestDirection(start));
 
         // Replace this
         return route.Select(o => Vector.CoordsToPosition(o)).ToArray();
     }
+
+    /// <summary>
+    /// Recursively find route from start to end using DFS
+    /// </summary>
+    /// <param name="coords"></param>
+    /// <param name="direction"></param>
     private void DFSRecursiveSearch(IntCoords coords, TankDirection direction) {
 
         if (foundCondition(coords)) {
@@ -65,7 +78,7 @@ public class TankDFSPath : TankAIPathfinding {
         route.Push(coords);   
 
         for (int i = 0; i < 8; i++) {
-            TankDirection newDirection = BestDirection2(newCoords);
+            TankDirection newDirection = BestDirection(newCoords);
             if (newDirection == TankDirection.None) {
                 Visit(newCoords, 2);
                 break;
@@ -80,7 +93,12 @@ public class TankDFSPath : TankAIPathfinding {
         }
     }
 
-    private TankDirection BestDirection2(IntCoords coords) {
+    /// <summary>
+    /// Returns the direction which leads to the closest linked cell to the goal node.
+    /// </summary>
+    /// <param name="coords"></param>
+    /// <returns></returns>
+    private TankDirection BestDirection(IntCoords coords) {
 
         TankDirection optDirection = TankDirection.None;
         float distance = float.MaxValue;

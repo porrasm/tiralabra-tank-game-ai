@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Used to calculate all the future trajectories of bullets
+/// </summary>
 public class TankAIBulletChecker : TankAIComponent {
 
     #region fields
@@ -19,6 +22,9 @@ public class TankAIBulletChecker : TankAIComponent {
         CheckCollisionStatus();
     }
 
+    /// <summary>
+    /// Calculates the trajectories of all bullets and saves which how many bullets will pass over a certain cell
+    /// </summary>
     public void CheckCollisionStatus() {
 
         BulletWillHit = false;
@@ -40,6 +46,13 @@ public class TankAIBulletChecker : TankAIComponent {
             }
         }
     }
+
+    /// <summary>
+    /// Returns a path to safe coordinates which no bullet will pass over
+    /// </summary>
+    /// <param name="current"></param>
+    /// <param name="pf"></param>
+    /// <returns></returns>
     public Vector[] GetPathToSafeCoords(IntCoords current, TankAIPathfinding pf) {
 
         bool FoundCondition(IntCoords c) {

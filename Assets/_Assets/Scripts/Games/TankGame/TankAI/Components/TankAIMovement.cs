@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+/// <summary>
+/// Used to move a tank through a path.
+/// </summary>
 public class TankAIMovement : TankAIComponent {
 
     #region fields
@@ -23,6 +26,11 @@ public class TankAIMovement : TankAIComponent {
     }
 
     #region Traversal
+
+    /// <summary>
+    /// Starts to move the tank towards the end of the path
+    /// </summary>
+    /// <param name="path"></param>
     public void TraversePath(Vector[] path) {
 
         TankPathVisualizer.DrawRoute(path);
@@ -61,6 +69,9 @@ public class TankAIMovement : TankAIComponent {
         }
     }
 
+    /// <summary>
+    /// Checks if the tank is stuck against a wall
+    /// </summary>
     private void StuckCheck() {
 
         if (stuck) {
@@ -95,6 +106,11 @@ public class TankAIMovement : TankAIComponent {
         stuckPos = Vector.FromVector3(ai.transform.position);
     }
 
+    /// <summary>
+    /// Checks if the tank has reached certain coordinates
+    /// </summary>
+    /// <param name="i"></param>
+    /// <returns></returns>
     private bool InCoords(int i) {
 
         Vector target = path[i];
@@ -103,6 +119,10 @@ public class TankAIMovement : TankAIComponent {
         return Vector.Distance(target, current) < AISettings.DistanceLimit;
     }
 
+    /// <summary>
+    /// Moves the tank towards a position
+    /// </summary>
+    /// <param name="position"></param>
     private void MoveTowards(Vector position) {
 
         TurnToPosition(position);
@@ -114,6 +134,11 @@ public class TankAIMovement : TankAIComponent {
             controls.ProcessControl(TankControls.Control.Movement, 1);
         }
     }
+
+    /// <summary>
+    /// Turns the tank towards a position
+    /// </summary>
+    /// <param name="position"></param>
     private void TurnToPosition(Vector position) {
 
         // Replace Quaternion.LookRotation
@@ -123,6 +148,13 @@ public class TankAIMovement : TankAIComponent {
         float rotation = TurnDirection(currentRotation, targetRotation);
         controls.ProcessControl(TankControls.Control.Rotation, rotation);
     }
+
+    /// <summary>
+    /// Returns left (negative) or right (positive) based on how big an angle the tank will have to turn towards a certain position.
+    /// </summary>
+    /// <param name="current"></param>
+    /// <param name="target"></param>
+    /// <returns></returns>
     private float TurnDirection(Vector current, Vector target) {
 
 

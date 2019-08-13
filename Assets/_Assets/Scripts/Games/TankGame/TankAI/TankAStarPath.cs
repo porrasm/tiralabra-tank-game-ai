@@ -19,16 +19,16 @@ public class TankAStarPath : TankAIPathfinding {
 
         public Node(IntCoords coords, double cost) {
             this.Coords = coords;
-            G = cost;
+            this.cost = cost;
         }
 
         public Node prev;
         public IntCoords Coords { get; private set; }
-        public double G { get; set; }
+        public double cost { get; set; }
 
 
-        public double F(IntCoords end) {
-            return G + Coords.Distance(end);
+        public double EstimatedCost(IntCoords end) {
+            return cost + Coords.Distance(end);
         }
 
         public override bool Equals(object obj) {
@@ -48,7 +48,13 @@ public class TankAStarPath : TankAIPathfinding {
         costDiag = Maths.Sqrt(2);
     }
 
-    
+    /// <summary>
+    /// Finds a path from start towards the end with an independent route found condition. The FoundCondition(IntCoords current) function is called on every cell and if it returns true the current route is returned.
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <param name="foundCondition"></param>
+    /// <returns>Path as Vector array</returns>
     public override Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
 
         this.start = start;
@@ -59,7 +65,7 @@ public class TankAStarPath : TankAIPathfinding {
         closed = new HashSet<IntCoords>();
 
         Node n = new Node(start, 0);
-        open.Add(n, n.F(end));
+        open.Add(n, n.EstimatedCost(end));
 
         while (open.Count > 0) {
 
@@ -80,11 +86,11 @@ public class TankAStarPath : TankAIPathfinding {
                     continue;
                 }
 
-                double tentative_gScore = n.G + DirCost(i);
+                double tentative_gScore = n.cost + DirCost(i);
 
-                if (tentative_gScore < neighbour.G) {
+                if (tentative_gScore < neighbour.cost) {
                     neighbour.prev = n;
-                    neighbour.G = tentative_gScore;
+                    neighbour.cost = tentative_gScore;
                 }
             }
         }
@@ -92,6 +98,13 @@ public class TankAStarPath : TankAIPathfinding {
         return NodeToPath(n);
     }
 
+    /// <summary>
+    /// Returns a linked node with index i. If the child is not found the function returns null.
+    /// </summary>
+    /// <param name="n"></param>
+    /// <param name="allowed"></param>
+    /// <param name="i"></param>
+    /// <returns>Node or null</returns>
     private Node GetChild(Node n, byte allowed, int i) {
 
         TankDirection d = (TankDirection)i;
@@ -116,10 +129,16 @@ public class TankAStarPath : TankAIPathfinding {
 
         newNode = new Node(newCoords, double.PositiveInfinity);
         newNode.prev = n;
-        open.Add(newNode, newNode.F(end));
+        open.Add(newNode, newNode.EstimatedCost(end));
 
         return newNode;
     }
+
+    /// <summary>
+    /// Cost of a direction.
+    /// </summary>
+    /// <param name="i"></param>
+    /// <returns>1 for straight, Sqrt(2) for diagonal</returns>
     private double DirCost(int i) {
         if (i > 3) {
             return costDiag;
@@ -128,6 +147,12 @@ public class TankAStarPath : TankAIPathfinding {
     }
 
     // Improve
+
+    /// <summary>
+    /// Returns the path from the start leading to the given node.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
     private Vector[] NodeToPath(Node node) {
 
         int count = 0;

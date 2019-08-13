@@ -1,6 +1,9 @@
 ﻿using System;
 using UnityEngine;
 
+/// <summary>
+/// Class containing various mathematical functions.
+/// </summary>
 public class Maths {
 
     // Replace
@@ -50,6 +53,11 @@ public class Maths {
         return f;
     }
 
+    /// <summary>
+    /// Ceiling function which rounds a float value up to the nearest integer.
+    /// </summary>
+    /// <param name="f"></param>
+    /// <returns></returns>
     public static int Ceil(float f) {
 
         int i = (int)f;

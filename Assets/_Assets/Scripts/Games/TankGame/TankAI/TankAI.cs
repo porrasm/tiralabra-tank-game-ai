@@ -24,6 +24,9 @@ public class TankAI : MonoBehaviour {
         TankGameManager.Instance().SubscribeRoundStart(ResetAI);
     }
 
+    /// <summary>
+    /// Resets the AI. This function is called before every round.
+    /// </summary>
     public void ResetAI() {
 
         print("reset ai");

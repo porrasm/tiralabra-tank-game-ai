@@ -12,6 +12,9 @@ public static class RNG {
         rnd = new System.Random();
     }
     
+    /// <summary>
+    /// Returns a random float value between 0 [inclusive] and 1 [exclusive]
+    /// </summary>
     public static float Float {
         get { return (float)rnd.NextDouble(); }
     }

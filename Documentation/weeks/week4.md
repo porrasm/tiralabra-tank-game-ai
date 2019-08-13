@@ -18,8 +18,15 @@ When testing the algorithm manually (in an empty level with no walls) the algori
 
 ### Tu 13.8.2019
 
+#### Test coverage
+
 I found a solution which allows me to generate test coverage results in HTML. Unity does not support test coverage by default so I had to use an external tool for that. 
 
 I use DotCover for the test coverage reports but it can only show coverage on tests which do not rely on any Unity assemblies. At the moment getting coverage for classes relying on Unity is impossible. Luckily most of my classes do not reference any Unity assemblies.
 
 [Test test coverage report](https://github.com/porrasm/tiralabra-tank-game-ai/blob/master/Documentation/weeks/coverage_example.html) (without any configuration)
+
+
+#### Documentation
+
+Added documentation and method descriptions to most classes.

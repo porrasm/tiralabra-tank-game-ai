@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
+/// <summary>
+/// Vector struct containing multiple vector related mathematical functions.
+/// </summary>
 public struct Vector {
 
     public float x, y, z;
@@ -25,11 +28,18 @@ public struct Vector {
         this.z = (float)z;
     }
 
+    /// <summary>
+    /// Returns the length of the vector
+    /// </summary>
+    /// <returns></returns>
     public float Magnitude() {
         float value = Maths.Power(x, 2) + Maths.Power(y, 2) + Maths.Power(z, 2);
         return Maths.Sqrt(value);
     }
 
+    /// <summary>
+    /// Returns a vector with the same direction with magnitude 1
+    /// </summary>
     public Vector Normalized {
         get {
             double magnitude = Magnitude();
@@ -39,6 +49,10 @@ public struct Vector {
             return this / magnitude;
         }
     }
+
+    /// <summary>
+    /// Transform the vector into a Unity Vector3
+    /// </summary>
     public Vector3 Vector3 {
         get {
             return new Vector3(x, y, z);
@@ -78,13 +92,27 @@ public struct Vector {
     public static IntCoords PositionToCoords(Vector3 vector) {
         return PositionToCoords(FromVector3(vector));
     }
+
+    /// <summary>
+    /// Returns the corresponding integer coordinates of a position vector.
+    /// </summary>
+    /// <param name="position"></param>
+    /// <returns>Coordinates as IntCoords</returns>
     public static IntCoords PositionToCoords(Vector position) {
         return new IntCoords((int)position.x, (int)position.z);
     }
 
+    
     public static float Distance(Vector3 vector1, Vector3 vector2) {
         return Distance(FromVector3(vector1), FromVector3(vector2));
     }
+
+    /// <summary>
+    /// Returns the distance between to vectors.
+    /// </summary>
+    /// <param name="vector1"></param>
+    /// <param name="vector2"></param>
+    /// <returns></returns>
     public static float Distance(Vector vector1, Vector vector2) {
         Vector distance = vector2 - vector1;
         return Maths.Abs(distance.Magnitude());
@@ -94,6 +122,12 @@ public struct Vector {
     #endregion
 
     #region Math
+    /// <summary>
+    /// Vector dot product as float.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
     public static float Dot(Vector a, Vector b) {
 
         double xA = a.x;
@@ -105,6 +139,13 @@ public struct Vector {
 
         return (float)(xA * xB + yA * yB + zA * zB);
     }
+
+    /// <summary>
+    /// Vector dot product as double.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
     public static double DotAccurate(Vector a, Vector b) {
 
         double xA = a.x;
@@ -118,6 +159,12 @@ public struct Vector {
     }
 
     // Replace this
+    /// <summary>
+    /// Reflects a vector off a normal.
+    /// </summary>
+    /// <param name="d"></param>
+    /// <param name="n"></param>
+    /// <returns></returns>
     public static Vector Reflect(Vector d, Vector n) {
 
         return new Vector(Vector3.Reflect(d.Vector3, n.Vector3));
