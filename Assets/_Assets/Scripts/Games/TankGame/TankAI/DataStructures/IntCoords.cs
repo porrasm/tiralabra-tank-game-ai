@@ -1,11 +1,12 @@
-﻿/// <summary>
+﻿using UnityEngine;
+/// <summary>
 /// Simple structure containing x and y coordinates.
 /// </summary>
 public struct IntCoords {
 
     public int x, y;
 
-    public IntCoords (int x, int y) {
+    public IntCoords(int x, int y) {
         this.x = x;
         this.y = y;
     }
@@ -15,18 +16,21 @@ public struct IntCoords {
     /// </summary>
     /// <param name="coords"></param>
     /// <returns></returns>
-    public float Distance(IntCoords coords) {
-        return Distance(coords.x, coords.y);
-    }
+    //public float Distance(IntCoords coords) {
+
+    //    float dis = Distance(coords.x, coords.y);
+    //    Debug.Log("from: " + this + " to " + coords + " = " + dis);
+    //    return dis;
+    //}
     /// <summary>
     /// Distance between coordinates
     /// </summary>
     /// <param name="coords"></param>
     /// <returns></returns>
-    public float Distance(int x, int y) {
-        float value = Maths.Power(x, 2) + Maths.Power(y, 2);
-        return Maths.Sqrt(value);
-    }
+    //public float Distance(int x, int y) {
+    //    float value = Maths.Power(x, 2) + Maths.Power(y, 2);
+    //    return Maths.Sqrt(value);
+    //}
 
     /// <summary>
     /// Moves the coordinates based on the direction.

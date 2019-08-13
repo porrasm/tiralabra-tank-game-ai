@@ -21,6 +21,12 @@ public class TankAIPathfinding {
 
     public delegate bool FoundCondition(IntCoords current);
 
+    /// &lt;summary&gt;
+    /// Finds a path from start coordinates to the end coordinates.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;start&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;end&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;Path as Vector array&lt;/returns&gt;
     public Vector[] FindPath(IntCoords start, IntCoords end) {
 
         if (end.x &gt;= level.Length || end.y &gt;= level.GetLength(1)) {
@@ -33,6 +39,13 @@ public class TankAIPathfinding {
 
         return FindPath(start, end, FoundCondition);
     }
+    /// &lt;summary&gt;
+    /// Finds a path from start towards the end with an independent route found condition. The FoundCondition(IntCoords current) function is called on every cell and if it returns true the current route is returned.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;start&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;end&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;foundCondition&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;Path as Vector array&lt;/returns&gt;
     public virtual Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
         return null;
     }
@@ -40,7 +53,7 @@ public class TankAIPathfinding {
 
     </pre>
     <script type="text/javascript">
-      highlightRanges([[8,5,8,44,1],[8,45,8,46,1],[9,9,9,28,1],[10,5,10,6,1],[14,62,14,63,1],[16,9,16,66,1],[16,67,16,68,0],[17,13,17,68,0],[20,48,20,49,1],[21,13,21,35,1],[22,9,22,10,1],[24,9,24,53,1],[25,5,25,6,1],[26,101,26,102,0],[27,9,27,21,0],[28,5,28,6,0]]);
+      highlightRanges([[8,5,8,44,1],[8,45,8,46,1],[9,9,9,28,1],[10,5,10,6,1],[20,62,20,63,1],[22,9,22,66,1],[22,67,22,68,0],[23,13,23,68,0],[26,48,26,49,1],[27,13,27,35,1],[28,9,28,10,1],[30,9,30,53,1],[31,5,31,6,1],[39,101,39,102,0],[40,9,40,21,0],[41,5,41,6,0]]);
     </script>
   </body>
 </html>

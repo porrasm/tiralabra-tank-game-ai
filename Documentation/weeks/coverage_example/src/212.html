@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\bearded man studios inc\editor\forgeclassfieldrpcvalue.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+//#define FORGE_EDITOR_DEBUGGING
+
+using BeardedManStudios.Forge.Networking.Generated;
+using BeardedManStudios.Templating;
+using SimpleJSONEditor;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using UnityEditor;
+using UnityEngine;
+
+namespace BeardedManStudios.Forge.Networking.UnityEditor
+{
+	/// &lt;summary&gt;
+	/// This is a class object that contains the rpc value
+	/// &lt;/summary&gt;
+	public class ForgeClassFieldRPCValue
+	{
+		public string FieldRPCName;
+		public object FieldRPCValue;
+		public bool Interpolate;
+		public float InterpolateValue;
+		public ForgeAcceptableRPCTypes FieldType;
+		public bool IsNetworkedObject { get { return FieldRPCName.ToLower() == &quot;networkobject&quot;; } }
+
+		public ForgeClassFieldRPCValue()
+		{
+			FieldRPCName = string.Empty;
+			FieldRPCValue = null;
+			Interpolate = false;
+			InterpolateValue = 0;
+			FieldType = ForgeAcceptableRPCTypes.BYTE;
+		}
+
+		public ForgeClassFieldRPCValue(string name, object value, ForgeAcceptableRPCTypes type, bool interpolate, float interpolateValue)
+		{
+			this.FieldRPCName = name;
+			this.FieldRPCValue = value;
+			this.FieldType = type;
+			this.Interpolate = interpolate;
+			this.InterpolateValue = interpolateValue;
+		}
+
+		public static ForgeClassFieldRPCValue GetClassField(FieldInfo field, Type t, bool interpolate, float interpolateValue)
+		{
+			string name = field.Name.Replace(&quot;_&quot;, string.Empty);
+			object value = null;
+			//if (!t.IsAbstract)
+			//    value = field.GetValue(t);
+
+			ForgeAcceptableRPCTypes type = ForgeAcceptableRPCTypes.BYTE;
+			Type fieldType = field.FieldType;
+			if (fieldType == typeof(int))
+				type = ForgeAcceptableRPCTypes.INT;
+			else if (fieldType == typeof(uint))
+				type = ForgeAcceptableRPCTypes.UINT;
+			else if (fieldType == typeof(bool))
+				type = ForgeAcceptableRPCTypes.BOOL;
+			else if (fieldType == typeof(byte))
+				type = ForgeAcceptableRPCTypes.BYTE;
+			else if (fieldType == typeof(char))
+				type = ForgeAcceptableRPCTypes.CHAR;
+			else if (fieldType == typeof(double))
+				type = ForgeAcceptableRPCTypes.DOUBLE;
+			else if (fieldType == typeof(float))
+				type = ForgeAcceptableRPCTypes.FLOAT;
+			else if (fieldType == typeof(long))
+				type = ForgeAcceptableRPCTypes.LONG;
+			else if (fieldType == typeof(ulong))
+				type = ForgeAcceptableRPCTypes.ULONG;
+			else if (fieldType == typeof(short))
+				type = ForgeAcceptableRPCTypes.SHORT;
+			else if (fieldType == typeof(ushort))
+				type = ForgeAcceptableRPCTypes.USHORT;
+			else if (fieldType == typeof(Color))
+				type = ForgeAcceptableRPCTypes.COLOR;
+			else if (fieldType == typeof(Quaternion))
+				type = ForgeAcceptableRPCTypes.QUATERNION;
+			else if (fieldType == typeof(Vector2))
+				type = ForgeAcceptableRPCTypes.VECTOR2;
+			else if (fieldType == typeof(Vector3))
+				type = ForgeAcceptableRPCTypes.VECTOR3;
+			else if (fieldType == typeof(Vector4))
+				type = ForgeAcceptableRPCTypes.VECTOR4;
+			else if (fieldType == typeof(string))
+				type = ForgeAcceptableRPCTypes.STRING;
+			//else if (fieldType == typeof(object[]))
+			//	type = ForgeAcceptableRPCTypes.OBJECT_ARRAY;
+			else if (fieldType == typeof(byte[]))
+				type = ForgeAcceptableRPCTypes.BYTE_ARRAY;
+			else
+				type = ForgeAcceptableRPCTypes.Unknown;
+
+			return new ForgeClassFieldRPCValue(name, value, type, interpolate, interpolateValue);
+		}
+
+		public static Type GetTypeFromAcceptable(ForgeAcceptableRPCTypes type)
+		{
+			switch (type)
+			{
+				case ForgeAcceptableRPCTypes.INT:
+					return typeof(int);
+				case ForgeAcceptableRPCTypes.UINT:
+					return typeof(uint);
+				case ForgeAcceptableRPCTypes.BOOL:
+					return typeof(bool);
+				case ForgeAcceptableRPCTypes.BYTE:
+					return typeof(byte);
+				case ForgeAcceptableRPCTypes.CHAR:
+					return typeof(char);
+				case ForgeAcceptableRPCTypes.DOUBLE:
+					return typeof(double);
+				case ForgeAcceptableRPCTypes.FLOAT:
+					return typeof(float);
+				case ForgeAcceptableRPCTypes.LONG:
+					return typeof(long);
+				case ForgeAcceptableRPCTypes.ULONG:
+					return typeof(ulong);
+				case ForgeAcceptableRPCTypes.SHORT:
+					return typeof(short);
+				case ForgeAcceptableRPCTypes.USHORT:
+					return typeof(ushort);
+				case ForgeAcceptableRPCTypes.COLOR:
+					return typeof(Color);
+				case ForgeAcceptableRPCTypes.QUATERNION:
+					return typeof(Quaternion);
+				case ForgeAcceptableRPCTypes.VECTOR2:
+					return typeof(Vector2);
+				case ForgeAcceptableRPCTypes.VECTOR3:
+					return typeof(Vector3);
+				case ForgeAcceptableRPCTypes.VECTOR4:
+					return typeof(Vector4);
+				case ForgeAcceptableRPCTypes.STRING:
+					return typeof(string);
+				//case ForgeAcceptableRPCTypes.OBJECT_ARRAY:
+				//	return typeof(object[]);
+				case ForgeAcceptableRPCTypes.BYTE_ARRAY:
+					return typeof(byte[]);
+				default:
+					return null;
+			}
+		}
+
+		public static ForgeAcceptableRPCTypes GetTypeFromAcceptable(string val)
+		{
+			switch (val.Replace(&quot; &quot;, string.Empty).ToLower())
+			{
+				case &quot;int&quot;:
+					return ForgeAcceptableRPCTypes.INT;
+				case &quot;uint&quot;:
+					return ForgeAcceptableRPCTypes.UINT;
+				case &quot;bool&quot;:
+					return ForgeAcceptableRPCTypes.BOOL;
+				case &quot;byte&quot;:
+					return ForgeAcceptableRPCTypes.BYTE;
+				case &quot;char&quot;:
+					return ForgeAcceptableRPCTypes.CHAR;
+				case &quot;double&quot;:
+					return ForgeAcceptableRPCTypes.DOUBLE;
+				case &quot;float&quot;:
+					return ForgeAcceptableRPCTypes.FLOAT;
+				case &quot;long&quot;:
+					return ForgeAcceptableRPCTypes.LONG;
+				case &quot;ulong&quot;:
+					return ForgeAcceptableRPCTypes.ULONG;
+				case &quot;short&quot;:
+					return ForgeAcceptableRPCTypes.SHORT;
+				case &quot;ushort&quot;:
+					return ForgeAcceptableRPCTypes.USHORT;
+				case &quot;color&quot;:
+					return ForgeAcceptableRPCTypes.COLOR;
+				case &quot;quaternion&quot;:
+					return ForgeAcceptableRPCTypes.QUATERNION;
+				case &quot;vector2&quot;:
+					return ForgeAcceptableRPCTypes.VECTOR2;
+				case &quot;vector3&quot;:
+					return ForgeAcceptableRPCTypes.VECTOR3;
+				case &quot;vector4&quot;:
+					return ForgeAcceptableRPCTypes.VECTOR4;
+				case &quot;string&quot;:
+					return ForgeAcceptableRPCTypes.STRING;
+				//case &quot;object[]&quot;:
+				//	return ForgeAcceptableRPCTypes.OBJECT_ARRAY;
+				case &quot;byte[]&quot;:
+					return ForgeAcceptableRPCTypes.BYTE_ARRAY;
+				default:
+					return ForgeAcceptableRPCTypes.Unknown;
+			}
+		}
+
+		public override string ToString()
+		{
+			return string.Format(&quot;[ Name: {0}, Value: {1}, Type: {2}, IsNetObj: {3}]&quot;, FieldRPCName, FieldRPCValue, FieldType, IsNetworkedObject);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[27,39,27,40,0],[27,41,27,90,0],[27,91,27,92,0],[29,3,29,35,0],[30,3,30,4,0],[31,4,31,32,0],[32,4,32,25,0],[33,4,33,24,0],[34,4,34,25,0],[35,4,35,45,0],[36,3,36,4,0],[38,3,38,132,0],[39,3,39,4,0],[40,4,40,29,0],[41,4,41,31,0],[42,4,42,26,0],[43,4,43,35,0],[44,4,44,45,0],[45,3,45,4,0],[48,3,48,4,0],[49,4,49,56,0],[50,4,50,24,0],[54,4,54,64,0],[55,4,55,37,0],[56,4,56,33,0],[57,5,57,40,0],[58,9,58,39,0],[59,5,59,41,0],[60,9,60,39,0],[61,5,61,41,0],[62,9,62,39,0],[63,5,63,41,0],[64,9,64,39,0],[65,5,65,41,0],[66,9,66,41,0],[67,5,67,43,0],[68,9,68,40,0],[69,5,69,42,0],[70,9,70,39,0],[71,5,71,41,0],[72,9,72,40,0],[73,5,73,42,0],[74,9,74,40,0],[75,5,75,42,0],[76,9,76,41,0],[77,5,77,43,0],[78,9,78,40,0],[79,5,79,42,0],[80,9,80,45,0],[81,5,81,47,0],[82,9,82,42,0],[83,5,83,44,0],[84,9,84,42,0],[85,5,85,44,0],[86,9,86,42,0],[87,5,87,44,0],[88,9,88,41,0],[89,5,89,43,0],[92,9,92,41,0],[93,5,93,47,0],[95,5,95,44,0],[97,4,97,89,0],[98,3,98,4,0],[101,3,101,4,0],[102,4,102,17,0],[105,6,105,25,0],[107,6,107,26,0],[109,6,109,26,0],[111,6,111,26,0],[113,6,113,26,0],[115,6,115,28,0],[117,6,117,27,0],[119,6,119,26,0],[121,6,121,27,0],[123,6,123,27,0],[125,6,125,28,0],[127,6,127,27,0],[129,6,129,32,0],[131,6,131,29,0],[133,6,133,29,0],[135,6,135,29,0],[137,6,137,28,0],[141,6,141,28,0],[143,6,143,18,0],[145,3,145,4,0],[148,3,148,4,0],[149,4,149,53,0],[152,6,152,41,0],[154,6,154,42,0],[156,6,156,42,0],[158,6,158,42,0],[160,6,160,42,0],[162,6,162,44,0],[164,6,164,43,0],[166,6,166,42,0],[168,6,168,43,0],[170,6,170,43,0],[172,6,172,44,0],[174,6,174,43,0],[176,6,176,48,0],[178,6,178,45,0],[180,6,180,45,0],[182,6,182,45,0],[184,6,184,44,0],[188,6,188,48,0],[190,6,190,45,0],[192,3,192,4,0],[195,3,195,4,0],[196,4,196,138,0],[197,3,197,4,0]]);
+    </script>
+  </body>
+</html>

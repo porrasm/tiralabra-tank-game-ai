@@ -31,3 +31,10 @@
 | 6.8     | A* algorithm, priority linked list | 3 |
 | 8.8     | Tank path movement in maze, bugfixes | 3 |
 | 9.8     | Bullet trajectory prediction & tank AI bullet dodging | 6 |
+
+### Week 4
+
+| Date        | Description           | Hours  |
+| ------------- |-------------| -----|
+| 12.8     | Pathfinding tests & attempted bug fix | 3 |
+| 13.8     | Test coverage setup & code documentation | 2 |

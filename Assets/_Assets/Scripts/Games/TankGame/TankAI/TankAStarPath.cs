@@ -28,7 +28,7 @@ public class TankAStarPath : TankAIPathfinding {
 
 
         public double EstimatedCost(IntCoords end) {
-            return cost + Coords.Distance(end);
+            return cost + Vector.Distance(Vector.CoordsToPosition(Coords), Vector.CoordsToPosition(end));
         }
 
         public override bool Equals(object obj) {

@@ -26,7 +26,7 @@ namespace Tests {
 
             generator.GenerateMaze(out steps, out level);
 
-            pf = new TankAStarPath(level);
+            pf = new TankDFSPath(level);
         }
 
         [UnityTest]
@@ -50,13 +50,14 @@ namespace Tests {
 
             vi.level = level;
             TankPathVisualizer.DrawRoute(route);
-
-            yield return new WaitForSeconds(2);
+            
             TestRoute(start, end, route);
 
             for (int i = 0; i < 10; i++) {
                 TestCoords(new IntCoords(i, 0), route[i], "Route to right was not straight");
             }
+
+            yield return new WaitForSeconds(2000);
 
             // Up
             end = new IntCoords(0, 9);
@@ -114,6 +115,10 @@ namespace Tests {
         }
 
         private void TestRoute(IntCoords start, IntCoords end, Vector[] route) {
+            if (route.Length == 0) {
+                Debug.Log("ROUTE WAS 0");
+                return;
+            }
             Assert.AreNotEqual(null, route, "Route was null");
             TestCoords(start, route[0], "Start coordinates were not equal");
             TestCoords(end, route[route.Length - 1], "Route to " + end + " was not found");

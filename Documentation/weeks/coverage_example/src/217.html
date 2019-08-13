@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\bearded man studios inc\editor\forgenetworkingabouteditor.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using UnityEditor;
+using UnityEngine;
+
+namespace BeardedManStudios.Forge.Networking.UnityEditor
+{
+	public class ForgeNetworkingAboutEditor : EditorWindow
+	{
+		#region Autocheck
+		[InitializeOnLoad]
+		private class RuntimeCheck
+		{
+			static RuntimeCheck()
+			{
+				ForgeNetworkingAboutEditor.Init();
+			}
+		}
+		#endregion
+
+		#region Constants
+		private static ForgeNetworkingAboutEditor _instance;
+		private const string EDITOR_PREF_DATE = &quot;FNR_CHECK_DATE&quot;;
+		private const string EDITOR_PREF_IGNORE = &quot;FNR_IGNORE&quot;;
+		private const string EDITOR_ASSET_STORE_LINK = &quot;https://assetstore.unity.com/packages/slug/38344&quot;;
+		private const string EDITOR_GITHUB_LINK = &quot;https://github.com/BeardedManStudios/ForgeNetworkingRemastered&quot;;
+		private const string EDITOR_DISCORD_LINK = &quot;https://discord.gg/yzZwEYm&quot;;
+		private const string EDITOR_FORUM_LINK = &quot;https://forum.unity3d.com/threads/no-ccu-limit-forge-networking-superpowered-fully-cross-platform.286900/&quot;;
+		private string Version { get { return Resources.Load&lt;TextAsset&gt;(ForgeNetworkingEditor.EDITOR_RESOURCES_DIR + &quot;/version&quot;).text; } }
+
+		//private static bool ProVersion = false;
+		private static bool IgnoreEditorStartup = false;
+		#endregion
+
+		#region Private
+		private Texture2D _icon;
+		private Vector2 _scroll;
+		#endregion
+
+		private static void Init()
+		{
+			IgnoreEditorStartup = EditorPrefs.GetBool(EDITOR_PREF_IGNORE, false);
+
+			if (IgnoreEditorStartup)
+				return;
+
+			string lastDateScan = EditorPrefs.GetString(EDITOR_PREF_DATE, null);
+			if (!string.IsNullOrEmpty(lastDateScan))
+			{
+				long lastCheck = long.Parse(lastDateScan);
+				System.DateTime lastCheckDate = new System.DateTime(lastCheck);
+				System.TimeSpan timespan = System.DateTime.Now - lastCheckDate;
+				if (timespan.Days &lt; 1)
+					return;
+			}
+
+			EditorPrefs.SetString(EDITOR_PREF_DATE, System.DateTime.Now.Ticks.ToString());
+
+			InitializeWindow();
+		}
+
+		[MenuItem(&quot;Window/Forge Networking/About&quot;)]
+		private static void InitializeWindow()
+		{
+			if (_instance == null)
+			{
+				_instance = GetWindow&lt;ForgeNetworkingAboutEditor&gt;();
+				_instance.Setup();
+				_instance.Show();
+			}
+			else
+				_instance.Close();
+		}
+
+		public void Setup()
+		{
+			this.titleContent = new GUIContent(&quot;Forge About&quot;);
+			//ProVersion = EditorGUIUtility.isProSkin;
+			IgnoreEditorStartup = EditorPrefs.GetBool(EDITOR_PREF_IGNORE);
+			_scroll = new Vector2();
+
+			_icon = Resources.Load&lt;Texture2D&gt;(&quot;Icon&quot;);
+			this.minSize = new Vector2(360, 500);
+			this.maxSize = new Vector2(360, 500);
+		}
+
+		private void OnGUI()
+		{
+			EditorGUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
+			GUILayout.Label(_icon);
+			GUILayout.FlexibleSpace();
+			EditorGUILayout.EndHorizontal();
+
+
+			_scroll = EditorGUILayout.BeginScrollView(_scroll);
+			if (GUILayout.Button(&quot;GitHub&quot;, GUILayout.Height(50)))
+			{
+				Application.OpenURL(EDITOR_GITHUB_LINK);
+			}
+
+			if (GUILayout.Button(&quot;Join Discord&quot;, GUILayout.Height(50)))
+			{
+				Application.OpenURL(EDITOR_DISCORD_LINK);
+			}
+
+			if (GUILayout.Button(&quot;Forum Link&quot;, GUILayout.Height(50)))
+			{
+				Application.OpenURL(EDITOR_FORUM_LINK);
+			}
+
+			GUILayout.Space(10);
+
+			if (GUILayout.Button(&quot;Leave Review&quot;, GUILayout.Height(50)))
+			{
+				Application.OpenURL(EDITOR_ASSET_STORE_LINK);
+			}
+			EditorGUILayout.EndScrollView();
+
+			GUILayout.FlexibleSpace();
+			GUILayout.BeginHorizontal();
+			bool currentSetup = GUILayout.Toggle(IgnoreEditorStartup, &quot;Don&#39;t Show On Start&quot;);
+			if (currentSetup != IgnoreEditorStartup)
+			{
+				IgnoreEditorStartup = currentSetup;
+				EditorPrefs.SetBool(EDITOR_PREF_IGNORE, IgnoreEditorStartup);
+			}
+			GUILayout.FlexibleSpace();
+			GUILayout.Label(string.Format(&quot;Version {0}&quot;, Version), EditorStyles.boldLabel);
+			GUILayout.EndHorizontal();
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[13,4,13,5,0],[14,5,14,39,0],[15,4,15,5,0],[27,32,27,33,0],[27,34,27,129,0],[27,130,27,131,0],[30,3,30,51,0],[39,3,39,4,0],[40,4,40,73,0],[42,4,42,28,0],[43,5,43,12,0],[45,4,45,72,0],[46,4,46,44,0],[47,4,47,5,0],[48,5,48,47,0],[49,5,49,68,0],[50,5,50,68,0],[51,5,51,27,0],[52,6,52,13,0],[53,4,53,5,0],[55,4,55,82,0],[57,4,57,23,0],[58,3,58,4,0],[62,3,62,4,0],[63,4,63,26,0],[64,4,64,5,0],[65,5,65,57,0],[66,5,66,23,0],[67,5,67,22,0],[68,4,68,5,0],[70,5,70,23,0],[71,3,71,4,0],[74,3,74,4,0],[75,4,75,54,0],[77,4,77,66,0],[78,4,78,28,0],[80,4,80,46,0],[81,4,81,41,0],[82,4,82,41,0],[83,3,83,4,0],[86,3,86,4,0],[87,4,87,38,0],[88,4,88,30,0],[89,4,89,27,0],[90,4,90,30,0],[91,4,91,36,0],[94,4,94,55,0],[95,4,95,57,0],[96,4,96,5,0],[97,5,97,45,0],[98,4,98,5,0],[100,4,100,63,0],[101,4,101,5,0],[102,5,102,46,0],[103,4,103,5,0],[105,4,105,61,0],[106,4,106,5,0],[107,5,107,44,0],[108,4,108,5,0],[110,4,110,24,0],[112,4,112,63,0],[113,4,113,5,0],[114,5,114,50,0],[115,4,115,5,0],[116,4,116,36,0],[118,4,118,30,0],[119,4,119,32,0],[120,4,120,85,0],[121,4,121,44,0],[122,4,122,5,0],[123,5,123,40,0],[124,5,124,66,0],[125,4,125,5,0],[126,4,126,30,0],[127,4,127,83,0],[128,4,128,30,0],[129,3,129,4,0]]);
+    </script>
+  </body>
+</html>

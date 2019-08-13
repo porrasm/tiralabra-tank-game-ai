@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\unity-logs-viewer\reporter\test\rotate.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using UnityEngine;
+using System.Collections;
+
+public class Rotate : MonoBehaviour
+{
+	Vector3 angle;
+
+	void Start()
+	{
+		angle = transform.eulerAngles;
+	}
+
+	void Update()
+	{
+		angle.y += Time.deltaTime * 100;
+		transform.eulerAngles = angle;
+	}
+
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[9,2,9,3,0],[10,3,10,33,0],[11,2,11,3,0],[14,2,14,3,0],[15,3,15,35,0],[16,3,16,33,0],[17,2,17,3,0]]);
+    </script>
+  </body>
+</html>

@@ -12,6 +12,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// &lt;summary&gt;
+/// Used to calculate all the future trajectories of bullets
+/// &lt;/summary&gt;
 public class TankAIBulletChecker : TankAIComponent {
 
     #region fields
@@ -29,6 +32,9 @@ public class TankAIBulletChecker : TankAIComponent {
         CheckCollisionStatus();
     }
 
+    /// &lt;summary&gt;
+    /// Calculates the trajectories of all bullets and saves which how many bullets will pass over a certain cell
+    /// &lt;/summary&gt;
     public void CheckCollisionStatus() {
 
         BulletWillHit = false;
@@ -50,6 +56,13 @@ public class TankAIBulletChecker : TankAIComponent {
             }
         }
     }
+
+    /// &lt;summary&gt;
+    /// Returns a path to safe coordinates which no bullet will pass over
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;current&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;pf&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
     public Vector[] GetPathToSafeCoords(IntCoords current, TankAIPathfinding pf) {
 
         bool FoundCondition(IntCoords c) {
@@ -61,7 +74,7 @@ public class TankAIBulletChecker : TankAIComponent {
 }
     </pre>
     <script type="text/javascript">
-      highlightRanges([[11,39,11,43,0],[11,44,11,56,0],[12,33,12,37,0],[12,38,12,42,0],[15,45,15,53,0],[15,54,15,55,0],[16,5,16,6,0],[18,35,18,36,0],[19,9,19,32,0],[20,5,20,6,0],[22,40,22,41,0],[24,9,24,31,0],[26,9,26,88,0],[28,9,28,76,0],[30,9,30,65,0],[32,14,32,23,0],[32,25,32,43,0],[32,45,32,48,0],[32,50,32,51,0],[33,13,33,108,0],[34,13,34,37,0],[36,13,36,56,0],[38,13,38,25,0],[38,26,38,27,0],[39,17,39,38,0],[40,13,40,14,0],[41,9,41,10,0],[42,5,42,6,0],[43,82,43,83,0],[45,42,45,43,0],[46,13,46,52,0],[47,9,47,10,0],[49,9,49,76,0],[50,5,50,6,0]]);
+      highlightRanges([[14,39,14,43,0],[14,44,14,56,0],[15,33,15,37,0],[15,38,15,42,0],[18,45,18,53,0],[18,54,18,55,0],[19,5,19,6,0],[21,35,21,36,0],[22,9,22,32,0],[23,5,23,6,0],[28,40,28,41,0],[30,9,30,31,0],[32,9,32,88,0],[34,9,34,76,0],[36,9,36,65,0],[38,14,38,23,0],[38,25,38,43,0],[38,45,38,48,0],[38,50,38,51,0],[39,13,39,108,0],[40,13,40,37,0],[42,13,42,56,0],[44,13,44,25,0],[44,26,44,27,0],[45,17,45,38,0],[46,13,46,14,0],[47,9,47,10,0],[48,5,48,6,0],[56,82,56,83,0],[58,42,58,43,0],[59,13,59,52,0],[60,9,60,10,0],[62,9,62,76,0],[63,5,63,6,0]]);
     </script>
   </body>
 </html>

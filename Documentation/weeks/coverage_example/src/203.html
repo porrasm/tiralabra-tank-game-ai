@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\unity-logs-viewer\reporter\reportergui.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using UnityEngine;
+using System.Collections;
+
+public class ReporterGUI : MonoBehaviour
+{
+	Reporter reporter;
+	void Awake()
+	{
+		reporter = gameObject.GetComponent&lt;Reporter&gt;();
+	}
+
+	void OnGUI()
+	{
+		reporter.OnGUIDraw();
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[8,2,8,3,0],[9,3,9,50,0],[10,2,10,3,0],[13,2,13,3,0],[14,3,14,24,0],[15,2,15,3,0]]);
+    </script>
+  </body>
+</html>

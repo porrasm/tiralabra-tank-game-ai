@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\unity-logs-viewer\reporter\reportermessagereceiver.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using UnityEngine;
+using System.Collections;
+
+public class ReporterMessageReceiver : MonoBehaviour
+{
+	Reporter reporter;
+	void Start()
+	{
+		reporter = gameObject.GetComponent&lt;Reporter&gt;();
+	}
+
+	void OnPreStart()
+	{
+		//To Do : this method is called before initializing reporter, 
+		//we can for example check the resultion of our device ,then change the size of reporter
+		if (reporter == null)
+			reporter = gameObject.GetComponent&lt;Reporter&gt;();
+
+		if (Screen.width &lt; 1000)
+			reporter.size = new Vector2(32, 32);
+		else
+			reporter.size = new Vector2(48, 48);
+
+		reporter.UserData = &quot;Put user date here like his account to know which user is playing on this device&quot;;
+	}
+
+	void OnHideReporter()
+	{
+		//TO DO : resume your game
+	}
+
+	void OnShowReporter()
+	{
+		//TO DO : pause your game and disable its GUI
+	}
+
+	void OnLog(Reporter.Log log)
+	{
+		//TO DO : put you custom code 
+	}
+
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[8,2,8,3,0],[9,3,9,50,0],[10,2,10,3,0],[13,2,13,3,0],[16,3,16,24,0],[17,4,17,51,0],[19,3,19,27,0],[20,4,20,40,0],[22,4,22,40,0],[24,3,24,106,0],[25,2,25,3,0],[28,2,28,3,0],[30,2,30,3,0],[33,2,33,3,0],[35,2,35,3,0],[38,2,38,3,0],[40,2,40,3,0]]);
+    </script>
+  </body>
+</html>
