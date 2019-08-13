@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\modules\voip\voip.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|							   - The Forge Team                |
+|								 Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+#if !UNITY_WEBGL &amp;&amp; !WINDOWS_UWP
+using BeardedManStudios.Forge.Logging;
+using BeardedManStudios.Forge.Networking.Frame;
+using BeardedManStudios.Threading;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace BeardedManStudios.Forge.Networking.Unity.Modules
+{
+	public class VOIP
+	{
+		/// &lt;summary&gt;
+		/// Quality of the VOIP
+		/// &lt;/summary&gt;
+		public enum Quality
+		{
+			Low = 4000,
+			Mid = 8000,
+			High = 12000
+		}
+
+		/// &lt;summary&gt;
+		/// The Audiosource to hold the VOIP clip
+		/// &lt;/summary&gt;
+		public AudioSource source = null;
+
+		private int lastSample = 0;
+		private AudioClip mic = null;
+		private AudioSource audio = null;
+
+		/// &lt;summary&gt;
+		/// The Frequency of the VOIP
+		/// &lt;/summary&gt;
+		public int Frequency { get; set; }
+
+		/// &lt;summary&gt;
+		/// The NetWorker(Socket) the VOIP is on
+		/// &lt;/summary&gt;
+		public static NetWorker Socket { get; private set; }
+
+		private int channels = 0;
+		private int readUpdateId = 0;
+		private int previousReadUpdateId = -1;
+		private float[] samples = null;
+		private List&lt;float&gt; writeSamples = null;
+		private List&lt;float&gt; readSamples = null;
+		private float audio3D = 0.0f;
+
+		private float WRITE_FLUSH_TIME = 0.5f;
+		private float READ_FLUSH_TIME = 0.5f;
+		private float readFlushTimer = 0.0f;
+		private float writeFlushTimer = 0.0f;
+
+		public bool IsLocalTesting { get; set; }
+
+		private void Init(float audio3D, int frequency)
+		{
+			writeSamples = new List&lt;float&gt;(1024);
+			this.audio3D = audio3D;
+			source = new GameObject(&quot;VOIP&quot;).AddComponent&lt;AudioSource&gt;();
+
+			audio = source;
+
+			Frequency = frequency;
+		}
+
+		/// &lt;summary&gt;
+		/// Constructor with a check whether or not the audio is 3D or 2D
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;is3DAudio&quot;&gt;Whether the audio will be 3D or 2D&lt;/param&gt;
+		public VOIP(float audio3D)
+		{
+			Init(audio3D, (int)Quality.Mid);
+		}
+
+		/// &lt;summary&gt;
+		/// Constructor with a check if 3D Audio and Quality
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;is3DAudio&quot;&gt;Whether the audio will be 3D or 2D&lt;/param&gt;
+		/// &lt;param name=&quot;quality&quot;&gt;Quality of the VOIP&lt;/param&gt;
+		public VOIP(float audio3D, Quality quality)
+		{
+			Init(audio3D, (int)quality);
+		}
+
+		/// &lt;summary&gt;
+		/// Constructor with a check if 3D Audio and Frequency
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;is3DAudio&quot;&gt;Whether the audio will be 3D or 2D&lt;/param&gt;
+		/// &lt;param name=&quot;frequency&quot;&gt;Frequency of the VOIP&lt;/param&gt;
+		public VOIP(float audio3D, int frequency)
+		{
+			Init(audio3D, frequency);
+		}
+
+		private void Setup(string hostAddress, ushort port)
+		{
+			Socket.binaryMessageReceived += Read;
+
+			if (Socket.IsServer)
+			{
+				((UDPServer)Socket).Connect(hostAddress, port);
+				Socket.playerConnected += (player, sender) =&gt; { BMSLog.Log(&quot;PLAYER CONNECTED &quot; + player.IPEndPointHandle.Address); };
+				Socket.playerAccepted += (player, sender) =&gt; { BMSLog.Log(&quot;PLAYER ACCEPTED &quot; + player.IPEndPointHandle.Address); };
+				Socket.playerRejected += (player, sender) =&gt; { BMSLog.Log(&quot;PLAYER REJECTED &quot; + player.IPEndPointHandle.Address); };
+				Socket.playerDisconnected += (player, sender) =&gt; { BMSLog.Log(&quot;PLAYER DISCONNECTED &quot; + player.IPEndPointHandle.Address); };
+				StartVOIP(Socket);
+			}
+			else
+			{
+				Socket.serverAccepted += StartVOIP;
+				((UDPClient)Socket).Connect(hostAddress, port);
+			}
+		}
+
+		private void StartVOIP(NetWorker sender)
+		{
+			sender.serverAccepted -= StartVOIP;
+
+			MainThreadManager.Run(() =&gt;
+			{
+				mic = Microphone.Start(null, true, 100, Frequency);
+				channels = mic.channels;
+
+				if (mic == null)
+				{
+					Debug.LogError(&quot;A default microphone was not found or plugged into the system&quot;);
+					return;
+				}
+
+				Task.Queue(VOIPWorker);
+			});
+		}
+
+		/// &lt;summary&gt;
+		/// Start the VOIP sending server
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;hostAddress&quot;&gt;The address for the VOIP to host from&lt;/param&gt;
+		/// &lt;param name=&quot;port&quot;&gt;Port of the VOIP&lt;/param&gt;
+		/// &lt;param name=&quot;connections&quot;&gt;Maximum number of connections to the VOIP&lt;/param&gt;
+		public void StartServer(int connections, string hostAddress = &quot;0.0.0.0&quot;, ushort port = 15959)
+		{
+			Socket = new UDPServer(connections);
+			Setup(hostAddress, port);
+		}
+
+		/// &lt;summary&gt;
+		/// Start the VOIP sending client
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;hostAddress&quot;&gt;The address for the VOIP to connect to&lt;/param&gt;
+		/// &lt;param name=&quot;port&quot;&gt;Port of the VOIP&lt;/param&gt;
+		public void StartClient(string hostAddress = &quot;127.0.0.1&quot;, ushort port = 15959)
+		{
+			Socket = new UDPClient();
+			Setup(hostAddress, port);
+		}
+
+		/// &lt;summary&gt;
+		/// Stop sending the audio through VOIP
+		/// &lt;/summary&gt;
+		public void StopSending()
+		{
+			Microphone.End(null);
+			mic = null;
+
+			if (Socket != null)
+				Socket.Disconnect(false);
+		}
+
+		private void ReadMic()
+		{
+			writeFlushTimer += Time.deltaTime;
+			int pos = Microphone.GetPosition(null);
+			int diff = pos - lastSample;
+
+			if (diff &gt; 0)
+			{
+				samples = new float[diff * channels];
+				mic.GetData(samples, lastSample);
+
+				lock (writeSamples)
+				{
+					writeSamples.AddRange(samples);
+				}
+			}
+
+			lastSample = pos;
+		}
+
+		public void Update()
+		{
+			if (!Socket.IsConnected || mic == null)
+				return;
+
+			if (!IsLocalTesting)
+				ReadMic();
+			else if (Socket.IsServer)
+			{
+				ReadMic();
+				return;
+			}
+
+			readFlushTimer += Time.deltaTime;
+			if (readFlushTimer &gt; READ_FLUSH_TIME)
+			{
+				if (readUpdateId != previousReadUpdateId &amp;&amp; readSamples != null &amp;&amp; readSamples.Count &gt; 0)
+				{
+					previousReadUpdateId = readUpdateId;
+
+					lock (readSamples)
+					{
+						audio.clip = AudioClip.Create(&quot;VOIP&quot;, readSamples.Count, channels, Frequency, false);
+						audio.spatialBlend = audio3D;
+
+						audio.clip.SetData(readSamples.ToArray(), 0);
+						if (!audio.isPlaying) audio.Play();
+
+						readSamples.Clear();
+					}
+				}
+
+				readFlushTimer = 0.0f;
+			}
+		}
+
+		BMSByte writeBuffer = new BMSByte();
+
+		private void VOIPWorker()
+		{
+			while (Socket.IsConnected)
+			{
+				if (writeFlushTimer &gt;= WRITE_FLUSH_TIME &amp;&amp; writeSamples.Count &gt; 0)
+				{
+					writeFlushTimer = 0.0f;
+					lock (writeSamples)
+					{
+						writeBuffer.Clone(ToByteArray(writeSamples));
+						writeSamples.Clear();
+					}
+
+					Binary voice = new Binary(Socket.Time.Timestep, false, writeBuffer, Receivers.All, MessageGroupIds.VOIP, false);
+
+					((BaseUDP)Socket).Send(voice);
+				}
+
+				MainThreadManager.ThreadSleep(10);
+			}
+		}
+
+		private void Read(NetworkingPlayer player, Binary frame, NetWorker sender)
+		{
+			// This read is not for VOIP
+			if (frame.GroupId != MessageGroupIds.VOIP)
+				return;
+
+			float[] tmp = ToFloatArray(frame.StreamData);
+
+			if (readSamples == null)
+				readSamples = new List&lt;float&gt;(tmp);
+
+			lock (readSamples)
+			{
+				readSamples.AddRange(tmp);
+			}
+
+			readUpdateId++;
+		}
+
+		private byte[] ToByteArray(List&lt;float&gt; sampleList)
+		{
+			int len = sampleList.Count * 4;
+			byte[] byteArray = new byte[len];
+			int pos = 0;
+
+			for (int i = 0; i &lt; sampleList.Count; i++)
+			{
+				byte[] data = BitConverter.GetBytes(sampleList[i]);
+				Array.Copy(data, 0, byteArray, pos, 4);
+				pos += 4;
+			}
+
+			return byteArray;
+		}
+
+		private float[] ToFloatArray(BMSByte data)
+		{
+			int len = (data.Size - 1) / 4;
+			float[] floatArray = new float[len];
+
+			for (int i = 0; i &lt; data.Size - 1; i += 4)
+				floatArray[i / 4] = BitConverter.ToSingle(data.byteArr, i);
+
+			return floatArray;
+		}
+	}
+}
+#endif
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[45,3,45,36,0],[45,3,45,36,0],[45,3,45,36,0],[47,3,47,30,0],[47,3,47,30,0],[47,3,47,30,0],[48,3,48,32,0],[48,3,48,32,0],[48,3,48,32,0],[49,3,49,36,0],[49,3,49,36,0],[49,3,49,36,0],[54,26,54,30,0],[54,31,54,35,0],[59,36,59,40,0],[59,41,59,53,0],[61,3,61,28,0],[61,3,61,28,0],[61,3,61,28,0],[62,3,62,32,0],[62,3,62,32,0],[62,3,62,32,0],[63,3,63,41,0],[63,3,63,41,0],[63,3,63,41,0],[64,3,64,34,0],[64,3,64,34,0],[64,3,64,34,0],[65,3,65,43,0],[65,3,65,43,0],[65,3,65,43,0],[66,3,66,42,0],[66,3,66,42,0],[66,3,66,42,0],[67,3,67,32,0],[67,3,67,32,0],[67,3,67,32,0],[69,3,69,41,0],[69,3,69,41,0],[69,3,69,41,0],[70,3,70,40,0],[70,3,70,40,0],[70,3,70,40,0],[71,3,71,39,0],[71,3,71,39,0],[71,3,71,39,0],[72,3,72,40,0],[72,3,72,40,0],[72,3,72,40,0],[74,32,74,36,0],[74,37,74,41,0],[77,3,77,4,0],[78,4,78,41,0],[79,4,79,27,0],[80,4,80,64,0],[82,4,82,19,0],[84,4,84,26,0],[85,3,85,4,0],[91,3,91,29,0],[92,3,92,4,0],[93,4,93,36,0],[94,3,94,4,0],[101,3,101,46,0],[102,3,102,4,0],[103,4,103,32,0],[104,3,104,4,0],[111,3,111,44,0],[112,3,112,4,0],[113,4,113,29,0],[114,3,114,4,0],[117,3,117,4,0],[118,4,118,41,0],[120,4,120,24,0],[121,4,121,5,0],[122,5,122,52,0],[123,5,123,51,0],[123,51,123,52,0],[123,52,123,53,0],[123,53,123,119,0],[123,119,123,120,0],[123,120,123,121,0],[123,121,123,122,0],[123,5,123,122,0],[124,5,124,50,0],[124,50,124,51,0],[124,51,124,52,0],[124,52,124,117,0],[124,117,124,118,0],[124,118,124,119,0],[124,119,124,120,0],[124,5,124,120,0],[125,5,125,50,0],[125,50,125,51,0],[125,51,125,52,0],[125,52,125,117,0],[125,117,125,118,0],[125,118,125,119,0],[125,119,125,120,0],[125,5,125,120,0],[126,5,126,54,0],[126,54,126,55,0],[126,55,126,56,0],[126,56,126,125,0],[126,125,126,126,0],[126,126,126,127,0],[126,127,126,128,0],[126,5,126,128,0],[127,5,127,23,0],[128,4,128,5,0],[130,4,130,5,0],[131,5,131,40,0],[132,5,132,52,0],[133,4,133,5,0],[134,3,134,4,0],[137,3,137,4,0],[138,4,138,39,0],[140,4,141,4,0],[141,4,141,5,0],[141,5,142,5,0],[142,5,142,56,0],[142,56,143,5,0],[143,5,143,29,0],[143,29,145,5,0],[145,5,145,21,0],[145,21,146,5,0],[146,5,146,6,0],[146,6,147,6,0],[147,6,147,86,0],[147,86,148,6,0],[148,6,148,13,0],[148,13,151,5,0],[151,5,151,28,0],[151,28,152,4,0],[152,4,152,5,0],[152,5,152,7,0],[140,4,152,7,0],[153,3,153,4,0],[162,3,162,4,0],[163,4,163,40,0],[164,4,164,29,0],[165,3,165,4,0],[173,3,173,4,0],[174,4,174,29,0],[175,4,175,29,0],[176,3,176,4,0],[182,3,182,4,0],[183,4,183,25,0],[184,4,184,15,0],[186,4,186,23,0],[187,5,187,30,0],[188,3,188,4,0],[191,3,191,4,0],[192,4,192,38,0],[193,4,193,43,0],[194,4,194,32,0],[196,4,196,17,0],[197,4,197,5,0],[198,5,198,42,0],[199,5,199,38,0],[201,5,201,24,0],[202,5,202,6,0],[203,6,203,37,0],[204,5,204,6,0],[205,4,205,5,0],[207,4,207,21,0],[208,3,208,4,0],[211,3,211,4,0],[212,4,212,43,0],[213,5,213,12,0],[215,4,215,24,0],[216,5,216,15,0],[217,9,217,29,0],[218,4,218,5,0],[219,5,219,15,0],[220,5,220,12,0],[223,4,223,37,0],[224,4,224,41,0],[225,4,225,5,0],[226,5,226,94,0],[227,5,227,6,0],[228,6,228,42,0],[230,6,230,24,0],[231,6,231,7,0],[232,7,232,92,0],[233,7,233,36,0],[235,7,235,52,0],[236,7,236,28,0],[236,29,236,42,0],[238,7,238,27,0],[239,6,239,7,0],[240,5,240,6,0],[242,5,242,27,0],[243,4,243,5,0],[244,3,244,4,0],[246,3,246,39,0],[246,3,246,39,0],[246,3,246,39,0],[249,3,249,4,0],[250,4,250,30,0],[251,4,251,5,0],[252,5,252,71,0],[253,5,253,6,0],[254,6,254,29,0],[255,6,255,25,0],[256,6,256,7,0],[257,7,257,52,0],[258,7,258,28,0],[259,6,259,7,0],[261,6,261,118,0],[263,6,263,36,0],[264,5,264,6,0],[266,5,266,39,0],[267,4,267,5,0],[268,3,268,4,0],[271,3,271,4,0],[273,4,273,46,0],[274,5,274,12,0],[276,4,276,49,0],[278,4,278,28,0],[279,5,279,40,0],[281,4,281,22,0],[282,4,282,5,0],[283,5,283,31,0],[284,4,284,5,0],[286,4,286,19,0],[287,3,287,4,0],[290,3,290,4,0],[291,4,291,35,0],[292,4,292,37,0],[293,4,293,16,0],[295,9,295,18,0],[295,20,295,40,0],[295,42,295,45,0],[296,4,296,5,0],[297,5,297,56,0],[298,5,298,44,0],[299,5,299,14,0],[300,4,300,5,0],[302,4,302,21,0],[303,3,303,4,0],[306,3,306,4,0],[307,4,307,34,0],[308,4,308,40,0],[310,9,310,18,0],[310,20,310,37,0],[310,39,310,45,0],[311,5,311,64,0],[313,4,313,22,0],[314,3,314,4,0]]);
+    </script>
+  </body>
+</html>

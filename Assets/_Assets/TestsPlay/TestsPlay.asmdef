@@ -1,0 +1,17 @@
+{
+    "name": "TestsPlay",
+    "references": [
+        "GUID:2ae727bdcce4b1946af6e298d16ff7cc"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

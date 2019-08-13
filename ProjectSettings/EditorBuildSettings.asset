@@ -29,4 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Assets/_Scenes/TankAITesting/TankAITestingScene.unity
     guid: d15823122084926489cb4ee2fd025902
+  - enabled: 1
+    path: Assets/_Assets/_Scenes/TankAITesting/TankPathTesting.unity
+    guid: 58eeef5aa33ac224ead1e2224db7dd6c
   m_configObjects: {}

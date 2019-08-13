@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\ui\client_lobbyui.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Client_LobbyUI : MonoBehaviour {
+
+    [SerializeField]
+    private InputField nameField;
+    [SerializeField]
+    private Button colorButton, readyButton, startButton;
+    private Image colorImage;
+
+    private Player player;
+
+    private Player Player {
+        get {
+            if (player == null) {
+                player = Player.MyPlayer();
+                return player;
+            } else {
+                return player;
+            }
+        }
+    }
+
+    private void Start() {
+        colorImage = colorButton.GetComponent&lt;Image&gt;();
+    }
+    private void Update() {
+        UpdateUI();
+    }
+
+    public void ChangeName(string name) {
+
+        if (!AllowedInput(ref name)) {
+            nameField.text = name;
+        }
+    }
+    private bool AllowedInput(ref string input) {
+        string clean = Regex.Replace(input, @&quot;[^a-zA-Z0-9\s&#246;&#228;&#229;&#214;&#196;&#197;(:)]&quot;, string.Empty);
+        if (input.Equals(clean)) {
+            return true;
+        }
+        input = clean;
+        return false;
+    }
+
+    public void UpdateName(string name) {
+
+        if (name.Length &lt; 2) {
+            return;
+        }
+
+        print(&quot;Updating client name: &quot; + name);
+
+        Player.Ready = 0;
+        Player.UpdateClient();
+        Player.ChangeName(name);
+    }
+
+    public void ToggleReady() {
+        if (Player.Ready &gt; 0) {
+            Player.Ready = 0;
+        } else {
+            Player.Ready = 1;
+        }
+        Player.UpdateClient();
+    }
+
+    public void StartGame() {
+
+        if (ClientManager.AllReady() &amp;&amp; Player.Primary) {
+            Player.Ready = 2;
+            Player.UpdateClient();
+        }
+    }
+
+    private void UpdateUI() {
+
+        ClientManager manager = Scripts.GetScriptComponent&lt;ClientManager&gt;();
+
+        // Color
+        if (colorImage.color != Colors.GetBasicColor(Player.Color)) {
+            colorImage.color = Colors.GetBasicColor(Player.Color);
+        }
+
+        // Name field
+        if (!nameField.isFocused) {
+            if (!Player.Name.Equals(nameField.text)) {
+                nameField.text = Player.Name;
+            }
+        }
+
+        // Ready button
+        Image bImage = readyButton.GetComponent&lt;Image&gt;();
+
+        if (Player.Ready &gt; 0 &amp;&amp; bImage.color != Color.green) {
+            bImage.color = Color.green;
+            readyButton.transform.GetChild(0).GetComponent&lt;Text&gt;().text = &quot;Ready&quot;;
+        } else if (Player.Ready == 0 &amp;&amp; bImage.color != Color.red) {
+            bImage.color = Color.red;
+            readyButton.transform.GetChild(0).GetComponent&lt;Text&gt;().text = &quot;Not Ready&quot;;
+        }
+
+        // Start button
+        if (Player.Primary) {
+            startButton.gameObject.SetActive(true);
+            startButton.interactable = ClientManager.AllReady();
+        } else {
+            startButton.gameObject.SetActive(false);
+        }
+    }
+
+    public void ToggleColor() {
+        Player.Ready = 0;
+        Player.UpdateClient();
+        Player.MyPlayer().ToggleColor();
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,13,18,14,0],[19,13,19,32,0],[19,33,19,34,0],[20,17,20,44,0],[21,17,21,31,0],[22,20,22,21,0],[23,17,23,31,0],[25,9,25,10,0],[28,26,28,27,0],[29,9,29,56,0],[30,5,30,6,0],[31,27,31,28,0],[32,9,32,20,0],[33,5,33,6,0],[35,41,35,42,0],[37,9,37,37,0],[37,38,37,39,0],[38,13,38,35,0],[39,9,39,10,0],[40,5,40,6,0],[41,49,41,50,0],[42,9,42,87,0],[43,9,43,33,0],[43,34,43,35,0],[44,13,44,25,0],[46,9,46,23,0],[47,9,47,22,0],[48,5,48,6,0],[50,41,50,42,0],[52,9,52,29,0],[52,30,52,31,0],[53,13,53,20,0],[56,9,56,48,0],[58,9,58,26,0],[59,9,59,31,0],[60,9,60,33,0],[61,5,61,6,0],[63,31,63,32,0],[64,9,64,30,0],[64,31,64,32,0],[65,13,65,30,0],[66,9,66,10,0],[66,16,66,17,0],[67,13,67,30,0],[68,9,68,10,0],[69,9,69,31,0],[70,5,70,6,0],[72,29,72,30,0],[74,9,74,56,0],[74,57,74,58,0],[75,13,75,30,0],[76,13,76,35,0],[77,9,77,10,0],[78,5,78,6,0],[80,29,80,30,0],[82,9,82,77,0],[85,9,85,68,0],[85,69,85,70,0],[86,13,86,67,0],[87,9,87,10,0],[90,9,90,34,0],[90,35,90,36,0],[91,13,91,53,0],[91,54,91,55,0],[92,17,92,46,0],[93,13,93,14,0],[94,9,94,10,0],[97,9,97,58,0],[99,9,99,61,0],[99,62,99,63,0],[100,13,100,40,0],[101,13,101,83,0],[102,9,102,10,0],[102,16,102,67,0],[102,68,102,69,0],[103,13,103,38,0],[104,13,104,87,0],[105,9,105,10,0],[108,9,108,28,0],[108,29,108,30,0],[109,13,109,52,0],[110,13,110,65,0],[111,9,111,10,0],[111,16,111,17,0],[112,13,112,53,0],[113,9,113,10,0],[114,5,114,6,0],[116,31,116,32,0],[117,9,117,26,0],[118,9,118,31,0],[119,9,119,41,0],[120,5,120,6,0]]);
+    </script>
+  </body>
+</html>

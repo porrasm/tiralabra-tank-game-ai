@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\powerups\tankpowerup_charge.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+// Maybe use unity events/actions for powerups
+public class TankPowerup_Charge : TankPowerup {
+
+    private float powerupTime = TankSettings.P_ChargeTime;
+    private float speed;
+    private bool used;
+
+    ColliderCallback colliderCallback;
+
+    private void Start() {
+        powerupType = Type.Charge;
+        behaviourType = Behaviour.BlockFire;
+
+        speed = TankSettings.P_ChargeSpeedFactor * TankSettings.TankSpeed;
+        colliderCallback = gameObject.AddComponent&lt;ColliderCallback&gt;();
+        colliderCallback.AddCollisionCallback(CollisionCallback);
+    }
+
+    public override void Remove() {
+        base.Remove();
+
+        GetComponent&lt;TankPlayer&gt;().Invulnerable = false;
+
+        Destroy(this);
+        Destroy(colliderCallback);
+    }
+
+    private void CollisionCallback(GameObject obj, Collision collision) {
+
+        if (!used) {
+            return;
+        }
+
+        TankPlayer player = collision.gameObject.GetComponent&lt;TankPlayer&gt;();
+        if (player == null) {
+            return;
+        }
+
+        player.DoDamage(TankSettings.P_ChargeDamage, GetComponent&lt;TankPlayer&gt;());
+
+        print(&quot;Collision callback&quot;);
+    }
+
+    public override void Use() {
+
+        if (used) {
+            return;
+        }
+
+        used = true;
+
+        base.Use();
+
+        GetComponent&lt;TankPlayer&gt;().Invulnerable = true;
+
+        IEnumerator ChargeCoroutine() {
+
+            Rigidbody rb = tankObject.GetComponent&lt;Rigidbody&gt;();
+
+            while (powerupTime &gt; 0) {
+
+                Vector3 velocity = rb.transform.forward * speed * Time.deltaTime;
+
+                rb.MovePosition(rb.position + velocity);
+
+                powerupTime -= Time.deltaTime;
+                yield return null;
+            }
+
+            Remove();
+        }
+
+        StartCoroutine(ChargeCoroutine());
+    }
+
+    public override bool BlockFire() {
+        return used;
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[8,5,8,59,0],[14,26,14,27,0],[15,9,15,35,0],[16,9,16,45,0],[18,9,18,75,0],[19,9,19,72,0],[20,9,20,66,0],[21,5,21,6,0],[23,35,23,36,0],[24,9,24,23,0],[26,9,26,57,0],[28,9,28,23,0],[29,9,29,35,0],[30,5,30,6,0],[32,73,32,74,0],[34,9,34,19,0],[34,20,34,21,0],[35,13,35,20,0],[38,9,38,77,0],[39,9,39,28,0],[39,29,39,30,0],[40,13,40,20,0],[43,9,43,82,0],[45,9,45,37,0],[46,5,46,6,0],[48,32,48,33,0],[50,9,50,18,0],[50,19,50,20,0],[51,13,51,20,0],[54,9,54,21,0],[56,9,56,20,0],[58,9,58,56,0],[60,39,60,40,0],[62,13,62,65,0],[64,13,64,36,0],[64,37,64,38,0],[66,17,66,82,0],[68,17,68,57,0],[70,17,70,47,0],[71,17,71,35,0],[72,13,72,14,0],[74,13,74,22,0],[75,9,75,10,0],[77,9,77,43,0],[78,5,78,6,0],[80,38,80,39,0],[81,9,81,21,0],[82,5,82,6,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\logging\bmslog.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+namespace BeardedManStudios.Forge.Logging
+{
+	public class BMSLog
+	{
+		#region Singleton
+		private static BMSLog _instance;
+		public static BMSLog Instance
+		{
+			get { if (_instance == null) _instance = new BMSLog(); return _instance; }
+		}
+		#endregion
+
+		public enum Logtype
+		{
+			Info,
+			Warning,
+			Exception
+		}
+
+		private IBMSLogger _loggerService;
+
+		#region Public API
+		public static void Log(string text)
+		{
+			Instance.InternalLog(Logtype.Info, text);
+		}
+
+		public static void LogFormat(string text, params object[] args)
+		{
+			Instance.InternalLog(Logtype.Info, text, args);
+		}
+
+		public static void LogException(System.Exception ex)
+		{
+			Instance.InternalLog(Logtype.Exception, string.Format(&quot;Message: {0}{1}{2}&quot;, ex.Message, System.Environment.NewLine, ex.StackTrace));
+		}
+
+		public static void LogException(string text)
+		{
+			Instance.InternalLog(Logtype.Exception, text);
+		}
+
+		public static void LogExceptionFormat(string text, params object[] args)
+		{
+			Instance.InternalLog(Logtype.Exception, text, args);
+		}
+
+		public static void LogWarning(string text)
+		{
+			Instance.InternalLog(Logtype.Warning, text);
+		}
+
+		public static void LogWarningFormat(string text, params object[] args)
+		{
+			Instance.InternalLog(Logtype.Warning, text, args);
+		}
+
+		public void RegisterLoggerService(IBMSLogger service)
+		{
+			_loggerService = service;
+		}
+		#endregion
+
+		private void InternalLog(Logtype type, string text, params object[] args)
+		{
+#if !UNITY_IOS
+			if (_loggerService == null)
+				return;
+
+			switch (type)
+			{
+				case Logtype.Info:
+					if (args != null &amp;&amp; args.Length &gt; 0)
+						_loggerService.LogFormat(text, args);
+					else
+						_loggerService.Log(text);
+					break;
+				case Logtype.Warning:
+					if (args != null &amp;&amp; args.Length &gt; 0)
+						_loggerService.LogWarningFormat(text, args);
+					else
+						_loggerService.LogWarning(text);
+					break;
+				case Logtype.Exception:
+					if (args != null &amp;&amp; args.Length &gt; 0)
+						_loggerService.LogExceptionFormat(text, args);
+					else
+						_loggerService.LogException(text);
+					break;
+			}
+#endif
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[28,8,28,9,0],[28,10,28,32,0],[28,33,28,58,0],[28,59,28,76,0],[28,77,28,78,0],[43,3,43,4,0],[44,4,44,45,0],[45,3,45,4,0],[48,3,48,4,0],[49,4,49,51,0],[50,3,50,4,0],[53,3,53,4,0],[54,4,54,136,0],[55,3,55,4,0],[58,3,58,4,0],[59,4,59,50,0],[60,3,60,4,0],[63,3,63,4,0],[64,4,64,56,0],[65,3,65,4,0],[68,3,68,4,0],[69,4,69,48,0],[70,3,70,4,0],[73,3,73,4,0],[74,4,74,54,0],[75,3,75,4,0],[78,3,78,4,0],[79,4,79,29,0],[80,3,80,4,0],[84,3,84,4,0],[86,4,86,31,0],[87,5,87,12,0],[89,4,89,17,0],[92,6,92,42,0],[93,7,93,44,0],[95,7,95,32,0],[96,6,96,12,0],[98,6,98,42,0],[99,7,99,51,0],[101,7,101,39,0],[102,6,102,12,0],[104,6,104,42,0],[105,7,105,53,0],[107,7,107,41,0],[108,6,108,12,0],[111,3,111,4,0]]);
+    </script>
+  </body>
+</html>

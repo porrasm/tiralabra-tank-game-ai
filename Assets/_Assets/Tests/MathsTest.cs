@@ -1,11 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
-using UnityEngine;
+//using UnityEngine;
 using UnityEngine.TestTools;
+using System;
 
 namespace Tests {
     public class MathsTest {
+
+        private System.Random rnd = new System.Random();
 
         #region Square root
         [Test]
@@ -29,8 +32,8 @@ namespace Tests {
         [Test]
         public void MathsSquareRootTestRandom() {
             for (int i = 0; i < 100; i++) {
-                float f = Random.value * 10000;
-                Assert.AreEqual(Mathf.Sqrt(f), Maths.Sqrt(f));
+                float f = RndFloat * 10000;
+                Assert.AreEqual(Math.Sqrt(f), Maths.Sqrt(f));
             }
         }
         #endregion
@@ -57,7 +60,7 @@ namespace Tests {
         public void IntegerPowerTestRandom() {
             for (int i = 0; i < 10; i++) {
                 for (int p = 0; p < 10; p++) {
-                    Assert.AreEqual(System.Math.Pow(i, p), Maths.Power(i, p), i + " ^ " + p);
+                    Assert.AreEqual(Math.Pow(i, p), Maths.Power(i, p), i + " ^ " + p);
                 }
             }
         }
@@ -77,10 +80,10 @@ namespace Tests {
         public void FloatPowerTestRandom() {
             for (int i = 0; i < 10; i++) {
 
-                float f = i + Random.value;
+                float f = i + RndFloat;
 
                 for (int p = 0; p < 10; p++) {
-                    Assert.AreEqual(Mathf.Pow(f, p), Maths.Power(f, p), 0.0001f, f + " ^ " + p);
+                    Assert.AreEqual(Math.Pow(f, p), Maths.Power(f, p), 0.0001f, f + " ^ " + p);
                 }
             }
         }
@@ -104,5 +107,9 @@ namespace Tests {
             Assert.AreEqual(1, Maths.Ceil(0.000001f));
         }
         #endregion
+
+        private float RndFloat {
+            get { return (float)rnd.NextDouble(); }
+        }
     }
 }

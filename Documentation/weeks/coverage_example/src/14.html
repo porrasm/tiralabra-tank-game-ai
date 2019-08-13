@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\generated\networkobjectfactory.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using BeardedManStudios.Forge.Networking.Frame;
+using System;
+using MainThreadManager = BeardedManStudios.Forge.Networking.Unity.MainThreadManager;
+
+namespace BeardedManStudios.Forge.Networking.Generated
+{
+	public partial class NetworkObjectFactory : NetworkObjectFactoryBase
+	{
+		public override void NetworkCreateObject(NetWorker networker, int identity, uint id, FrameStream frame, Action&lt;NetworkObject&gt; callback)
+		{
+			if (networker.IsServer)
+			{
+				if (frame.Sender != null &amp;&amp; frame.Sender != networker.Me)
+				{
+					if (!ValidateCreateRequest(networker, identity, id, frame))
+						return;
+				}
+			}
+			
+			bool availableCallback = false;
+			NetworkObject obj = null;
+			MainThreadManager.Run(() =&gt;
+			{
+				switch (identity)
+				{
+					case ChatManagerNetworkObject.IDENTITY:
+						availableCallback = true;
+						obj = new ChatManagerNetworkObject(networker, id, frame);
+						break;
+					case ClientManagerNetworkObject.IDENTITY:
+						availableCallback = true;
+						obj = new ClientManagerNetworkObject(networker, id, frame);
+						break;
+					case ClientNetworkObject.IDENTITY:
+						availableCallback = true;
+						obj = new ClientNetworkObject(networker, id, frame);
+						break;
+					case CubeForgeGameNetworkObject.IDENTITY:
+						availableCallback = true;
+						obj = new CubeForgeGameNetworkObject(networker, id, frame);
+						break;
+					case ExampleProximityPlayerNetworkObject.IDENTITY:
+						availableCallback = true;
+						obj = new ExampleProximityPlayerNetworkObject(networker, id, frame);
+						break;
+					case GamesNetworkObject.IDENTITY:
+						availableCallback = true;
+						obj = new GamesNetworkObject(networker, id, frame);
+						break;
+					case NetworkCameraNetworkObject.IDENTITY:
+						availableCallback = true;
+						obj = new NetworkCameraNetworkObject(networker, id, frame);
+						break;
+					case TankNetworkingNetworkObject.IDENTITY:
+						availableCallback = true;
+						obj = new TankNetworkingNetworkObject(networker, id, frame);
+						break;
+				}
+
+				if (!availableCallback)
+					base.NetworkCreateObject(networker, identity, id, frame, callback);
+				else if (callback != null)
+					callback(obj);
+			});
+		}
+
+		// DO NOT TOUCH, THIS GETS GENERATED PLEASE EXTEND THIS CLASS IF YOU WISH TO HAVE CUSTOM CODE ADDITIONS
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[10,3,10,4,0],[11,4,11,27,0],[12,4,12,5,0],[13,5,13,62,0],[14,5,14,6,0],[15,6,15,65,0],[16,7,16,14,0],[17,5,17,6,0],[18,4,18,5,0],[20,4,20,35,0],[21,4,21,29,0],[22,4,23,4,0],[23,4,23,5,0],[23,5,24,5,0],[24,5,24,22,0],[24,22,27,7,0],[27,7,27,32,0],[27,32,28,7,0],[28,7,28,64,0],[28,64,29,7,0],[29,7,29,13,0],[29,13,31,7,0],[31,7,31,32,0],[31,32,32,7,0],[32,7,32,66,0],[32,66,33,7,0],[33,7,33,13,0],[33,13,35,7,0],[35,7,35,32,0],[35,32,36,7,0],[36,7,36,59,0],[36,59,37,7,0],[37,7,37,13,0],[37,13,39,7,0],[39,7,39,32,0],[39,32,40,7,0],[40,7,40,66,0],[40,66,41,7,0],[41,7,41,13,0],[41,13,43,7,0],[43,7,43,32,0],[43,32,44,7,0],[44,7,44,75,0],[44,75,45,7,0],[45,7,45,13,0],[45,13,47,7,0],[47,7,47,32,0],[47,32,48,7,0],[48,7,48,58,0],[48,58,49,7,0],[49,7,49,13,0],[49,13,51,7,0],[51,7,51,32,0],[51,32,52,7,0],[52,7,52,66,0],[52,66,53,7,0],[53,7,53,13,0],[53,13,55,7,0],[55,7,55,32,0],[55,32,56,7,0],[56,7,56,67,0],[56,67,57,7,0],[57,7,57,13,0],[57,13,60,5,0],[60,5,60,28,0],[60,28,61,6,0],[61,6,61,73,0],[61,73,62,10,0],[62,10,62,31,0],[62,31,63,6,0],[63,6,63,20,0],[63,20,64,4,0],[64,4,64,5,0],[64,5,64,7,0],[22,4,64,7,0],[65,3,65,4,0]]);
+    </script>
+  </body>
+</html>

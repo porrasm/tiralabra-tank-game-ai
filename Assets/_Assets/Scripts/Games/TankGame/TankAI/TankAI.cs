@@ -30,8 +30,8 @@ public class TankAI : MonoBehaviour {
 
         StopAllCoroutines();
 
-        dfs = new TankDFSPath(TankLevelGenerator.Level);
-        aStar = new TankAStarPath(TankLevelGenerator.Level);
+        dfs = new TankDFSPath(TankLevelGenerator.Instance.Level);
+        aStar = new TankAStarPath(TankLevelGenerator.Instance.Level);
         path = null;
 
         movement = new TankAIMovement(this);

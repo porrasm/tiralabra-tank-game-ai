@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\ui\mainmenuui.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+public class MainMenuUI : MonoBehaviour {
+
+    private Transform currentView;
+
+    [SerializeField]
+    private InputField ipField;
+
+    [SerializeField]
+    private Text ipText;
+
+    [SerializeField]
+    private string startView;
+
+    private void Start() {
+        DisableAllViews(transform);
+        ChangeView(startView, true);
+
+        Server.SetIP();
+        
+        if (ipField != null) {
+            ipField.text = Server.IP;
+        }
+
+        if (ipText != null) {
+            ipText.text = Server.IP;
+        }
+    }
+    public void CreateGame() {
+        bool success = Server.StartServer();
+        if (success) {
+            GameManager.InitGames();
+        }
+    }
+    public void StartGame() {
+        GameManager.StartGame();
+    }
+
+    public void CancelGame() {
+        ChangeView(&quot;Main&quot;);
+
+        // Scripts.GetGameObject().GetComponent&lt;UDP_Server&gt;().StopServer();
+    }
+    
+    public void SetIP() {
+        string ip = ipField.text;
+        Server.IP = ip;
+    }
+    public void JoinGame() {
+        bool success = Server.ConnectToServer();
+        if (success) {   
+            GameManager.InitGames();
+        }
+    }
+
+    public void ChangeView(string view) {
+        ChangeView(view, false);
+    }
+    public void ChangeView(string view, bool force) {
+
+        GameObject newView = GetViewByName(transform, view + &quot; view&quot;);
+
+        if (newView == null) {
+            print(&quot;Unable to find view: &quot; + view);
+            return;
+        }
+
+        newView.gameObject.SetActive(true);
+
+        if (!force) {
+            if (currentView) {
+                currentView.gameObject.SetActive(false);
+            }
+        }
+
+        currentView = newView.transform;
+    }
+    private GameObject GetViewByName(Transform parent, string viewName) {
+
+        if (parent.name.ToLower().Equals(viewName.ToLower())) {
+            return parent.gameObject;
+        }
+
+        foreach (Transform child in parent) {
+            GameObject view = GetViewByName(child, viewName);
+            if (view != null) {
+                return view;
+            }
+        }
+
+        return null;
+    }
+    public void DisableAllViews(Transform t) {
+        foreach (Transform child in t) {
+            DisableAllViews(child);
+        }
+
+        if (t.name.ToLower().Contains(&quot; view&quot;)) {
+            t.gameObject.SetActive(false);
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[20,26,20,27,0],[21,9,21,36,0],[22,9,22,37,0],[24,9,24,24,0],[26,9,26,29,0],[26,30,26,31,0],[27,13,27,38,0],[28,9,28,10,0],[30,9,30,28,0],[30,29,30,30,0],[31,13,31,37,0],[32,9,32,10,0],[33,5,33,6,0],[34,30,34,31,0],[35,9,35,45,0],[36,9,36,21,0],[36,22,36,23,0],[37,13,37,37,0],[38,9,38,10,0],[39,5,39,6,0],[40,29,40,30,0],[41,9,41,33,0],[42,5,42,6,0],[44,30,44,31,0],[45,9,45,28,0],[48,5,48,6,0],[50,25,50,26,0],[51,9,51,34,0],[52,9,52,24,0],[53,5,53,6,0],[54,28,54,29,0],[55,9,55,49,0],[56,9,56,21,0],[56,22,56,23,0],[57,13,57,37,0],[58,9,58,10,0],[59,5,59,6,0],[61,41,61,42,0],[62,9,62,33,0],[63,5,63,6,0],[64,53,64,54,0],[66,9,66,71,0],[68,9,68,29,0],[68,30,68,31,0],[69,13,69,51,0],[70,13,70,20,0],[73,9,73,44,0],[75,9,75,20,0],[75,21,75,22,0],[76,13,76,29,0],[76,30,76,31,0],[77,17,77,57,0],[78,13,78,14,0],[79,9,79,10,0],[81,9,81,41,0],[82,5,82,6,0],[83,73,83,74,0],[85,9,85,62,0],[85,63,85,64,0],[86,13,86,38,0],[89,9,89,16,0],[89,18,89,33,0],[89,34,89,36,0],[89,37,89,43,0],[89,45,89,46,0],[90,13,90,62,0],[91,13,91,30,0],[91,31,91,32,0],[92,17,92,29,0],[94,9,94,10,0],[96,9,96,21,0],[97,5,97,6,0],[98,46,98,47,0],[99,9,99,16,0],[99,18,99,33,0],[99,34,99,36,0],[99,37,99,38,0],[99,40,99,41,0],[100,13,100,36,0],[101,9,101,10,0],[103,9,103,48,0],[103,49,103,50,0],[104,13,104,43,0],[105,9,105,10,0],[106,5,106,6,0]]);
+    </script>
+  </body>
+</html>

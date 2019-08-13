@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankperspectivecamerahelper.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TankPerspectiveCameraHelper : MonoBehaviour {
+
+    private Transform prsCamera;
+    private Transform prsArea;
+    private GameObject level;
+
+    void Start() {
+
+        print(&quot;Perspective start: &quot; + gameObject.name);
+
+        prsCamera = transform.GetChild(0);
+        prsArea = new GameObject().transform;
+        prsArea.name = &quot;Perspective Level&quot;;
+        level = GameObject.FindGameObjectWithTag(&quot;Level&quot;);
+
+        SetPerspectiveGameArea();
+    }
+
+    public void SetPerspectiveGameArea() {
+        Clean();
+        SetArea();
+        CopyLevel();
+        SetCamera();
+    }
+
+    private void Clean() {
+        foreach (Transform child in prsArea) {
+            Destroy(child.gameObject);
+        }
+    }
+
+    private void SetArea() {
+        prsArea.position = ToPrspPos(Vector3.zero);
+    }
+    private void CopyLevel() {
+
+        GameObject copyLevel = Instantiate(level);
+        copyLevel.transform.parent = prsArea;
+        copyLevel.transform.localPosition = Vector3.zero;
+
+        CleanLevel(copyLevel.transform);
+    }
+    private void CleanLevel(Transform level) {
+
+        Destroy(level.Find(&quot;Spawns&quot;).gameObject);
+        Destroy(level.GetComponent&lt;TankLevelGenerator&gt;());
+
+    }
+    private void SetCamera() {
+        prsCamera.position = ToPrspPos(transform.position);
+    }
+
+    public static Vector3 ToPrspPos(Vector3 pos) {
+        pos.x += TankSettings.LevelWidth * 2;
+        return pos;
+    }
+    public static Vector3 ToNormalPos(Vector3 pos) {
+        pos.x -= TankSettings.LevelWidth * 2;
+        return pos;
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[11,18,11,19,0],[13,9,13,56,0],[15,9,15,43,0],[16,9,16,46,0],[17,9,17,44,0],[18,9,18,59,0],[20,9,20,34,0],[21,5,21,6,0],[23,42,23,43,0],[24,9,24,17,0],[25,9,25,19,0],[26,9,26,21,0],[27,9,27,21,0],[28,5,28,6,0],[30,26,30,27,0],[31,9,31,16,0],[31,18,31,33,0],[31,34,31,36,0],[31,37,31,44,0],[31,46,31,47,0],[32,13,32,39,0],[33,9,33,10,0],[34,5,34,6,0],[36,28,36,29,0],[37,9,37,52,0],[38,5,38,6,0],[39,30,39,31,0],[41,9,41,51,0],[42,9,42,46,0],[43,9,43,58,0],[45,9,45,41,0],[46,5,46,6,0],[47,46,47,47,0],[49,9,49,50,0],[50,9,50,59,0],[52,5,52,6,0],[53,30,53,31,0],[54,9,54,60,0],[55,5,55,6,0],[57,50,57,51,0],[58,9,58,46,0],[59,9,59,20,0],[60,5,60,6,0],[61,52,61,53,0],[62,9,62,46,0],[63,9,63,20,0],[64,5,64,6,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\tests\pathfindingastartest.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Tests {
+
+    public class PathfindingAStarTest {
+
+        private byte[,] level;
+        private TankMazeGenerator generator;
+        private TankAIPathfinding pf;
+
+        [SetUp]
+        public void Setup() {
+
+            TankSettings.LevelWidth = 10;
+            TankSettings.LevelHeight = 10;
+
+            generator = new TankMazeGenerator();
+
+            List&lt;TankLevelGenerator.Step&gt; steps;
+
+            generator.GenerateMaze(out steps, out level);
+
+            pf = new TankAStarPath(level);
+        }
+
+        [Test]
+        public void RouteToEndIsStraight() {
+
+            ClearLevel();
+
+            IntCoords start = new IntCoords();
+
+            // Right
+            IntCoords end = new IntCoords(9, 0);
+
+            Vector[] route = pf.FindPath(start, end);
+
+            TestRoute(start, end, route);
+
+            foreach (Vector v in route) {
+                IntCoords c = Vector.PositionToCoords(v);
+            }
+
+            for (int i = 0; i &lt; 10; i++) {
+                TestCoords(new IntCoords(i, 0), route[i], &quot;Route to right was not straight&quot;);
+            }
+
+            // Up
+            end = new IntCoords(0, 9);
+
+            route = pf.FindPath(start, end);
+
+            TestRoute(start, end, route);
+
+            for (int i = 0; i &lt; 10; i++) {
+                TestCoords(new IntCoords(0, i), route[i], &quot;Route to up was not straight&quot;);
+            }
+
+            // Up-Right
+            end = new IntCoords(9, 9);
+
+            route = pf.FindPath(start, end);
+
+            TestRoute(start, end, route);
+
+            for (int i = 0; i &lt; 10; i++) {
+                TestCoords(new IntCoords(i, i), route[i], &quot;Route to up-right was not straight&quot;);
+            }
+        }
+
+        [Test]
+        public void RouteIsFoundToEveryCell() {
+
+            IntCoords start = new IntCoords();
+
+            void To(int x, int y) {
+
+                IntCoords end = new IntCoords(x, y);
+
+                Vector[] route = pf.FindPath(start, end);
+
+                TestRoute(start, end, route);
+            }
+
+            IterateLevel(To);
+        }
+        [Test]
+        public void RouteIsFoundFromEveryCell() {
+
+            IntCoords end = new IntCoords(0, 0);
+
+            void From(int x, int y) {
+
+                IntCoords start = new IntCoords(x, y);
+
+                Vector[] route = pf.FindPath(start, end);
+
+                TestRoute(start, end, route);
+            }
+
+            IterateLevel(From);
+        }
+        [Test]
+        public void RouteIsFoundToEveryCellFromEveryCell() {
+
+            void From(int x, int y) {
+
+                IntCoords start = new IntCoords(x, y);
+
+                void To(int x2, int y2) {
+
+                    IntCoords end = new IntCoords(x2, y2);
+
+                    Vector[] route = pf.FindPath(start, end);
+
+                    TestRoute(start, end, route);
+                }
+
+                IterateLevel(To);
+            }
+
+            IterateLevel(From);
+        }
+
+        #region TestHelpers
+        private void ClearLevel() {
+
+            List&lt;TankLevelGenerator.Step&gt; steps = new List&lt;TankLevelGenerator.Step&gt;();
+
+            void InitLevel(int x, int y) {
+                TankLevelGenerator.Step step = new TankLevelGenerator.Step();
+                step.Coords = new IntCoords(x, y);
+                step.Wall = TankCell.CellWall.Both;
+                steps.Add(step);
+            }
+
+            IterateLevel(InitLevel);
+
+            generator.LevelFromSteps(out level, steps);
+        }
+
+        private void TestRoute(IntCoords start, IntCoords end, Vector[] route) {
+            Assert.AreNotEqual(null, route, &quot;Route was null&quot;);
+            TestCoords(start, route[0], &quot;Start coordinates were not equal&quot;);
+            TestCoords(end, route[route.Length - 1], &quot;Route to &quot; + end + &quot; was not found&quot;);
+        }
+
+        private void TestCoords(IntCoords coords, Vector pos, string message) {
+            Assert.AreEqual(coords, Vector.PositionToCoords(pos), message);
+        }
+
+        private delegate void LevelIterateFunc(int x, int y);
+        private void IterateLevel(LevelIterateFunc f) {
+            for (int x = 0; x &lt; 10; x++) {
+                for (int y = 0; y &lt; 10; y++) {
+                    f(x, y);
+                }
+            }
+        }
+        #endregion
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[17,29,17,30,1],[19,13,19,42,1],[20,13,20,43,1],[22,13,22,49,1],[26,13,26,58,1],[28,13,28,43,1],[29,9,29,10,1],[32,44,32,45,0],[34,13,34,26,0],[36,13,36,47,0],[39,13,39,49,0],[41,13,41,54,0],[43,13,43,42,0],[45,13,45,20,0],[45,22,45,30,0],[45,31,45,33,0],[45,34,45,39,0],[45,41,45,42,0],[46,17,46,58,0],[47,13,47,14,0],[49,18,49,27,0],[49,29,49,35,0],[49,37,49,40,0],[49,42,49,43,0],[50,17,50,94,0],[51,13,51,14,0],[54,13,54,39,0],[56,13,56,45,0],[58,13,58,42,0],[60,18,60,27,0],[60,29,60,35,0],[60,37,60,40,0],[60,42,60,43,0],[61,17,61,91,0],[62,13,62,14,0],[65,13,65,39,0],[67,13,67,45,0],[69,13,69,42,0],[71,18,71,27,0],[71,29,71,35,0],[71,37,71,40,0],[71,42,71,43,0],[72,17,72,97,0],[73,13,73,14,0],[74,9,74,10,0],[77,47,77,48,1],[79,13,79,47,1],[81,35,81,36,0],[83,17,83,53,0],[85,17,85,58,0],[87,17,87,46,0],[88,13,88,14,0],[90,13,90,30,1],[91,9,91,10,1],[93,49,93,50,1],[95,13,95,49,1],[97,37,97,38,0],[99,17,99,55,0],[101,17,101,58,0],[103,17,103,46,0],[104,13,104,14,0],[106,13,106,32,1],[107,9,107,10,1],[109,60,109,61,1],[111,37,111,38,0],[113,17,113,55,0],[115,41,115,42,0],[117,21,117,59,0],[119,21,119,62,0],[121,21,121,50,0],[122,17,122,18,0],[124,17,124,34,0],[125,13,125,14,0],[127,13,127,32,1],[128,9,128,10,1],[131,35,131,36,0],[133,13,133,87,0],[135,42,135,43,0],[136,17,136,78,0],[137,17,137,51,0],[138,17,138,52,0],[139,17,139,33,0],[140,13,140,14,0],[142,13,142,37,0],[144,13,144,56,0],[145,9,145,10,0],[147,80,147,81,1],[148,13,148,63,1],[149,13,149,77,1],[150,13,150,92,1],[151,9,151,10,1],[153,79,153,80,1],[154,13,154,76,1],[155,9,155,10,1],[158,55,158,56,1],[159,18,159,27,1],[159,29,159,35,1],[159,37,159,40,1],[159,42,159,43,1],[160,22,160,31,1],[160,33,160,39,1],[160,41,160,44,1],[160,46,160,47,1],[161,21,161,29,1],[162,17,162,18,1],[163,13,163,14,1],[164,9,164,10,1]]);
+    </script>
+  </body>
+</html>

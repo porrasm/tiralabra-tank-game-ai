@@ -11,11 +11,13 @@ public class TankPathVisualizer : MonoBehaviour {
     LineRenderer line;
 
     private IntCoords start;
+
+    public byte[,] level;
     #endregion
 
     private void Init() {
-        dfs = new TankDFSPath(TankLevelGenerator.Level);
-        aStar = new TankAStarPath(TankLevelGenerator.Level);
+        dfs = new TankDFSPath(TankLevelGenerator.Instance.Level);
+        aStar = new TankAStarPath(TankLevelGenerator.Instance.Level);
         line = GetComponent<LineRenderer>();
     }
 
@@ -24,7 +26,32 @@ public class TankPathVisualizer : MonoBehaviour {
             dfs = null;
         }
         if (Input.GetKeyDown(KeyCode.T)) {
+            level = TankLevelGenerator.Instance.Level;
             Init();
+        }
+        if (Input.GetKeyDown(KeyCode.X)) {
+
+            Debug.Log("Creating test level");
+
+            List<TankLevelGenerator.Step> steps = new List<TankLevelGenerator.Step>();
+
+            for (int x = 0; x < 10; x++) {
+                for (int y = 0; y < 10; y++) {
+                    TankLevelGenerator.Step step = new TankLevelGenerator.Step();
+                    step.Coords = new IntCoords(x, y);
+                    step.Wall = TankCell.CellWall.Both;
+                    steps.Add(step);
+                }
+            }
+
+            Debug.Log("Step count: " + steps.Count);
+
+            TankMazeGenerator g = new TankMazeGenerator();
+            g.LevelFromSteps(out level, steps);
+
+            dfs = new TankDFSPath(level);
+            aStar = new TankAStarPath(level);
+            line = GetComponent<LineRenderer>();
         }
 
         if (Input.GetKeyDown(KeyCode.LeftShift)) {
@@ -35,25 +62,25 @@ public class TankPathVisualizer : MonoBehaviour {
             Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             start = Vector.PositionToCoords(Vector.FromVector3(world));
         }
-        if (Input.GetKey(KeyCode.Mouse0)) {
+        if (Input.GetKeyDown(KeyCode.Mouse0)) {
             UpdateRouteAStar();
         }
         if (Input.GetKey(KeyCode.Mouse1)) {
             UpdateRouteDFS();
         }
 
-        DrawLevel();
+        DrawLevel(level);
     }
 
-    private void DrawLevel() {
+    public void DrawLevel(byte[,] level) {
 
-        if (TankLevelGenerator.Level == null) {
+        if (level == null) {
             return;
         }
 
         for (int x = 0; x < 10; x++) {
             for (int y = 0; y < 10; y++) {
-                DrawAvailable(new IntCoords(x, y), TankLevelGenerator.Level[x, y]);
+                DrawAvailable(new IntCoords(x, y), level[x, y]);
             }
         }
 

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\frame\text.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+using System.Text;
+
+namespace BeardedManStudios.Forge.Networking.Frame
+{
+	public class Text : FrameStream
+	{
+		/// &lt;summary&gt;
+		/// Connection close frame is denoted by %x1
+		/// &lt;/summary&gt;
+		public const byte CONTROL_BYTE = 129;
+
+		public override byte ControlByte { get { return CONTROL_BYTE; } }
+
+		public Text() : base() { }
+		public Text(ulong timestep, bool useMask, Receivers receivers, int groupId, bool isStream) : base(timestep, useMask, receivers, groupId, isStream) { }
+		public Text(ulong timestep, bool useMask, byte[] payload, Receivers receivers, int groupId, bool isStream) : base(timestep, useMask, payload, receivers, groupId, isStream) { }
+		public Text(ulong timestep, bool useMask, BMSByte payload, Receivers receivers, int groupId, bool isStream) : base(timestep, useMask, payload, receivers, groupId, isStream) { }
+		public Text(byte[] frame, int payloadStart, int groupId, NetworkingPlayer sender, byte receivers) : base(frame, payloadStart, groupId, sender, receivers) { }
+
+		/// &lt;summary&gt;
+		/// Create a Text frame from a string rather than raw byte data
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;timestep&quot;&gt;The timestep for the frame&lt;/param&gt;
+		/// &lt;param name=&quot;message&quot;&gt;The string message that this Text frame represents&lt;/param&gt;
+		/// &lt;param name=&quot;useMask&quot;&gt;If a mask should be applied to this data&lt;/param&gt;
+		/// &lt;param name=&quot;receivers&quot;&gt;The receivers on the network for this Text frame&lt;/param&gt;
+		/// &lt;param name=&quot;groupId&quot;&gt;The unique message group id for this Text frame&lt;/param&gt;
+		/// &lt;param name=&quot;isStream&quot;&gt;If this data is being sent as a stream or in packets&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		public static Text CreateFromString(ulong timestep, string message, bool useMask, Receivers receivers, int groupId, bool isStream)
+		{
+			return new Text(timestep, useMask, Encoding.UTF8.GetBytes(message), receivers, groupId, isStream);
+		}
+
+		/// &lt;summary&gt;
+		/// Converts the data bytes of this frame to a string
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;The string representation of the data bytes for this frame&lt;/returns&gt;
+		public override string ToString()
+		{
+			string stringData = Encoding.UTF8.GetString(StreamData.CompressBytes());
+
+			if (IsReliable)
+				return stringData.Remove(stringData.Length - sizeof(ulong));
+
+			return stringData;
+		}
+
+		public override object Clone()
+		{
+			return BaseClone(new Binary());
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[31,42,31,43,0],[31,44,31,64,0],[31,65,31,66,0],[33,19,33,25,0],[33,26,33,27,0],[33,28,33,29,0],[34,96,34,149,0],[34,150,34,151,0],[34,152,34,153,0],[35,112,35,174,0],[35,175,35,176,0],[35,177,35,178,0],[36,113,36,175,0],[36,176,36,177,0],[36,178,36,179,0],[37,103,37,156,0],[37,157,37,158,0],[37,159,37,160,0],[50,3,50,4,0],[51,4,51,102,0],[52,3,52,4,0],[59,3,59,4,0],[60,4,60,76,0],[62,4,62,19,0],[63,5,63,65,0],[65,4,65,22,0],[66,3,66,4,0],[69,3,69,4,0],[70,4,70,35,0],[71,3,71,4,0]]);
+    </script>
+  </body>
+</html>

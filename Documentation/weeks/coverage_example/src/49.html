@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\frame\pong.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+namespace BeardedManStudios.Forge.Networking.Frame
+{
+	public class Pong : FrameStream
+	{
+		/// &lt;summary&gt;
+		/// Connection close frame is denoted by %xA
+		/// &lt;/summary&gt;
+		public const byte CONTROL_BYTE = 138;
+
+		public override byte ControlByte { get { return CONTROL_BYTE; } }
+
+		public Pong() : base() { }
+		public Pong(ulong timestep, bool useMask, Receivers receivers, int groupId, bool isStream) : base(timestep, useMask, receivers, groupId, isStream) { }
+		public Pong(ulong timestep, bool useMask, byte[] payload, Receivers receivers, int groupId, bool isStream) : base(timestep, useMask, payload, receivers, groupId, isStream) { }
+		public Pong(ulong timestep, bool useMask, BMSByte payload, Receivers receivers, int groupId, bool isStream) : base(timestep, useMask, payload, receivers, groupId, isStream) { }
+		public Pong(byte[] frame, int payloadStart, int groupId, NetworkingPlayer sender, byte receivers) : base(frame, payloadStart, groupId, sender, receivers) { }
+
+		public override object Clone()
+		{
+			return BaseClone(new Binary());
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[29,42,29,43,0],[29,44,29,64,0],[29,65,29,66,0],[31,19,31,25,0],[31,26,31,27,0],[31,28,31,29,0],[32,96,32,149,0],[32,150,32,151,0],[32,152,32,153,0],[33,112,33,174,0],[33,175,33,176,0],[33,177,33,178,0],[34,113,34,175,0],[34,176,34,177,0],[34,178,34,179,0],[35,103,35,156,0],[35,157,35,158,0],[35,159,35,160,0],[38,3,38,4,0],[39,4,39,35,0],[40,3,40,4,0]]);
+    </script>
+  </body>
+</html>

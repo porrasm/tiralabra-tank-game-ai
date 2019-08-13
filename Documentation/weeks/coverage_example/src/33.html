@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\networking\clientmanager.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using UnityEngine;
+
+public enum PlayerColor {
+    Black = -1, Red = 0, Green = 1, Blue = 2, Cyan = 3, Yellow = 4, Orange = 5, Purple = 6, Magenta = 7
+}
+
+public class ClientManager : MonoBehaviour {
+
+    #region fields
+    private List&lt;PlayerColor&gt; takenColors;
+    private Player[] players;
+
+    private GameObject playerPrefab;
+    #endregion
+
+    private void Start() {
+        takenColors = new List&lt;PlayerColor&gt;();
+        players = new Player[8];
+        playerPrefab = Resources.Load&lt;GameObject&gt;(&quot;ResourcePrefabs/Player&quot;);
+    }
+
+    public string GetFreeName(string name) {
+        return GetFreeName(name, 0);
+    }
+    private string GetFreeName(string nameParam, int index) {
+
+        string name = null;
+        if (index == 0) {
+            name = nameParam;
+        } else {
+            name = nameParam + index;
+        }
+
+        foreach (Player p in players) {
+
+            if (p == null) {
+                continue;
+            }
+
+            if (p.Name.Equals(name)) {
+                return GetFreeName(nameParam, index + 1);
+            }
+        }
+
+        // Fix input
+        name = Regex.Replace(name.Trim(), @&quot;[^a-zA-Z0-9\s&#246;&#228;&#229;&#214;&#196;&#197;(:)]&quot;, string.Empty);
+        name = Regex.Replace(name.Trim(), @&quot;\s+&quot;, &quot; &quot;);
+
+        return name;
+    }
+
+    #region Client Side
+    public static bool AllReady() {
+
+        foreach (Transform child in GameObject.FindGameObjectWithTag(&quot;Players&quot;).transform) {
+
+            Player p = child.GetComponent&lt;Player&gt;();
+
+            if (p.Ready == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    #endregion
+
+    #region Player Initialization
+    public int GetFreeID() {
+        for (int i = 0; i &lt; 8; i++) {
+            if (players[i] == null) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+    public void AddPlayer(Player client) {
+        NewClientInfo(client, GetFreeID());
+        players[client.ID] = client;
+    }
+
+    public Player[] GetPlayers() {
+        return players;
+    }
+
+    public bool CreateNewPlayer(int id) {
+
+        if (players[id] != null) {
+            return false;
+        }
+
+        GameObject clientObject = Instantiate(playerPrefab);
+        Player client = clientObject.GetComponent&lt;Player&gt;();
+        
+
+        players[id] = client;
+
+        return true;
+    }
+    public void NewClientInfo(Player client, int id) {
+        client.ID = id;
+        client.Name = &quot;Player &quot; + (id + 1);
+        client.Color = GetNextFreeColor(PlayerColor.Black);
+    }
+
+    #endregion
+
+    #region Colors
+    public PlayerColor GetNextFreeColor(PlayerColor oldColor) {
+
+        for (int i = 0; i &lt; 8; i++) {
+
+            PlayerColor newColor = (PlayerColor)((int)(oldColor + i) % 8);
+
+            if (IsFreeColor(newColor)) {
+                takenColors.Remove(oldColor);
+                return TakeColor(newColor);
+            }
+        }
+
+        takenColors.Remove(oldColor);
+        return PlayerColor.Black;
+    }
+    private bool IsFreeColor(PlayerColor color) {
+        if (color == PlayerColor.Black) {
+            return false;
+        }
+        return !takenColors.Contains(color);
+    }
+    private PlayerColor TakeColor(PlayerColor color) {
+        takenColors.Add(color);
+        return color;
+    }
+    #endregion
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,26,18,27,0],[19,9,19,47,0],[20,9,20,33,0],[21,9,21,77,0],[22,5,22,6,0],[24,44,24,45,0],[25,9,25,37,0],[26,5,26,6,0],[27,61,27,62,0],[29,9,29,28,0],[30,9,30,24,0],[30,25,30,26,0],[31,13,31,30,0],[32,9,32,10,0],[32,16,32,17,0],[33,13,33,38,0],[34,9,34,10,0],[36,9,36,16,0],[36,18,36,26,0],[36,27,36,29,0],[36,30,36,37,0],[36,39,36,40,0],[38,13,38,27,0],[38,28,38,29,0],[39,17,39,26,0],[42,13,42,37,0],[42,38,42,39,0],[43,17,43,58,0],[45,9,45,10,0],[48,9,48,85,0],[49,9,49,56,0],[51,9,51,21,0],[52,5,52,6,0],[55,35,55,36,0],[57,9,57,16,0],[57,18,57,33,0],[57,34,57,36,0],[57,37,57,90,0],[57,92,57,93,0],[59,13,59,53,0],[61,13,61,30,0],[61,31,61,32,0],[62,17,62,30,0],[64,9,64,10,0],[66,9,66,21,0],[67,5,67,6,0],[71,28,71,29,0],[72,14,72,23,0],[72,25,72,30,0],[72,32,72,35,0],[72,37,72,38,0],[73,13,73,36,0],[73,37,73,38,0],[74,17,74,26,0],[76,9,76,10,0],[78,9,78,19,0],[79,5,79,6,0],[80,42,80,43,0],[81,9,81,44,0],[82,9,82,37,0],[83,5,83,6,0],[85,34,85,35,0],[86,9,86,24,0],[87,5,87,6,0],[89,41,89,42,0],[91,9,91,33,0],[91,34,91,35,0],[92,13,92,26,0],[95,9,95,61,0],[96,9,96,61,0],[99,9,99,30,0],[101,9,101,21,0],[102,5,102,6,0],[103,54,103,55,0],[104,9,104,24,0],[105,9,105,44,0],[106,9,106,60,0],[107,5,107,6,0],[112,63,112,64,0],[114,14,114,23,0],[114,25,114,30,0],[114,32,114,35,0],[114,37,114,38,0],[116,13,116,75,0],[118,13,118,39,0],[118,40,118,41,0],[119,17,119,46,0],[120,17,120,44,0],[122,9,122,10,0],[124,9,124,38,0],[125,9,125,34,0],[126,5,126,6,0],[127,49,127,50,0],[128,9,128,40,0],[128,41,128,42,0],[129,13,129,26,0],[131,9,131,45,0],[132,5,132,6,0],[133,54,133,55,0],[134,9,134,32,0],[135,9,135,22,0],[136,5,136,6,0]]);
+    </script>
+  </body>
+</html>

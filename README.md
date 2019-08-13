@@ -11,7 +11,7 @@ This is a project for the tiralabra2019 course.
 
 This is a Tank Game AI.
 
-[Current week report](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/weeks/week3.md)
+[Current week report](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/weeks/week4.md)
 
 
 ### Documentation

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\server browser\serverbrowser.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using BeardedManStudios.SimpleJSON;
+using System;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+namespace BeardedManStudios.Forge.Networking.Unity
+{
+	public class ServerBrowser : MonoBehaviour
+	{
+		public string masterServerHost = &quot;127.0.0.1&quot;;
+		public int masterServerPort = 15940;
+		public string natServerHost = &quot;&quot;;
+		public ushort natServerPort = Nat.NatHolePunch.DEFAULT_NAT_SERVER_PORT;
+
+		public string gameId = &quot;myGame&quot;;
+		public string gameType = &quot;any&quot;;
+		public string gameMode = &quot;all&quot;;
+
+		public Transform content = null;
+		public GameObject serverOption = null;
+		public GameObject networkManager = null;
+		TCPClient client = null;
+
+		private void Awake()
+		{
+			MainThreadManager.Create();
+		}
+
+		private void Start()
+		{
+			Refresh();
+		}
+
+		public void CreateServerOption(string name, UnityEngine.Events.UnityAction callback)
+		{
+			MainThreadManager.Run(() =&gt;
+			{
+				var option = Instantiate(serverOption);
+				option.transform.SetParent(content);
+				var browserItem = option.GetComponent&lt;ServerBrowserItem&gt;();
+				if (browserItem != null)
+					browserItem.SetData(name, callback);
+			});
+		}
+
+		public void Refresh()
+		{
+			// Clear out all the currently listed servers
+			for (int i = content.childCount - 1; i &gt;= 0; --i)
+				Destroy(content.GetChild(i).gameObject);
+
+			// The Master Server communicates over TCP
+			client = new TCPMasterClient();
+
+			// Once this client has been accepted by the master server it should sent it&#39;s get request
+			client.serverAccepted += (sender) =&gt;
+			{
+				try
+				{
+					// Create the get request with the desired filters
+					JSONNode sendData = JSONNode.Parse(&quot;{}&quot;);
+					JSONClass getData = new JSONClass();
+					getData.Add(&quot;id&quot;, gameId);
+					getData.Add(&quot;type&quot;, gameType);
+					getData.Add(&quot;mode&quot;, gameMode);
+
+					sendData.Add(&quot;get&quot;, getData);
+
+					// Send the request to the server
+					client.Send(Frame.Text.CreateFromString(client.Time.Timestep, sendData.ToString(), true, Receivers.Server, MessageGroupIds.MASTER_SERVER_GET, true));
+				}
+				catch
+				{
+					// If anything fails, then this client needs to be disconnected
+					client.Disconnect(true);
+					client = null;
+				}
+			};
+
+			// An event that is raised when the server responds with hosts
+			client.textMessageReceived += (player, frame, sender) =&gt;
+			{
+				try
+				{
+					// Get the list of hosts to iterate through from the frame payload
+					JSONNode data = JSONNode.Parse(frame.ToString());
+					if (data[&quot;hosts&quot;] != null)
+					{
+						MasterServerResponse response = new MasterServerResponse(data[&quot;hosts&quot;].AsArray);
+
+						if (response != null &amp;&amp; response.serverResponse.Count &gt; 0)
+						{
+							// Go through all of the available hosts and add them to the server browser
+							foreach (MasterServerResponse.Server server in response.serverResponse)
+							{
+								string protocol = server.Protocol;
+								string address = server.Address;
+								ushort port = server.Port;
+								string name = server.Name;
+
+								// name, address, port, comment, type, mode, players, maxPlayers, protocol
+								CreateServerOption(name, () =&gt;
+								{
+									// Determine which protocol should be used when this client connects
+									NetWorker socket = null;
+
+									if (protocol == &quot;udp&quot;)
+									{
+										socket = new UDPClient();
+										((UDPClient)socket).Connect(address, port, natServerHost, natServerPort);
+									}
+									else if (protocol == &quot;tcp&quot;)
+									{
+										socket = new TCPClient();
+										((TCPClient)socket).Connect(address, port);
+									}
+									#if !UNITY_IOS &amp;&amp; !UNITY_ANDROID
+									else if (protocol == &quot;web&quot;)
+									{
+										socket = new TCPClientWebsockets();
+										((TCPClientWebsockets)socket).Connect(address, port);
+									}
+									#endif
+									if (socket == null)
+										throw new Exception(&quot;No socket of type &quot; + protocol + &quot; could be established&quot;);
+
+									Connected(socket);
+								});
+							}
+						}
+					}
+				}
+				finally
+				{
+					if (client != null)
+					{
+						// If we succeed or fail the client needs to disconnect from the Master Server
+						client.Disconnect(true);
+						client = null;
+					}
+				}
+			};
+
+			client.Connect(masterServerHost, (ushort)masterServerPort);
+		}
+
+		public void Connected(NetWorker networker)
+		{
+			if (!networker.IsBound)
+			{
+				Debug.LogError(&quot;NetWorker failed to bind&quot;);
+				return;
+			}
+
+			if (networkManager == null)
+			{
+				Debug.LogWarning(&quot;A network manager was not provided, generating a new one instead&quot;);
+				GameObject obj = new GameObject(&quot;Network Manager&quot;);
+				obj.AddComponent&lt;NetworkManager&gt;().Initialize(networker);
+			}
+			else
+				Instantiate(networkManager).GetComponent&lt;NetworkManager&gt;().Initialize(networker);
+
+			SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[11,3,11,48,0],[12,3,12,39,0],[13,3,13,36,0],[14,3,14,74,0],[16,3,16,35,0],[17,3,17,34,0],[18,3,18,34,0],[20,3,20,35,0],[21,3,21,41,0],[22,3,22,43,0],[23,3,23,27,0],[26,3,26,4,0],[27,4,27,31,0],[28,3,28,4,0],[31,3,31,4,0],[32,4,32,14,0],[33,3,33,4,0],[36,3,36,4,0],[37,4,38,4,0],[38,4,38,5,0],[38,5,39,5,0],[39,5,39,44,0],[39,44,40,5,0],[40,5,40,41,0],[40,41,41,5,0],[41,5,41,64,0],[41,64,42,5,0],[42,5,42,29,0],[42,29,43,6,0],[43,6,43,42,0],[43,42,44,4,0],[44,4,44,5,0],[44,5,44,7,0],[37,4,44,7,0],[45,3,45,4,0],[48,3,48,4,0],[50,9,50,39,0],[50,41,50,47,0],[50,49,50,52,0],[51,5,51,45,0],[54,4,54,35,0],[57,4,58,4,0],[58,4,58,5,0],[58,5,60,5,0],[60,5,60,6,0],[60,6,62,6,0],[62,6,62,47,0],[62,47,63,6,0],[63,6,63,42,0],[63,42,64,6,0],[64,6,64,32,0],[64,32,65,6,0],[65,6,65,36,0],[65,36,66,6,0],[66,6,66,36,0],[66,36,68,6,0],[68,6,68,35,0],[68,35,71,6,0],[71,6,71,155,0],[71,155,72,5,0],[72,5,72,6,0],[72,6,73,5,0],[73,5,73,10,0],[73,10,74,5,0],[74,5,74,6,0],[74,6,76,6,0],[76,6,76,30,0],[76,30,77,6,0],[77,6,77,20,0],[77,20,78,5,0],[78,5,78,6,0],[78,6,79,4,0],[79,4,79,5,0],[79,5,79,6,0],[57,4,79,6,0],[82,4,83,4,0],[83,4,83,5,0],[83,5,85,5,0],[85,5,85,6,0],[85,6,87,6,0],[87,6,87,55,0],[87,55,88,6,0],[88,6,88,32,0],[88,32,89,6,0],[89,6,89,7,0],[89,7,90,7,0],[90,7,90,87,0],[90,87,92,7,0],[92,7,92,65,0],[92,65,93,7,0],[93,7,93,8,0],[93,8,95,8,0],[95,8,95,15,0],[95,15,95,17,0],[95,17,95,51,0],[95,51,95,52,0],[95,52,95,54,0],[95,54,95,55,0],[95,55,95,78,0],[95,78,96,8,0],[96,8,96,9,0],[96,9,97,9,0],[97,9,97,43,0],[97,43,98,9,0],[98,9,98,41,0],[98,41,99,9,0],[99,9,99,35,0],[99,35,100,9,0],[100,9,100,35,0],[100,35,103,9,0],[103,9,104,9,0],[104,9,104,10,0],[104,10,106,10,0],[106,10,106,34,0],[106,34,108,10,0],[108,10,108,32,0],[108,32,109,10,0],[109,10,109,11,0],[109,11,110,11,0],[110,11,110,36,0],[110,36,111,11,0],[111,11,111,84,0],[111,84,112,10,0],[112,10,112,11,0],[112,11,113,15,0],[113,15,113,37,0],[113,37,114,10,0],[114,10,114,11,0],[114,11,115,11,0],[115,11,115,36,0],[115,36,116,11,0],[116,11,116,54,0],[116,54,117,10,0],[117,10,117,11,0],[117,11,119,15,0],[119,15,119,37,0],[119,37,120,10,0],[120,10,120,11,0],[120,11,121,11,0],[121,11,121,46,0],[121,46,122,11,0],[122,11,122,64,0],[122,64,123,10,0],[123,10,123,11,0],[123,11,125,10,0],[125,10,125,29,0],[125,29,126,11,0],[126,11,126,90,0],[126,90,128,10,0],[128,10,128,28,0],[128,28,129,9,0],[129,9,129,10,0],[129,10,129,12,0],[103,9,129,12,0],[129,12,130,8,0],[130,8,130,9,0],[130,9,131,7,0],[131,7,131,8,0],[131,8,132,6,0],[132,6,132,7,0],[132,7,133,5,0],[133,5,133,6,0],[133,6,135,5,0],[135,5,135,6,0],[135,6,136,6,0],[136,6,136,25,0],[136,25,137,6,0],[137,6,137,7,0],[137,7,139,7,0],[139,7,139,31,0],[139,31,140,7,0],[140,7,140,21,0],[140,21,141,6,0],[141,6,141,7,0],[141,7,142,5,0],[142,5,142,6,0],[142,6,143,4,0],[143,4,143,5,0],[143,5,143,6,0],[82,4,143,6,0],[145,4,145,63,0],[146,3,146,4,0],[149,3,149,4,0],[150,4,150,27,0],[151,4,151,5,0],[152,5,152,48,0],[153,5,153,12,0],[156,4,156,31,0],[157,4,157,5,0],[158,5,158,90,0],[159,5,159,56,0],[160,5,160,62,0],[161,4,161,5,0],[163,5,163,86,0],[165,4,165,73,0],[166,3,166,4,0]]);
+    </script>
+  </body>
+</html>

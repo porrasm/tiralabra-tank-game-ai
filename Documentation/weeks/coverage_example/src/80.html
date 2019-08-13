@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\ui\backgroundflaker.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class BackgroundFlaker : MonoBehaviour {
+
+    [SerializeField]
+    private float time;
+    private float timePassed;
+
+    private float width;
+    private float height;
+
+
+    private GameObject flakePrefab;
+
+    // Use this for initialization
+    private void Start() {
+
+        Vector3[] corners = new Vector3[4];
+        GetComponent&lt;RectTransform&gt;().GetLocalCorners(corners);
+
+        width = Vector3.Distance(corners[0], corners[3]);
+        height = Vector3.Distance(corners[0], corners[1]);
+
+        print(&quot;W: &quot; + width);
+        print(&quot;H: &quot; + height);
+
+        if (time == 0) {
+            time = 1;
+        }
+        flakePrefab = Resources.Load&lt;GameObject&gt;(&quot;ResourcePrefabs/BackgroundFlake&quot;);
+    }
+
+    // Update is called once per frame
+    private void Update() {
+        UpdateTimes();
+    }
+
+    private void UpdateTimes() {
+        timePassed += Time.deltaTime;
+
+        while (timePassed &gt;= time) {
+            timePassed -= time;
+            SpawnFlake();
+        }
+    }
+    private void SpawnFlake() {
+        GameObject newFlake = Instantiate(flakePrefab);
+        newFlake.GetComponent&lt;RectTransform&gt;().localPosition = new Vector3(Random.value * width, height + 50);
+        print(newFlake.GetComponent&lt;RectTransform&gt;().localPosition);
+        newFlake.GetComponent&lt;RectTransform&gt;().SetParent(transform);
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,26,18,27,0],[20,9,20,44,0],[21,9,21,64,0],[23,9,23,58,0],[24,9,24,59,0],[26,9,26,30,0],[27,9,27,31,0],[29,9,29,23,0],[29,24,29,25,0],[30,13,30,22,0],[31,9,31,10,0],[32,9,32,85,0],[33,5,33,6,0],[36,27,36,28,0],[37,9,37,23,0],[38,5,38,6,0],[40,32,40,33,0],[41,9,41,38,0],[43,9,43,35,0],[43,36,43,37,0],[44,13,44,32,0],[45,13,45,26,0],[46,9,46,10,0],[47,5,47,6,0],[48,31,48,32,0],[49,9,49,56,0],[50,9,50,111,0],[51,9,51,69,0],[52,9,52,69,0],[53,5,53,6,0]]);
+    </script>
+  </body>
+</html>

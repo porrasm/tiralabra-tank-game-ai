@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networkmanager.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using BeardedManStudios.Forge.Networking.Frame;
+using BeardedManStudios.Forge.Networking.Generated;
+using BeardedManStudios.SimpleJSON;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
+
+namespace BeardedManStudios.Forge.Networking.Unity
+{
+	public partial class NetworkManager : MonoBehaviour
+	{
+		public static NetworkManager Instance { get; private set; }
+
+		public UnityAction&lt;int, LoadSceneMode&gt; networkSceneChanging;
+		public UnityAction&lt;Scene, LoadSceneMode&gt; networkSceneLoaded;
+		public event NetWorker.PlayerEvent playerLoadedScene;
+
+		public NetWorker Networker { get; protected set; }
+		public NetWorker MasterServerNetworker { get; protected set; }
+		public Dictionary&lt;int, INetworkBehavior&gt; pendingObjects = new Dictionary&lt;int, INetworkBehavior&gt;();
+		public Dictionary&lt;int, NetworkObject&gt; pendingNetworkObjects = new Dictionary&lt;int, NetworkObject&gt;();
+		protected string _masterServerHost;
+		protected ushort _masterServerPort;
+
+		protected List&lt;int&gt; loadedScenes = new List&lt;int&gt;();
+        protected List&lt;int&gt; loadingScenes = new List&lt;int&gt;();
+
+		public bool IsServer { get { return Networker.IsServer; } }
+
+		/// &lt;summary&gt;
+		/// Used to enable or disable the automatic switching for clients
+		/// &lt;/summary&gt;
+		public bool automaticScenes = true;
+
+		/// &lt;summary&gt;
+		/// Internal flag to indicate that the Initialize method has been called.
+		/// &lt;/summary&gt;
+		protected bool initialized;
+
+#if FN_WEBSERVER
+		MVCWebServer.ForgeWebServer webserver = null;
+#endif
+
+		protected virtual void Awake()
+		{
+			if (Instance != null)
+			{
+				Destroy(gameObject);
+				return;
+			}
+
+			Instance = this;
+			MainThreadManager.Create();
+
+			// This object should move through scenes
+			DontDestroyOnLoad(gameObject);
+		}
+
+		protected virtual void OnEnable()
+		{
+			if (automaticScenes)
+				SceneManager.sceneLoaded += SceneReady;
+		}
+
+		protected virtual void OnDisable()
+		{
+			if (automaticScenes)
+				SceneManager.sceneLoaded -= SceneReady;
+		}
+
+		public virtual void Initialize(NetWorker networker, string masterServerHost = &quot;&quot;, ushort masterServerPort = 15940, JSONNode masterServerRegisterData = null)
+		{
+			Networker = networker;
+			networker.objectCreated += CreatePendingObjects;
+			Networker.binaryMessageReceived += ReadBinary;
+			SetupObjectCreatedEvent();
+
+			UnityObjectMapper.Instance.UseAsDefault();
+			NetworkObject.Factory = new NetworkObjectFactory();
+
+			if (Networker is IServer)
+			{
+				if (!string.IsNullOrEmpty(masterServerHost))
+				{
+					_masterServerHost = masterServerHost;
+					_masterServerPort = masterServerPort;
+
+					RegisterOnMasterServer(masterServerRegisterData);
+				}
+
+				Networker.playerAccepted += PlayerAcceptedSceneSetup;
+
+#if FN_WEBSERVER
+				string pathToFiles = &quot;fnwww/html&quot;;
+				Dictionary&lt;string, string&gt; pages = new Dictionary&lt;string, string&gt;();
+				TextAsset[] assets = Resources.LoadAll&lt;TextAsset&gt;(pathToFiles);
+				foreach (TextAsset a in assets)
+					pages.Add(a.name, a.text);
+
+				webserver = new MVCWebServer.ForgeWebServer(networker, pages);
+				webserver.Start();
+#endif
+			}
+
+			initialized = true;
+		}
+
+		protected virtual void CreatePendingObjects(NetworkObject obj)
+		{
+			INetworkBehavior behavior;
+
+			if (!pendingObjects.TryGetValue(obj.CreateCode, out behavior))
+			{
+				if (obj.CreateCode &lt; 0)
+					pendingNetworkObjects.Add(obj.CreateCode, obj);
+
+				return;
+			}
+
+			behavior.Initialize(obj);
+			pendingObjects.Remove(obj.CreateCode);
+
+			if (pendingObjects.Count == 0 &amp;&amp; loadingScenes.Count == 0)
+				Networker.objectCreated -= CreatePendingObjects;
+		}
+
+		public virtual void MatchmakingServersFromMasterServer(string masterServerHost,
+			ushort masterServerPort,
+			int elo,
+			System.Action&lt;MasterServerResponse&gt; callback = null,
+			string gameId = &quot;myGame&quot;,
+			string gameType = &quot;any&quot;,
+			string gameMode = &quot;all&quot;)
+		{
+			// The Master Server communicates over TCP
+			TCPMasterClient client = new TCPMasterClient();
+
+			// Once this client has been accepted by the master server it should send it&#39;s get request
+			client.serverAccepted += (sender) =&gt;
+			{
+				try
+				{
+					// Create the get request with the desired filters
+					JSONNode sendData = JSONNode.Parse(&quot;{}&quot;);
+					JSONClass getData = new JSONClass();
+					getData.Add(&quot;id&quot;, gameId);
+					getData.Add(&quot;type&quot;, gameType);
+					getData.Add(&quot;mode&quot;, gameMode);
+					getData.Add(&quot;elo&quot;, new JSONData(elo));
+
+					sendData.Add(&quot;get&quot;, getData);
+
+					// Send the request to the server
+					client.Send(Text.CreateFromString(client.Time.Timestep, sendData.ToString(), true, Receivers.Server, MessageGroupIds.MASTER_SERVER_GET, true));
+				}
+				catch
+				{
+					// If anything fails, then this client needs to be disconnected
+					client.Disconnect(true);
+					client = null;
+
+					MainThreadManager.Run(() =&gt;
+					{
+						if (callback != null)
+							callback(null);
+					});
+				}
+			};
+
+			// An event that is raised when the server responds with hosts
+			client.textMessageReceived += (player, frame, sender) =&gt;
+			{
+				try
+				{
+					// Get the list of hosts to iterate through from the frame payload
+					JSONNode data = JSONNode.Parse(frame.ToString());
+					MainThreadManager.Run(() =&gt;
+					{
+						if (data[&quot;hosts&quot;] != null)
+						{
+							MasterServerResponse response = new MasterServerResponse(data[&quot;hosts&quot;].AsArray);
+							if (callback != null)
+								callback(response);
+						}
+						else
+						{
+							if (callback != null)
+								callback(null);
+						}
+					});
+				}
+				finally
+				{
+					if (client != null)
+					{
+						// If we succeed or fail the client needs to disconnect from the Master Server
+						client.Disconnect(true);
+						client = null;
+					}
+				}
+			};
+
+			try
+			{
+				client.Connect(masterServerHost, masterServerPort);
+			}
+			catch (System.Exception ex)
+			{
+				Debug.LogError(ex.Message);
+				MainThreadManager.Run(() =&gt;
+				{
+					if (callback != null)
+						callback(null);
+				});
+			}
+		}
+
+		public virtual JSONNode MasterServerRegisterData(NetWorker server, string id, string serverName, string type, string mode, string comment = &quot;&quot;, bool useElo = false, int eloRequired = 0)
+		{
+			// Create the get request with the desired filters
+			JSONNode sendData = JSONNode.Parse(&quot;{}&quot;);
+			JSONClass registerData = new JSONClass();
+			registerData.Add(&quot;id&quot;, id);
+			registerData.Add(&quot;name&quot;, serverName);
+			registerData.Add(&quot;port&quot;, new JSONData(server.Port));
+			registerData.Add(&quot;playerCount&quot;, new JSONData(server.Players.Count));
+			registerData.Add(&quot;maxPlayers&quot;, new JSONData(server.MaxConnections));
+			registerData.Add(&quot;comment&quot;, comment);
+			registerData.Add(&quot;type&quot;, type);
+			registerData.Add(&quot;mode&quot;, mode);
+			registerData.Add(&quot;protocol&quot;, server is UDPServer ? &quot;udp&quot; : &quot;tcp&quot;);
+			registerData.Add(&quot;elo&quot;, new JSONData(eloRequired));
+			registerData.Add(&quot;useElo&quot;, new JSONData(useElo));
+			sendData.Add(&quot;register&quot;, registerData);
+
+			return sendData;
+		}
+
+		protected virtual void RegisterOnMasterServer(JSONNode masterServerData)
+		{
+			// The Master Server communicates over TCP
+			TCPMasterClient client = new TCPMasterClient();
+
+			// Once this client has been accepted by the master server it should send it&#39;s get request
+			client.serverAccepted += (sender) =&gt;
+			{
+				try
+				{
+					Text temp = Text.CreateFromString(client.Time.Timestep, masterServerData.ToString(), true, Receivers.Server, MessageGroupIds.MASTER_SERVER_REGISTER, true);
+
+					//Debug.Log(temp.GetData().Length);
+					// Send the request to the server
+					client.Send(temp);
+
+					Networker.disconnected += s =&gt;
+					{
+						client.Disconnect(false);
+						MasterServerNetworker = null;
+					};
+				}
+				catch
+				{
+					// If anything fails, then this client needs to be disconnected
+					client.Disconnect(true);
+					client = null;
+				}
+			};
+
+			client.Connect(_masterServerHost, _masterServerPort);
+
+			Networker.disconnected += NetworkerDisconnected;
+			MasterServerNetworker = client;
+		}
+
+		protected virtual void NetworkerDisconnected(NetWorker sender)
+		{
+			Networker.disconnected -= NetworkerDisconnected;
+			MasterServerNetworker.Disconnect(false);
+			MasterServerNetworker = null;
+		}
+
+		public virtual void UpdateMasterServerListing(NetWorker server, string comment = null, string gameType = null, string mode = null)
+		{
+			JSONNode sendData = JSONNode.Parse(&quot;{}&quot;);
+			JSONClass registerData = new JSONClass();
+
+			registerData.Add(&quot;playerCount&quot;, new JSONData(server.Players.Count));
+			if (comment != null) registerData.Add(&quot;comment&quot;, comment);
+			if (gameType != null) registerData.Add(&quot;type&quot;, gameType);
+			if (mode != null) registerData.Add(&quot;mode&quot;, mode);
+			registerData.Add(&quot;port&quot;, new JSONData(server.Port));
+
+			sendData.Add(&quot;update&quot;, registerData);
+
+			UpdateMasterServerListing(sendData);
+		}
+
+		protected virtual void UpdateMasterServerListing(JSONNode masterServerData)
+		{
+			if (string.IsNullOrEmpty(_masterServerHost))
+			{
+				throw new System.Exception(&quot;This server is not registered on a master server, please ensure that you are passing a master server host and port into the initialize&quot;);
+			}
+
+			if (MasterServerNetworker == null)
+			{
+				throw new System.Exception(&quot;Connection to master server is closed. Make sure to be connected to master server before update trial&quot;);
+			}
+
+			// The Master Server communicates over TCP
+			TCPMasterClient client = new TCPMasterClient();
+
+			// Once this client has been accepted by the master server it should send it&#39;s update request
+			client.serverAccepted += (sender) =&gt;
+			{
+				try
+				{
+					Text temp = Text.CreateFromString(client.Time.Timestep, masterServerData.ToString(), true, Receivers.Server, MessageGroupIds.MASTER_SERVER_UPDATE, true);
+
+					// Send the request to the server
+					client.Send(temp);
+				}
+				finally
+				{
+					// If anything fails, then this client needs to be disconnected
+					client.Disconnect(true);
+					client = null;
+				}
+			};
+
+			client.Connect(_masterServerHost, _masterServerPort);
+		}
+
+		public virtual void Disconnect()
+		{
+#if FN_WEBSERVER
+			webserver.Stop();
+#endif
+
+			Networker.objectCreated -= CreatePendingObjects;
+
+			if (Networker != null)
+				Networker.Disconnect(false);
+
+			NetWorker.EndSession();
+
+			NetworkObject.ClearNetworkObjects(Networker);
+			pendingObjects.Clear();
+			pendingNetworkObjects.Clear();
+			MasterServerNetworker = null;
+			Networker = null;
+			Instance = null;
+			Destroy(gameObject);
+		}
+
+		protected virtual void OnApplicationQuit()
+		{
+			if (Networker != null)
+				Networker.Disconnect(false);
+
+			NetWorker.EndSession();
+		}
+
+		protected virtual void Update()
+		{
+			if (Networker != null)
+			{
+				for (int i = 0; i &lt; Networker.NetworkObjectList.Count; i++)
+					Networker.NetworkObjectList[i].InterpolateUpdate();
+			}
+		}
+
+		protected virtual void ProcessOthers(Transform obj, NetworkObject createTarget, ref uint idOffset, NetworkBehavior netBehavior = null)
+		{
+			int i;
+
+			// Get the order of the components as they are in the inspector
+			var components = obj.GetComponents&lt;NetworkBehavior&gt;();
+
+			// Create each network object that is available
+			for (i = 0; i &lt; components.Length; i++)
+			{
+				if (components[i] == netBehavior)
+					continue;
+
+				var no = components[i].CreateNetworkObject(Networker, 0);
+
+				if (Networker.IsServer)
+					FinalizeInitialization(obj.gameObject, components[i], no, obj.position, obj.rotation, false, true);
+				else
+					components[i].AwaitNetworkBind(Networker, createTarget, idOffset++);
+			}
+
+			for (i = 0; i &lt; obj.transform.childCount; i++)
+				ProcessOthers(obj.transform.GetChild(i), createTarget, ref idOffset);
+		}
+
+		protected virtual void FinalizeInitialization(GameObject go, INetworkBehavior netBehavior, NetworkObject obj, Vector3? position = null, Quaternion? rotation = null, bool sendTransform = true, bool skipOthers = false)
+		{
+			if (Networker is IServer)
+				InitializedObject(netBehavior, obj);
+			else
+				obj.pendingInitialized += InitializedObject;
+
+			if (position != null)
+			{
+				if (rotation != null)
+				{
+					go.transform.position = position.Value;
+					go.transform.rotation = rotation.Value;
+				}
+				else
+					go.transform.position = position.Value;
+			}
+
+			//if (sendTransform)
+			// obj.SendRpc(NetworkBehavior.RPC_SETUP_TRANSFORM, Receivers.AllBuffered, go.transform.position, go.transform.rotation);
+
+			if (!skipOthers)
+			{
+				// Go through all associated network behaviors in the hierarchy (including self) and
+				// Assign their TempAttachCode for lookup later. Should use an incrementor or something
+				uint idOffset = 1;
+				ProcessOthers(go.transform, obj, ref idOffset, (NetworkBehavior)netBehavior);
+			}
+		}
+
+		/// &lt;summary&gt;
+		/// Called automatically when a new player is accepted and sends the player
+		/// the currently loaded scene indexes for the client to load
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;player&quot;&gt;The player that was just accepted&lt;/param&gt;
+		/// &lt;param name=&quot;sender&quot;&gt;The sending &lt;see cref=&quot;NetWorker&quot;/&gt;&lt;/param&gt;
+		protected virtual void PlayerAcceptedSceneSetup(NetworkingPlayer player, NetWorker sender)
+		{
+			BMSByte data = ObjectMapper.BMSByte(loadedScenes.Count);
+
+			// Go through all the loaded scene indexes and send them to the connecting player
+			for (int i = 0; i &lt; loadedScenes.Count; i++)
+				ObjectMapper.Instance.MapBytes(data, loadedScenes[i]);
+
+			Binary frame = new Binary(sender.Time.Timestep, false, data, Receivers.Target, MessageGroupIds.VIEW_INITIALIZE, sender is BaseTCP);
+
+			SendFrame(sender, frame, player);
+		}
+
+		protected virtual void ReadBinary(NetworkingPlayer player, Binary frame, NetWorker sender)
+		{
+			if (frame.GroupId == MessageGroupIds.VIEW_INITIALIZE)
+			{
+				if (Networker is IServer)
+					return;
+
+				int count = frame.StreamData.GetBasicType&lt;int&gt;();
+
+                loadingScenes.Clear();
+				for (int i = 0; i &lt; count; i++)
+                    loadingScenes.Add(frame.StreamData.GetBasicType&lt;int&gt;());
+
+                int[] scenesToLoad = loadingScenes.ToArray();
+				MainThreadManager.Run(() =&gt;
+				{
+					if (scenesToLoad.Length == 0)
+						return;
+
+					SceneManager.LoadScene(scenesToLoad[0], LoadSceneMode.Single);
+
+					for (int i = 1; i &lt; scenesToLoad.Length; i++)
+						SceneManager.LoadSceneAsync(scenesToLoad[i], LoadSceneMode.Additive);
+				});
+
+				return;
+			}
+
+			if (frame.GroupId != MessageGroupIds.VIEW_CHANGE)
+				return;
+
+			if (Networker.IsServer)
+			{
+				// The client has loaded the scene
+				if (playerLoadedScene != null)
+					playerLoadedScene(player, Networker);
+
+				return;
+			}
+
+            int sceneIndex;
+            LoadSceneMode mode;
+            lock (NetworkObject.PendingCreatesLock)
+            {
+                // We need to halt the creation of network objects until we load the scene
+                Networker.PendCreates = true;
+
+                // Get the scene index that the server loaded
+                sceneIndex = frame.StreamData.GetBasicType&lt;int&gt;();
+
+                // Get the mode in which the server loaded the scene
+                int modeIndex = frame.StreamData.GetBasicType&lt;int&gt;();
+
+                // Convert the int mode to the enum mode
+                mode = (LoadSceneMode)modeIndex;
+
+                if (mode == LoadSceneMode.Single)
+                    loadingScenes.Clear();
+
+                loadingScenes.Add(sceneIndex);
+            }
+
+			if (networkSceneChanging != null)
+				networkSceneChanging(sceneIndex, mode);
+
+			MainThreadManager.Run(() =&gt;
+			{
+				// Load the scene that the server loaded in the same LoadSceneMode
+				if (mode == LoadSceneMode.Additive)
+					SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive);
+				else if (mode == LoadSceneMode.Single)
+					SceneManager.LoadScene(sceneIndex, LoadSceneMode.Single);
+			});
+		}
+
+		/// &lt;summary&gt;
+		/// A wrapper around the various raw send methods for the client and server types
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;networker&quot;&gt;The networker that is going to be sending the data&lt;/param&gt;
+		/// &lt;param name=&quot;frame&quot;&gt;The frame that is to be sent across the network&lt;/param&gt;
+		/// &lt;param name=&quot;targetPlayer&quot;&gt;The player to send the frame to, if null then will send to all&lt;/param&gt;
+		public static void SendFrame(NetWorker networker, FrameStream frame, NetworkingPlayer targetPlayer = null)
+		{
+			if (networker is IServer)
+			{
+				if (targetPlayer != null)
+				{
+					if (networker is TCPServer)
+						((TCPServer)networker).SendToPlayer(frame, targetPlayer);
+#if STEAMWORKS
+					else if (networker is SteamP2PServer)
+						((SteamP2PServer)networker).Send(targetPlayer, frame, true);
+#endif
+					else
+						((UDPServer)networker).Send(targetPlayer, frame, true);
+				}
+				else
+				{
+					if (networker is TCPServer)
+						((TCPServer)networker).SendAll(frame);
+#if STEAMWORKS
+					else if (networker is SteamP2PServer)
+						((SteamP2PServer)networker).Send(frame, true);
+#endif
+					else
+						((UDPServer)networker).Send(frame, true);
+				}
+			}
+			else
+			{
+				if (networker is TCPClientBase)
+					((TCPClientBase)networker).Send(frame);
+#if STEAMWORKS
+				else if (networker is SteamP2PClient)
+					((SteamP2PClient)networker).Send(frame, true);
+#endif
+				else
+					((UDPClient)networker).Send(frame, true);
+			}
+		}
+
+		public virtual void SceneReady(Scene scene, LoadSceneMode mode)
+		{
+			// The NetworkManager has not yet been initialized with a Networker.
+			if (!initialized)
+				return;
+
+			// If we are loading a completely new scene then we will need
+			// to clear out all the old objects that were stored as they
+			// are no longer needed
+			if (mode != LoadSceneMode.Additive)
+			{
+				pendingObjects.Clear();
+				pendingNetworkObjects.Clear();
+				loadedScenes.Clear();
+			}
+            lock(NetworkObject.PendingCreatesLock)
+            {
+                loadingScenes.Remove(scene.buildIndex);
+            }
+			loadedScenes.Add(scene.buildIndex);
+
+
+			if (networkSceneLoaded != null)
+				networkSceneLoaded(scene, mode);
+
+			BMSByte data = ObjectMapper.BMSByte(scene.buildIndex, (int)mode);
+
+			Binary frame = new Binary(Networker.Time.Timestep, false, data, Networker is IServer ? Receivers.All : Receivers.Server, MessageGroupIds.VIEW_CHANGE, Networker is BaseTCP);
+
+			// Send the binary frame to either the server or the clients
+			SendFrame(Networker, frame);
+
+			// Go through all of the current NetworkBehaviors in the order that Unity finds them in
+			// and associate them with the id that the network will be giving them as a lookup
+			int currentAttachCode = 1;
+			var behaviors = FindObjectsOfType&lt;NetworkBehavior&gt;().Where(b =&gt; !b.Initialized)
+				.OrderBy(b =&gt; b.GetType().ToString())
+				.OrderBy(b =&gt; b.name)
+				.OrderBy(b =&gt; Vector3.Distance(Vector3.zero, b.transform.position))
+				.ToList();
+
+			if (behaviors.Count == 0)
+			{
+                if (Networker is IClient)
+                {
+                    if (loadingScenes.Count &gt; 0)
+                        NetworkObject.Flush(Networker, loadingScenes, CreatePendingObjects);
+                    else
+                    {
+                        NetworkObject.Flush(Networker, loadingScenes);
+                        if(pendingObjects.Count == 0)
+                            Networker.objectCreated -= CreatePendingObjects;
+                    }
+                }
+                    
+
+				return;
+			}
+
+			foreach (NetworkBehavior behavior in behaviors)
+			{
+				behavior.TempAttachCode = scene.buildIndex &lt;&lt; 16;
+				behavior.TempAttachCode += currentAttachCode++;
+				behavior.TempAttachCode = -behavior.TempAttachCode;
+			}
+
+			if (Networker is IClient)
+			{
+                // This would occur if objects in the additive scene arrives at the same time as the
+                // &quot;single&quot; scene and were flushed.
+                if (mode == LoadSceneMode.Additive &amp;&amp; pendingNetworkObjects.Count &gt; 0)
+                {
+                    NetworkObject foundNetworkObject;
+                    for (int i = 0; i &lt; behaviors.Count; i++)
+                    {
+                        if (pendingNetworkObjects.TryGetValue(behaviors[i].TempAttachCode, out foundNetworkObject))
+                        {
+                            behaviors[i].Initialize(foundNetworkObject);
+                            pendingNetworkObjects.Remove(behaviors[i].TempAttachCode);
+                            behaviors.RemoveAt(i--);
+                        }
+                    }
+                }
+
+                foreach (NetworkBehavior behavior in behaviors)
+                    pendingObjects.Add(behavior.TempAttachCode, behavior);
+
+                NetworkObject.Flush(Networker, loadingScenes, CreatePendingObjects);
+
+                if (pendingObjects.Count == 0 &amp;&amp; loadingScenes.Count == 0)
+                    Networker.objectCreated -= CreatePendingObjects;
+
+            } else
+			{
+				// Go through all of the pending NetworkBehavior objects and initialize them on the network
+				foreach (INetworkBehavior behavior in behaviors)
+					behavior.Initialize(Networker);
+
+			}
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[14,43,14,47,0],[14,48,14,60,0],[20,32,20,36,0],[20,37,20,51,0],[21,44,21,48,0],[21,49,21,63,0],[22,3,22,101,0],[23,3,23,102,0],[27,3,27,54,0],[28,9,28,61,0],[30,30,30,31,0],[30,32,30,58,0],[30,59,30,60,0],[35,3,35,38,0],[47,3,47,4,0],[48,4,48,25,0],[49,4,49,5,0],[50,5,50,25,0],[51,5,51,12,0],[54,4,54,20,0],[55,4,55,31,0],[58,4,58,34,0],[59,3,59,4,0],[62,3,62,4,0],[63,4,63,24,0],[64,5,64,44,0],[65,3,65,4,0],[68,3,68,4,0],[69,4,69,24,0],[70,5,70,44,0],[71,3,71,4,0],[74,3,74,4,0],[75,4,75,26,0],[76,4,76,52,0],[77,4,77,50,0],[78,4,78,30,0],[80,4,80,46,0],[81,4,81,55,0],[83,4,83,29,0],[84,4,84,5,0],[85,5,85,49,0],[86,5,86,6,0],[87,6,87,43,0],[88,6,88,43,0],[90,6,90,55,0],[91,5,91,6,0],[93,5,93,58,0],[105,4,105,5,0],[107,4,107,23,0],[108,3,108,4,0],[111,3,111,4,0],[114,4,114,66,0],[115,4,115,5,0],[116,5,116,28,0],[117,6,117,53,0],[119,5,119,12,0],[122,4,122,29,0],[123,4,123,42,0],[125,4,125,62,0],[126,5,126,53,0],[127,3,127,4,0],[136,3,136,4,0],[138,4,138,51,0],[141,4,142,4,0],[142,4,142,5,0],[142,5,144,5,0],[144,5,144,6,0],[144,6,146,6,0],[146,6,146,47,0],[146,47,147,6,0],[147,6,147,42,0],[147,42,148,6,0],[148,6,148,32,0],[148,32,149,6,0],[149,6,149,36,0],[149,36,150,6,0],[150,6,150,36,0],[150,36,151,6,0],[151,6,151,44,0],[151,44,153,6,0],[153,6,153,35,0],[153,35,156,6,0],[156,6,156,149,0],[156,149,157,5,0],[157,5,157,6,0],[157,6,158,5,0],[158,5,158,10,0],[158,10,159,5,0],[159,5,159,6,0],[159,6,161,6,0],[161,6,161,30,0],[161,30,162,6,0],[162,6,162,20,0],[162,20,164,6,0],[164,6,165,6,0],[165,6,165,7,0],[165,7,166,7,0],[166,7,166,28,0],[166,28,167,8,0],[167,8,167,23,0],[167,23,168,6,0],[168,6,168,7,0],[168,7,168,9,0],[164,6,168,9,0],[168,9,169,5,0],[169,5,169,6,0],[169,6,170,4,0],[170,4,170,5,0],[170,5,170,6,0],[141,4,170,6,0],[173,4,174,4,0],[174,4,174,5,0],[174,5,176,5,0],[176,5,176,6,0],[176,6,178,6,0],[178,6,178,55,0],[178,55,179,6,0],[179,6,180,6,0],[180,6,180,7,0],[180,7,181,7,0],[181,7,181,33,0],[181,33,182,7,0],[182,7,182,8,0],[182,8,183,8,0],[183,8,183,88,0],[183,88,184,8,0],[184,8,184,29,0],[184,29,185,9,0],[185,9,185,28,0],[185,28,186,7,0],[186,7,186,8,0],[186,8,188,7,0],[188,7,188,8,0],[188,8,189,8,0],[189,8,189,29,0],[189,29,190,9,0],[190,9,190,24,0],[190,24,191,7,0],[191,7,191,8,0],[191,8,192,6,0],[192,6,192,7,0],[192,7,192,9,0],[179,6,192,9,0],[192,9,193,5,0],[193,5,193,6,0],[193,6,195,5,0],[195,5,195,6,0],[195,6,196,6,0],[196,6,196,25,0],[196,25,197,6,0],[197,6,197,7,0],[197,7,199,7,0],[199,7,199,31,0],[199,31,200,7,0],[200,7,200,21,0],[200,21,201,6,0],[201,6,201,7,0],[201,7,202,5,0],[202,5,202,6,0],[202,6,203,4,0],[203,4,203,5,0],[203,5,203,6,0],[173,4,203,6,0],[206,4,206,5,0],[207,5,207,56,0],[208,4,208,5,0],[209,4,209,31,0],[210,4,210,5,0],[211,5,211,32,0],[212,5,213,5,0],[213,5,213,6,0],[213,6,214,6,0],[214,6,214,27,0],[214,27,215,7,0],[215,7,215,22,0],[215,22,216,5,0],[216,5,216,6,0],[216,6,216,8,0],[212,5,216,8,0],[217,4,217,5,0],[218,3,218,4,0],[221,3,221,4,0],[223,4,223,45,0],[224,4,224,45,0],[225,4,225,31,0],[226,4,226,41,0],[227,4,227,56,0],[228,4,228,72,0],[229,4,229,72,0],[230,4,230,41,0],[231,4,231,35,0],[232,4,232,35,0],[233,4,233,70,0],[234,4,234,55,0],[235,4,235,53,0],[236,4,236,43,0],[238,4,238,20,0],[239,3,239,4,0],[242,3,242,4,0],[244,4,244,51,0],[247,4,248,4,0],[248,4,248,5,0],[248,5,250,5,0],[250,5,250,6,0],[250,6,251,6,0],[251,6,251,161,0],[251,161,255,6,0],[255,6,255,24,0],[255,24,257,6,0],[257,6,258,6,0],[258,6,258,7,0],[258,7,259,7,0],[259,7,259,32,0],[259,32,260,7,0],[260,7,260,36,0],[260,36,261,6,0],[261,6,261,7,0],[261,7,261,8,0],[257,6,261,8,0],[261,8,262,5,0],[262,5,262,6,0],[262,6,263,5,0],[263,5,263,10,0],[263,10,264,5,0],[264,5,264,6,0],[264,6,266,6,0],[266,6,266,30,0],[266,30,267,6,0],[267,6,267,20,0],[267,20,268,5,0],[268,5,268,6,0],[268,6,269,4,0],[269,4,269,5,0],[269,5,269,6,0],[247,4,269,6,0],[271,4,271,57,0],[273,4,273,52,0],[274,4,274,35,0],[275,3,275,4,0],[278,3,278,4,0],[279,4,279,52,0],[280,4,280,44,0],[281,4,281,33,0],[282,3,282,4,0],[285,3,285,4,0],[286,4,286,45,0],[287,4,287,45,0],[289,4,289,72,0],[290,4,290,24,0],[290,25,290,62,0],[291,4,291,25,0],[291,26,291,61,0],[292,4,292,21,0],[292,22,292,53,0],[293,4,293,56,0],[295,4,295,41,0],[297,4,297,40,0],[298,3,298,4,0],[301,3,301,4,0],[302,4,302,48,0],[303,4,303,5,0],[304,5,304,170,0],[307,4,307,38,0],[308,4,308,5,0],[309,5,309,137,0],[313,4,313,51,0],[316,4,317,4,0],[317,4,317,5,0],[317,5,319,5,0],[319,5,319,6,0],[319,6,320,6,0],[320,6,320,159,0],[320,159,323,6,0],[323,6,323,24,0],[323,24,324,5,0],[324,5,324,6,0],[324,6,326,5,0],[326,5,326,6,0],[326,6,328,6,0],[328,6,328,30,0],[328,30,329,6,0],[329,6,329,20,0],[329,20,330,5,0],[330,5,330,6,0],[330,6,331,4,0],[331,4,331,5,0],[331,5,331,6,0],[316,4,331,6,0],[333,4,333,57,0],[334,3,334,4,0],[337,3,337,4,0],[342,4,342,52,0],[344,4,344,26,0],[345,5,345,33,0],[347,4,347,27,0],[349,4,349,49,0],[350,4,350,27,0],[351,4,351,34,0],[352,4,352,33,0],[353,4,353,21,0],[354,4,354,20,0],[355,4,355,24,0],[356,3,356,4,0],[359,3,359,4,0],[360,4,360,26,0],[361,5,361,33,0],[363,4,363,27,0],[364,3,364,4,0],[367,3,367,4,0],[368,4,368,26,0],[369,4,369,5,0],[370,10,370,19,0],[370,21,370,58,0],[370,60,370,63,0],[371,6,371,57,0],[372,4,372,5,0],[373,3,373,4,0],[376,3,376,4,0],[380,4,380,58,0],[383,9,383,14,0],[383,16,383,37,0],[383,39,383,42,0],[384,4,384,5,0],[385,5,385,38,0],[386,6,386,15,0],[388,5,388,62,0],[390,5,390,28,0],[391,6,391,105,0],[393,6,393,74,0],[394,4,394,5,0],[396,9,396,14,0],[396,16,396,44,0],[396,46,396,49,0],[397,5,397,74,0],[398,3,398,4,0],[401,3,401,4,0],[402,4,402,29,0],[403,5,403,41,0],[405,5,405,49,0],[407,4,407,25,0],[408,4,408,5,0],[409,5,409,26,0],[410,5,410,6,0],[411,6,411,45,0],[412,6,412,45,0],[413,5,413,6,0],[415,6,415,45,0],[416,4,416,5,0],[421,4,421,20,0],[422,4,422,5,0],[425,5,425,23,0],[426,5,426,82,0],[427,4,427,5,0],[428,3,428,4,0],[437,3,437,4,0],[438,4,438,60,0],[441,9,441,18,0],[441,20,441,42,0],[441,44,441,47,0],[442,5,442,59,0],[444,4,444,135,0],[446,4,446,37,0],[447,3,447,4,0],[450,3,450,4,0],[451,4,451,57,0],[452,4,452,5,0],[453,5,453,30,0],[454,6,454,13,0],[456,5,456,54,0],[458,17,458,39,0],[459,10,459,19,0],[459,21,459,30,0],[459,32,459,35,0],[460,21,460,77,0],[462,17,462,62,0],[463,5,464,5,0],[464,5,464,6,0],[464,6,465,6,0],[465,6,465,35,0],[465,35,466,7,0],[466,7,466,14,0],[466,14,468,6,0],[468,6,468,68,0],[468,68,470,11,0],[470,11,470,20,0],[470,20,470,22,0],[470,22,470,45,0],[470,45,470,47,0],[470,47,470,50,0],[470,50,471,7,0],[471,7,471,76,0],[471,76,472,5,0],[472,5,472,6,0],[472,6,472,8,0],[463,5,472,8,0],[474,5,474,12,0],[477,4,477,53,0],[478,5,478,12,0],[480,4,480,27,0],[481,4,481,5,0],[483,5,483,35,0],[484,6,484,43,0],[486,5,486,12,0],[491,13,491,52,0],[492,13,492,14,0],[494,17,494,46,0],[497,17,497,67,0],[500,17,500,70,0],[503,17,503,49,0],[505,17,505,50,0],[506,21,506,43,0],[508,17,508,47,0],[509,13,509,14,0],[511,4,511,37,0],[512,5,512,44,0],[514,4,515,4,0],[515,4,515,5,0],[515,5,517,5,0],[517,5,517,40,0],[517,40,518,6,0],[518,6,518,70,0],[518,70,519,10,0],[519,10,519,43,0],[519,43,520,6,0],[520,6,520,63,0],[520,63,521,4,0],[521,4,521,5,0],[521,5,521,7,0],[514,4,521,7,0],[522,3,522,4,0],[531,3,531,4,0],[532,4,532,29,0],[533,4,533,5,0],[534,5,534,30,0],[535,5,535,6,0],[536,6,536,33,0],[537,7,537,64,0],[543,7,543,62,0],[544,5,544,6,0],[546,5,546,6,0],[547,6,547,33,0],[548,7,548,45,0],[554,7,554,48,0],[555,5,555,6,0],[556,4,556,5,0],[558,4,558,5,0],[559,5,559,36,0],[560,6,560,45,0],[566,6,566,47,0],[567,4,567,5,0],[568,3,568,4,0],[571,3,571,4,0],[573,4,573,21,0],[574,5,574,12,0],[579,4,579,39,0],[580,4,580,5,0],[581,5,581,28,0],[582,5,582,35,0],[583,5,583,26,0],[584,4,584,5,0],[585,13,585,51,0],[586,13,586,14,0],[587,17,587,56,0],[588,13,588,14,0],[589,4,589,39,0],[592,4,592,35,0],[593,5,593,37,0],[595,4,595,69,0],[597,4,597,176,0],[600,4,600,32,0],[604,4,604,30,0],[605,4,605,68,0],[605,68,605,82,0],[605,82,606,19,0],[606,19,606,41,0],[606,41,607,19,0],[607,19,607,25,0],[607,25,608,19,0],[608,19,608,71,0],[608,71,609,15,0],[605,4,609,15,0],[611,4,611,29,0],[612,4,612,5,0],[613,17,613,42,0],[614,17,614,18,0],[615,21,615,49,0],[616,25,616,93,0],[618,21,618,22,0],[619,25,619,71,0],[620,25,620,54,0],[621,29,621,77,0],[622,21,622,22,0],[623,17,623,18,0],[626,5,626,12,0],[629,4,629,11,0],[629,13,629,37,0],[629,38,629,40,0],[629,41,629,50,0],[630,4,630,5,0],[631,5,631,54,0],[632,5,632,52,0],[633,5,633,56,0],[634,4,634,5,0],[636,4,636,29,0],[637,4,637,5,0],[640,17,640,87,0],[641,17,641,18,0],[643,26,643,35,0],[643,37,643,56,0],[643,58,643,61,0],[644,21,644,22,0],[645,25,645,116,0],[646,25,646,26,0],[647,29,647,73,0],[648,29,648,87,0],[649,29,649,53,0],[650,25,650,26,0],[651,21,651,22,0],[652,17,652,18,0],[654,17,654,24,0],[654,26,654,50,0],[654,51,654,53,0],[654,54,654,63,0],[655,21,655,75,0],[657,17,657,85,0],[659,17,659,75,0],[660,21,660,69,0],[662,13,662,14,0],[663,4,663,5,0],[665,5,665,12,0],[665,14,665,39,0],[665,40,665,42,0],[665,43,665,52,0],[666,6,666,37,0],[668,4,668,5,0],[669,3,669,4,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\baseudp.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+using BeardedManStudios.Forge.Networking.Frame;
+using System;
+using System.Collections.Generic;
+
+namespace BeardedManStudios.Forge.Networking
+{
+	public abstract class BaseUDP : NetWorker
+	{
+		public delegate void PacketComplete(BMSByte data, int groupId, byte receivers, bool isReliable);
+		public delegate void MessageConfirmedEvent(NetworkingPlayer player, UDPPacket packet);
+
+		public event MessageConfirmedEvent messageConfirmed;
+
+		public CachedUdpClient Client { get; protected set; }
+
+		protected List&lt;UDPPacketComposer&gt; pendingComposers = new List&lt;UDPPacketComposer&gt;();
+
+		public BaseUDP() { }
+		public BaseUDP(int maxConnections) : base(maxConnections) { }
+
+		public abstract void Send(FrameStream frame, bool reliable = false);
+
+		/// &lt;summary&gt;
+		/// Used to clean up the target composer from memory
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;composer&quot;&gt;The composer that has completed&lt;/param&gt;
+		protected void ComposerCompleted(UDPPacketComposer composer)
+		{
+#if DEEP_LOGGING
+			Logging.BMSLog.Log($&quot;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; CONFIRMING: {composer.Frame.UniqueId}&quot;);
+#endif
+
+			lock (pendingComposers)
+			{
+				pendingComposers.Remove(composer);
+			}
+		}
+
+		private byte PullPacketMetadata(BMSByte packet)
+		{
+			byte meta = packet.GetBasicType&lt;byte&gt;(packet.Size - sizeof(byte));
+			packet.SetSize(packet.Size - sizeof(byte));
+			return meta;
+		}
+
+		private int PullPacketOrderId(BMSByte packet)
+		{
+			// This assumes that packet metadata was pulled first
+			int orderId = packet.GetBasicType&lt;int&gt;(packet.Size - sizeof(int));
+			packet.SetSize(packet.Size - sizeof(int));
+			return orderId;
+		}
+
+		private int PullPacketGroupId(BMSByte packet)
+		{
+			// This assumes that packet order id was pulled first
+			int groupId = packet.GetBasicType&lt;int&gt;(packet.Size - sizeof(int));
+			packet.SetSize(packet.Size - sizeof(int));
+			return groupId;
+		}
+
+		private ulong PullPacketUniqueId(BMSByte packet, bool endPacket)
+		{
+			// This assumes that packet group id was pulled first
+			ulong uniqueId = packet.GetBasicType&lt;ulong&gt;(packet.Size - sizeof(ulong));
+
+			// Don&#39;t set the size like in the others unless it is the end packet 
+			// because the frame will consume this time step The frame expects
+			// the last bytes in the message to be the time step
+			if (!endPacket)
+				packet.SetSize(packet.Size - sizeof(ulong));
+
+			return uniqueId;
+		}
+
+		protected UDPPacket TranscodePacket(NetworkingPlayer sender, BMSByte packet)
+		{
+			byte meta = PullPacketMetadata(packet);
+
+			// If the last byte says it is reliable
+			bool reliable = (0x1 &amp; meta) != 0;
+
+			// If the last byte says that it is the last packet for this group
+			bool endPacket = (0x2 &amp; meta) != 0;
+
+			// If the last byte says that it is a conformation packet
+			bool confirmationPacket = (0x4 &amp; meta) != 0;
+
+			// Get the receivers from the frist 4 bits
+			Receivers receivers = (Receivers)(meta &gt;&gt; 4);
+
+			// The group and order for this packet are assigned to the trailer of the packet, as
+			// the header is reserved for frame formation
+			int orderId = PullPacketOrderId(packet);
+			int groupId = PullPacketGroupId(packet);
+
+			ulong uniqueId = PullPacketUniqueId(packet, endPacket);
+
+			// Check to see if this should respond to the sender that this packet has been received
+			if (reliable &amp;&amp; !confirmationPacket)
+			{
+#if DEEP_LOGGING
+				Logging.BMSLog.Log($&quot;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; SEND CONFIRM: {uniqueId}&quot;);
+#endif
+
+				byte[] confirmation = new byte[sizeof(ulong) + sizeof(int) + sizeof(int) + sizeof(byte)];
+				Buffer.BlockCopy(BitConverter.GetBytes(uniqueId), 0, confirmation, 0, sizeof(ulong));
+				Buffer.BlockCopy(BitConverter.GetBytes(groupId), 0, confirmation, sizeof(ulong), sizeof(int));
+				Buffer.BlockCopy(BitConverter.GetBytes(orderId), 0, confirmation, sizeof(ulong) + sizeof(int), sizeof(int));
+
+				// Register the confirmation flag in the last byte
+				confirmation[confirmation.Length - 1] = (byte)(meta | 0x4);
+
+				Client.Send(confirmation, confirmation.Length, sender.IPEndPointHandle);
+			}
+
+			// Create an instance of a packet struct to be sent off to the packet manager
+			UDPPacket formattedPacket = new UDPPacket(reliable, endPacket, groupId, orderId, uniqueId, packet.CompressBytes(), confirmationPacket, receivers);
+
+			return formattedPacket;
+		}
+
+		/// &lt;summary&gt;
+		/// A wrapper for the messageConfirmed event call that children of this can call
+		/// &lt;/summary&gt;
+		protected void OnMessageConfirmed(NetworkingPlayer player, UDPPacket packet)
+		{
+			if (messageConfirmed != null)
+				messageConfirmed(player, packet);
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[33,35,33,39,0],[33,40,33,54,0],[35,3,35,86,0],[35,3,35,86,0],[37,3,37,19,0],[37,20,37,21,0],[37,22,37,23,0],[38,40,38,60,0],[38,61,38,62,0],[38,63,38,64,0],[47,3,47,4,0],[52,4,52,27,0],[53,4,53,5,0],[54,5,54,39,0],[55,4,55,5,0],[56,3,56,4,0],[59,3,59,4,0],[60,4,60,70,0],[61,4,61,47,0],[62,4,62,16,0],[63,3,63,4,0],[66,3,66,4,0],[68,4,68,70,0],[69,4,69,46,0],[70,4,70,19,0],[71,3,71,4,0],[74,3,74,4,0],[76,4,76,70,0],[77,4,77,46,0],[78,4,78,19,0],[79,3,79,4,0],[82,3,82,4,0],[84,4,84,77,0],[89,4,89,19,0],[90,5,90,49,0],[92,4,92,20,0],[93,3,93,4,0],[96,3,96,4,0],[97,4,97,43,0],[100,4,100,38,0],[103,4,103,39,0],[106,4,106,48,0],[109,4,109,49,0],[113,4,113,44,0],[114,4,114,44,0],[116,4,116,59,0],[119,4,119,40,0],[120,4,120,5,0],[125,5,125,94,0],[126,5,126,90,0],[127,5,127,99,0],[128,5,128,113,0],[131,5,131,64,0],[133,5,133,77,0],[134,4,134,5,0],[137,4,137,150,0],[139,4,139,27,0],[140,3,140,4,0],[146,3,146,4,0],[147,4,147,33,0],[148,5,148,38,0],[149,3,149,4,0]]);
+    </script>
+  </body>
+</html>

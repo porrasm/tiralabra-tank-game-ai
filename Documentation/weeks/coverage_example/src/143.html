@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\powerups\tankpowerup_regenerate.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TankPowerup_Regenerate : TankPowerup {
+
+    private bool used = false;
+
+    private GameObject particle;
+
+    public override void Use() {
+        base.Use();
+
+        Remove();
+
+        particle = Instantiate(TankGameHost.Game().HealthRegenParticlePrefab);
+        particle.transform.SetParent(transform);
+        particle.transform.localPosition = new Vector3(0, 1, 0);
+
+        TankNetworking net = GetComponent&lt;TankNetworking&gt;();
+
+        IEnumerator RegenCoroutine() {
+            
+            float time = TankSettings.P_RegenerateTime;
+            float amountFactor = TankSettings.P_RegenerateAmount / time;
+
+            float amount = 0;
+
+            while (time &gt; 0) {
+
+                time -= Time.deltaTime;
+
+                amount += Time.deltaTime * amountFactor;
+
+                if (amount &gt; 1) {
+                    net.Health += (int)amount;
+                    amount -= (int)amount;
+                }
+
+                yield return null;
+            }
+
+            used = true;
+            Remove();
+        }
+
+        StartCoroutine(RegenCoroutine());
+    }
+
+    public override void Remove() {
+
+        StopAllCoroutines();
+
+        GetComponent&lt;TankWeapon&gt;().NullifyPowerup();
+
+        //while (!used) {
+        //    yield return null;
+        //}
+
+        Destroy(this);
+
+        ParticleSystem par = particle.GetComponent&lt;ParticleSystem&gt;();
+        var emission = par.emission;
+        emission.rateOverTime = 0;
+
+        Lifetime.SetLifetime(particle, par.main.startLifetime.constant);
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[7,5,7,31,0],[11,32,11,33,0],[12,9,12,20,0],[14,9,14,18,0],[16,9,16,79,0],[17,9,17,49,0],[18,9,18,65,0],[20,9,20,61,0],[22,38,22,39,0],[24,13,24,56,0],[25,13,25,73,0],[27,13,27,30,0],[29,13,29,29,0],[29,30,29,31,0],[31,17,31,40,0],[33,17,33,57,0],[35,17,35,32,0],[35,33,35,34,0],[36,21,36,47,0],[37,21,37,43,0],[38,17,38,18,0],[40,17,40,35,0],[41,13,41,14,0],[43,13,43,25,0],[44,13,44,22,0],[45,9,45,10,0],[47,9,47,42,0],[48,5,48,6,0],[50,35,50,36,0],[52,9,52,29,0],[54,9,54,53,0],[60,9,60,23,0],[62,9,62,70,0],[63,9,63,37,0],[64,9,64,35,0],[66,9,66,73,0],[67,5,67,6,0]]);
+    </script>
+  </body>
+</html>

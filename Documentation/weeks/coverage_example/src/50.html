@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\datastructures\tankbullettrajectory.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
+
+public class TankBulletTrajectory {
+
+    #region fields;
+    TankAIBulletChecker checker;
+    private TankAI ai;
+    private TankBullet bullet;
+    private bool fail;
+
+    public bool HitAI { get; private set; }
+
+    private Vector[] trajectory;
+    public Vector[] Trajectory { get =&gt; trajectory; set =&gt; trajectory = value; }
+    #endregion
+
+    public TankBulletTrajectory(TankAIBulletChecker checker, TankBullet bullet) {
+        this.checker = checker;
+        ai = checker.AI;
+        this.bullet = bullet;
+    }
+
+    public void CalculateTrajectory() {
+
+        HitAI = false;
+
+        Trajectory = new Vector[bullet.Bounces + 2];
+        Trajectory[0] = new Vector(bullet.transform.position);
+
+        SetTrajectory();
+    }
+    private void SetTrajectory() {
+
+        Vector direction = new Vector(bullet.Velocity.normalized);
+
+        for (int i = 1; i &lt; Trajectory.Length; i++) {
+
+            
+            //if (HitAI) {
+            //    Array.Resize(ref trajectory, i + 1);
+            //    break;
+            //}
+
+            if (!CalculateNextHit(ref direction, Trajectory[i - 1], i)) {
+                Array.Resize(ref trajectory, i + 2);
+                break;
+            }
+        }
+    }
+
+    private bool CalculateNextHit(ref Vector direction, Vector currentPos, int index) {
+
+        RaycastHit hit;
+        if (!Physics.Raycast(currentPos.Vector3, direction.Vector3, out hit, Mathf.Infinity, 9, QueryTriggerInteraction.Ignore)) {
+            Debug.Log(&quot;Trajectory raycast did not hit anything.&quot;);
+            return false;
+        }
+
+        if (hit.collider.gameObject.transform.parent == ai.transform) {
+            HitAI = true;
+
+            Vector3 newPos = hit.point + 0.2f * direction.Normalized.Vector3;
+
+            // Continue next raycast from inside the collider
+            if (!Physics.Raycast(ai.transform.position, direction.Vector3, out hit, Mathf.Infinity, 9, QueryTriggerInteraction.Ignore)) {
+                Debug.Log(&quot;Trajectory raycast did not hit anything after hitting player.&quot;);
+                return false;
+            }
+        }
+
+        Vector hitPos = new Vector(hit.point);
+
+        Trajectory[index] = hitPos;
+
+        direction = Vector.Reflect(direction, new Vector(hit.normal));
+
+        IncrementValues(currentPos, hitPos, direction);
+
+        return true;
+    }
+    private void IncrementValues(Vector position, Vector endPos, Vector direction) {
+
+        bool xTest = position.x &gt; endPos.x;
+        bool yTest = position.y &gt; endPos.y;
+
+        for (int i = 0; ; i++) {
+            position += direction.Normalized;
+
+            IntCoords coords = Vector.PositionToCoords(position);
+
+            if (coords.x &gt;= TankSettings.LevelWidth || coords.y &gt;= TankSettings.LevelHeight
+                || coords.x &lt; 0 || coords.y &lt; 0) {
+                break;
+            }
+
+            if (position.x &gt; endPos.x != xTest || position.y &gt; endPos.y != yTest) {
+                break;
+            }
+
+            checker.CellBulletCounts[coords.x, coords.y]++;
+        }
+    }
+}
+
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[16,25,16,29,0],[16,30,16,42,0],[19,41,19,51,0],[19,60,19,78,0],[22,5,22,80,0],[22,81,22,82,0],[23,9,23,32,0],[24,9,24,25,0],[25,9,25,30,0],[26,5,26,6,0],[28,39,28,40,0],[30,9,30,23,0],[32,9,32,53,0],[33,9,33,63,0],[35,9,35,25,0],[36,5,36,6,0],[37,34,37,35,0],[39,9,39,67,0],[41,14,41,23,0],[41,25,41,46,0],[41,48,41,51,0],[41,53,41,54,0],[49,13,49,72,0],[49,73,49,74,0],[50,17,50,53,0],[51,17,51,23,0],[53,9,53,10,0],[54,5,54,6,0],[56,87,56,88,0],[59,9,59,129,0],[59,130,59,131,0],[60,13,60,67,0],[61,13,61,26,0],[64,9,64,70,0],[64,71,64,72,0],[65,13,65,26,0],[67,13,67,78,0],[70,13,70,136,0],[70,137,70,138,0],[71,17,71,92,0],[72,17,72,30,0],[74,9,74,10,0],[76,9,76,47,0],[78,9,78,36,0],[80,9,80,71,0],[82,9,82,56,0],[84,9,84,21,0],[85,5,85,6,0],[86,84,86,85,0],[88,9,88,44,0],[89,9,89,44,0],[91,14,91,23,0],[91,27,91,30,0],[91,32,91,33,0],[92,13,92,46,0],[94,13,94,66,0],[96,13,97,49,0],[97,50,97,51,0],[98,17,98,23,0],[101,13,101,82,0],[101,83,101,84,0],[102,17,102,23,0],[105,13,105,60,0],[106,9,106,10,0],[107,5,107,6,0]]);
+    </script>
+  </body>
+</html>

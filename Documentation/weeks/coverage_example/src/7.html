@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\powerups\tankpowerup_multiball_bullet.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+class TankPowerup_MultiBall_Bullet : TankBullet {
+
+    private int tiltAngle = 30;
+    private bool ignoreFirst;
+
+    void Start() {
+    }
+
+    public void Initialize(TankPlayer owner, Transform other, int bounces, int damage, Vector3 velocity, bool ignoreFirst) {
+        Owner = owner;
+        transform.position = other.position;
+        transform.eulerAngles = other.eulerAngles;
+        speed = TankSettings.BulletSpeed;
+        rb = GetComponent&lt;Rigidbody&gt;();
+
+        this.Velocity = velocity.normalized * speed;
+
+        AliveTime = TankSettings.BulletAliveTime * 3;
+        Bounces = bounces;
+        Damage = damage;
+
+        this.ignoreFirst = ignoreFirst;
+
+        if (ignoreFirst) {
+            harmlessTime = 0.2f;
+        }
+    }
+
+    protected override void CollisionHappened(Collision collision, bool fix) {
+
+        if (HitPlayer(collision.gameObject)) {
+            return;
+        }
+
+        Bounce(collision.contacts[0].normal);
+        
+        if (fix || harmlessTime &gt; 0 || ignoreFirst) {
+            ignoreFirst = false;
+            return;
+        }
+
+        if (Bounces &lt;= 0) {
+            Kill();
+            return;
+        }
+
+        if (!ConstantDamage) {
+            Damage /= 2;
+        }
+
+        Bounces--;
+
+        GameObject copy = Instantiate(gameObject);
+        InitializeCopy(copy.GetComponent&lt;TankPowerup_MultiBall_Bullet&gt;());
+        TiltDirection(true);
+    }
+    static int cp;
+
+    private void InitializeCopy(TankPowerup_MultiBall_Bullet bullet) {
+
+        bullet.Initialize(Owner, transform, Bounces, Damage, Velocity, true);
+
+        bullet.TiltDirection(false);
+    }
+    private void TiltDirection(bool primary) {
+        int angle = tiltAngle;
+
+        if (!primary) {
+            angle *= 2;
+        } else {
+            angle = 0;
+        }
+
+        Vector3 vel = Quaternion.Euler(0, angle, 0) * Velocity;
+
+        SetDirection(vel);
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[7,5,7,32,0],[10,18,10,19,0],[11,5,11,6,0],[13,124,13,125,0],[14,9,14,23,0],[15,9,15,45,0],[16,9,16,51,0],[17,9,17,42,0],[18,9,18,40,0],[20,9,20,53,0],[22,9,22,54,0],[23,9,23,27,0],[24,9,24,25,0],[26,9,26,40,0],[28,9,28,25,0],[28,26,28,27,0],[29,13,29,33,0],[30,9,30,10,0],[31,5,31,6,0],[33,78,33,79,0],[35,9,35,45,0],[35,46,35,47,0],[36,13,36,20,0],[39,9,39,46,0],[41,9,41,52,0],[41,53,41,54,0],[42,13,42,33,0],[43,13,43,20,0],[46,9,46,26,0],[46,27,46,28,0],[47,13,47,20,0],[48,13,48,20,0],[51,9,51,29,0],[51,30,51,31,0],[52,13,52,25,0],[53,9,53,10,0],[55,9,55,19,0],[57,9,57,51,0],[58,9,58,75,0],[59,9,59,29,0],[60,5,60,6,0],[63,70,63,71,0],[65,9,65,78,0],[67,9,67,37,0],[68,5,68,6,0],[69,46,69,47,0],[70,9,70,31,0],[72,9,72,22,0],[72,23,72,24,0],[73,13,73,24,0],[74,9,74,10,0],[74,16,74,17,0],[75,13,75,23,0],[76,9,76,10,0],[78,9,78,64,0],[80,9,80,27,0],[81,5,81,6,0]]);
+    </script>
+  </body>
+</html>

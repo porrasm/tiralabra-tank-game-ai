@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\threading\task.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+using System;
+using System.Threading;
+
+namespace BeardedManStudios.Threading
+{
+	public static class ThreadManagement
+	{
+		public static int MainThreadId { get; private set; }
+
+		public static int GetCurrentThreadId()
+		{
+			return Thread.CurrentThread.ManagedThreadId;
+		}
+
+		public static void Initialize() { MainThreadId = GetCurrentThreadId(); }
+
+		public static bool IsMainThread
+		{
+			get { return GetCurrentThreadId() == MainThreadId; }
+		}
+	}
+
+	/// &lt;summary&gt;
+	/// A class for calling methods on a separate thread
+	/// &lt;/summary&gt;
+	public static class Task
+	{
+		/// &lt;summary&gt;
+		/// Sets the method that is to be executed on the separate thread
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;expression&quot;&gt;The method that is to be called on the newly created thread&lt;/param&gt;
+		private static void QueueExpression(WaitCallback expression)
+		{
+			ThreadPool.QueueUserWorkItem(expression);
+		}
+
+		/// &lt;summary&gt;
+		/// Used to run a method / expression on a separate thread
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;expression&quot;&gt;The method to be run on the separate thread&lt;/param&gt;
+		/// &lt;param name=&quot;delayOrSleep&quot;&gt;The amount of time to wait before running the expression on the newly created thread&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		public static void Queue(Action expression, int delayOrSleep = 0)
+		{
+			// Wrap the expression in a method so that we can apply the delayOrSleep before and remove the task after it finishes
+			WaitCallback inline = (state) =&gt;
+			{
+				// Apply the specified delay
+				if (delayOrSleep &gt; 0)
+					Thread.Sleep(delayOrSleep);
+
+				// Call the requested method
+				expression();
+			};
+
+			// Set the method to be called on the separate thread to be the inline method we have just created
+			QueueExpression(inline);
+		}
+
+#if WINDOWS_UWP
+		public async static void Sleep(int milliseconds)
+		{
+			await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(milliseconds));
+		}
+#else
+		public static void Sleep(int milliseconds)
+		{
+			Thread.Sleep(milliseconds);
+		}
+#endif
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[27,36,27,40,0],[27,41,27,53,0],[30,3,30,4,0],[31,4,31,48,0],[32,3,32,4,0],[34,35,34,36,0],[34,37,34,73,0],[34,74,34,75,0],[38,8,38,9,0],[38,10,38,54,0],[38,55,38,56,0],[52,3,52,4,0],[53,4,53,45,0],[54,3,54,4,0],[63,3,63,4,0],[65,4,66,4,0],[66,4,66,5,0],[66,5,68,5,0],[68,5,68,26,0],[68,26,69,6,0],[69,6,69,33,0],[69,33,72,5,0],[72,5,72,18,0],[72,18,73,4,0],[73,4,73,5,0],[73,5,73,6,0],[65,4,73,6,0],[76,4,76,28,0],[77,3,77,4,0],[86,3,86,4,0],[87,4,87,31,0],[88,3,88,4,0]]);
+    </script>
+  </body>
+</html>

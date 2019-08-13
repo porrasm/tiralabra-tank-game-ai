@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\objects\interpolated.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+namespace BeardedManStudios.Forge.Networking
+{
+	public struct Interpolated&lt;T&gt; : IInterpolator&lt;T&gt;
+	{
+		public T current;
+		public T target;
+		public float LerpT { get; set; }
+		public bool Enabled { get; set; }
+		public ulong Timestep { get; set; }
+
+		public T Interpolate()
+		{
+			if (!Enabled) return target;
+
+			current = BeardedMath.Lerp(current, target, LerpT);
+			return current;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,24,26,28,0],[26,29,26,33,0],[27,25,27,29,0],[27,30,27,34,0],[28,27,28,31,0],[28,32,28,36,0],[31,3,31,4,0],[32,4,32,17,0],[32,18,32,32,0],[34,4,34,55,0],[35,4,35,19,0],[36,3,36,4,0]]);
+    </script>
+  </body>
+</html>

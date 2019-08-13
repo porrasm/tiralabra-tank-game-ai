@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\powerups\tankpowerup_speedboost.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TankPowerup_Speedboost : TankPowerup {
+
+    public override void Use() {
+        base.Use();
+
+        IEnumerator UseCoroutine() {
+
+            float time = TankSettings.P_SpeedboostStartLength;
+
+            float speed = TankSettings.TankSpeed;
+            float rotSpeed = TankSettings.TankRotateSpeed;
+            float amount = TankSettings.P_SpeedboostAmount - 1;
+
+            TankController controller = GetComponent&lt;TankController&gt;();
+
+            while (time &gt; 0) {
+
+                float factor = 1 - time / TankSettings.P_SpeedboostStartLength;
+
+                float nSpeed = speed + speed * factor * amount;
+                float nRotSpeed = rotSpeed + rotSpeed * factor * amount;
+
+                controller.SetSpeeds(nSpeed, nRotSpeed);
+
+                time -= Time.deltaTime;
+                yield return null;
+            }
+
+            controller.SetSpeeds(speed + speed * amount, rotSpeed + rotSpeed * amount);
+
+            yield return new WaitForSeconds(TankSettings.P_SpeedboostLength);
+
+            time = TankSettings.P_SpeedboostEndLength;
+
+            while (time &gt; 0) {
+
+                float factor = time / TankSettings.P_SpeedboostEndLength;
+
+                float nSpeed = speed + speed * factor * amount;
+                float nRotSpeed = rotSpeed + rotSpeed * factor * amount;
+
+                controller.SetSpeeds(nSpeed, nRotSpeed);
+
+                time -= Time.deltaTime;
+                yield return null;
+            }
+
+            controller.SetSpeeds(speed, rotSpeed);
+            Remove();
+        }
+
+        StartCoroutine(UseCoroutine());
+    }
+
+    public override void Remove() {
+
+        StopAllCoroutines();
+
+        GetComponent&lt;TankController&gt;().SetSpeeds(TankSettings.TankSpeed, TankSettings.TankRotateSpeed);
+
+        base.Remove();
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[7,32,7,33,0],[8,9,8,20,0],[10,36,10,37,0],[12,13,12,63,0],[14,13,14,50,0],[15,13,15,59,0],[16,13,16,64,0],[18,13,18,72,0],[20,13,20,29,0],[20,30,20,31,0],[22,17,22,80,0],[24,17,24,64,0],[25,17,25,73,0],[27,17,27,57,0],[29,17,29,40,0],[30,17,30,35,0],[31,13,31,14,0],[33,13,33,88,0],[35,13,35,78,0],[37,13,37,55,0],[39,13,39,29,0],[39,30,39,31,0],[41,17,41,74,0],[43,17,43,64,0],[44,17,44,73,0],[46,17,46,57,0],[48,17,48,40,0],[49,17,49,35,0],[50,13,50,14,0],[52,13,52,51,0],[53,13,53,22,0],[54,9,54,10,0],[56,9,56,40,0],[57,5,57,6,0],[59,35,59,36,0],[61,9,61,29,0],[63,9,63,104,0],[65,9,65,23,0],[66,5,66,6,0]]);
+    </script>
+  </body>
+</html>

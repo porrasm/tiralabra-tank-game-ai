@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\powerups\tankpowerup_shield.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TankPowerup_Shield : TankPowerup {
+
+    new Behaviour behaviourType = Behaviour.OverrideFire;
+
+    GameObject shield;
+
+    public override void Use() {
+        base.Use();
+
+        shield = Instantiate(TankGameHost.Game().ShieldPrefab);
+
+        shield.GetComponent&lt;TankPowerup_Shield_Shield&gt;().Initialize(transform);
+        Lifetime.SetLifetime(shield, TankSettings.P_ShieldTime);
+
+        GetComponent&lt;TankPlayer&gt;().Invulnerable = false;
+
+        Invoke(&quot;Remove&quot;, TankSettings.P_ShieldTime);
+    }
+
+    public override void Remove() {
+
+        StopAllCoroutines();
+
+        if (shield != null) {
+            Destroy(shield);
+        }
+
+        GetComponent&lt;TankPlayer&gt;().Invulnerable = false;
+
+        base.Remove();
+    }
+
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[7,5,7,58,0],[11,32,11,33,0],[12,9,12,20,0],[14,9,14,64,0],[16,9,16,80,0],[17,9,17,65,0],[19,9,19,57,0],[21,9,21,53,0],[22,5,22,6,0],[24,35,24,36,0],[26,9,26,29,0],[28,9,28,28,0],[28,29,28,30,0],[29,13,29,29,0],[30,9,30,10,0],[32,9,32,57,0],[34,9,34,23,0],[35,5,35,6,0]]);
+    </script>
+  </body>
+</html>

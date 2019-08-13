@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿
 /// <summary>
 /// Linked priority list. The type <typeparamref name="T"/> with the lowest priority will always be the first one, and the one with the greates value will be the last one. Functionality is identical to a priority queue.
 /// </summary>

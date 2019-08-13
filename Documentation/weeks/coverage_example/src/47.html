@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\frame\continuation.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+
+namespace BeardedManStudios.Forge.Networking.Frame
+{
+	public class Continuation : FrameStream
+	{
+		/// &lt;summary&gt;
+		/// Connection close frame is denoted by %x0
+		/// &lt;/summary&gt;
+		public const byte CONTROL_BYTE = 128;
+
+		public override byte ControlByte { get { return CONTROL_BYTE; } }
+
+		public Continuation() : base() { }
+		public Continuation(ulong timestep, bool useMask, Receivers receivers, int groupId, bool isStream) : base(timestep, useMask, receivers, groupId, isStream) { }
+		public Continuation(ulong timestep, bool useMask, byte[] payload, Receivers receivers, int groupId, bool isStream) : base(timestep, useMask, payload, receivers, groupId, isStream) { }
+		public Continuation(ulong timestep, bool useMask, BMSByte payload, Receivers receivers, int groupId, bool isStream) : base(timestep, useMask, payload, receivers, groupId, isStream) { }
+		public Continuation(byte[] frame, int payloadStart, int groupId, NetworkingPlayer sender, byte receivers) : base(frame, payloadStart, groupId, sender, receivers) { }
+
+		public override object Clone()
+		{
+			return BaseClone(new Binary());
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[30,42,30,43,0],[30,44,30,64,0],[30,65,30,66,0],[32,27,32,33,0],[32,34,32,35,0],[32,36,32,37,0],[33,104,33,157,0],[33,158,33,159,0],[33,160,33,161,0],[34,120,34,182,0],[34,183,34,184,0],[34,185,34,186,0],[35,121,35,183,0],[35,184,35,185,0],[35,186,35,187,0],[36,111,36,164,0],[36,165,36,166,0],[36,167,36,168,0],[39,3,39,4,0],[40,4,40,35,0],[41,3,41,4,0]]);
+    </script>
+  </body>
+</html>

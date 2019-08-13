@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\vector.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+
+namespace BeardedManStudios
+{
+	public struct Vector
+	{
+		public float x { get; set; }
+
+		public float y { get; set; }
+
+		public float z { get; set; }
+
+		/// &lt;summary&gt;
+		/// Get&#39;s the magnitude (pythagorean theorem) of this vector (the length
+		/// of the hypotenuse of the right triangle produced by this vector)
+		/// &lt;/summary&gt;
+		public float Magnitude
+		{
+			get { return (float)Math.Sqrt((x * x) + (y * y) + (z * z)); }
+		}
+
+        public float SqrMagnitude
+        {
+            get { return (float)((x * x) + (y * y) + (z * z)); }
+        }
+
+        /// &lt;summary&gt;
+        /// This will return a new normalized $js.Vector3 of this vector
+        /// &lt;/summary&gt;
+        public Vector Normalized
+		{
+			get
+			{
+				var tmp = new Vector(x, y, z);
+
+				var mag = Magnitude;
+				tmp.x = tmp.x / mag;
+				tmp.y = tmp.y / mag;
+				tmp.z = tmp.z / mag;
+
+				return tmp;
+			}
+		}
+
+		public Vector(float xyz) : this()
+		{
+			x = y = z = xyz;
+		}
+
+		public Vector(float x, float y, float z) : this()
+		{
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
+
+		/// &lt;summary&gt;
+		/// Get&#39;s the dot product of this vector and another
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;vector&quot;&gt;The vector to be multiplied with this vector&lt;/param&gt;
+		/// &lt;returns&gt;The result of dot product (vector multiplication)&lt;/returns&gt;
+		public float Dot(Vector vector)
+		{
+			return (x * vector.x) + (y * vector.y) + (z * vector.z);
+		}
+
+		/// &lt;summary&gt;
+		/// Get&#39;s the cross product of this vector and another
+		/// Note: The cross product is often done with a 3 dimensional vector, so in this case it will actually return a scalar
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;vector&quot;&gt;The vector to be multiplied with this vector&lt;/param&gt;
+		/// &lt;returns&gt;The result of cross product (vector multiplication)&lt;/returns&gt;
+		public Vector Cross(Vector vector)
+		{
+			return new Vector(
+				(y * vector.z) - (z * vector.y),
+				(z * vector.x) - (x * vector.z),
+				(x * vector.y) - (y * vector.x)
+			);
+		}
+
+		/// &lt;summary&gt;
+		/// Will get the distance between this vector and another supplied vector
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;vector&quot;&gt;The vector to check the distance to&lt;/param&gt;
+		/// &lt;returns&gt;The distance between this Vector and the supplied Vector&lt;/returns&gt;
+		public float Distance(Vector vector)
+		{
+			return (float)Math.Sqrt(((vector.x - x) * (vector.x - x)) + ((y - vector.y) * (y - vector.y)) + ((z - vector.z) * (z - vector.z)));
+		}
+
+        public float DistanceSquared(Vector vector)
+        {
+            return new Vector(x - vector.x, y - vector.y, z - vector.z).SqrMagnitude;
+        }
+
+        public override bool Equals(object obj)
+		{
+			if (!(obj is Vector))
+				return false;
+
+			Vector other = (Vector)obj;
+			return x == other.x &amp;&amp; y == other.y &amp;&amp; z == other.z;
+		}
+
+		public override int GetHashCode()
+		{
+			return base.GetHashCode();
+		}
+
+		// TODO:  Override the sum and difference opperators
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[7,20,7,24,0],[7,25,7,29,0],[9,20,9,24,0],[9,25,9,29,0],[11,20,11,24,0],[11,25,11,29,0],[19,8,19,9,0],[19,10,19,63,0],[19,64,19,65,0],[24,17,24,18,0],[24,19,24,63,0],[24,64,24,65,0],[33,4,33,5,0],[34,5,34,35,0],[36,5,36,25,0],[37,5,37,25,0],[38,5,38,25,0],[39,5,39,25,0],[41,5,41,16,0],[42,4,42,5,0],[45,30,45,36,0],[46,3,46,4,0],[47,4,47,20,0],[48,3,48,4,0],[50,46,50,52,0],[51,3,51,4,0],[52,4,52,15,0],[53,4,53,15,0],[54,4,54,15,0],[55,3,55,4,0],[63,3,63,4,0],[64,4,64,60,0],[65,3,65,4,0],[74,3,74,4,0],[75,4,79,6,0],[80,3,80,4,0],[88,3,88,4,0],[89,4,89,135,0],[90,3,90,4,0],[93,9,93,10,0],[94,13,94,86,0],[95,9,95,10,0],[98,3,98,4,0],[99,4,99,25,0],[100,5,100,18,0],[102,4,102,31,0],[103,4,103,56,0],[104,3,104,4,0],[107,3,107,4,0],[108,4,108,30,0],[109,3,109,4,0]]);
+    </script>
+  </body>
+</html>

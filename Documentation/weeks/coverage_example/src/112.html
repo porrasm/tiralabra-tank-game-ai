@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\basepacketcomposer.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+using BeardedManStudios.Forge.Networking.Frame;
+
+namespace BeardedManStudios.Forge.Networking
+{
+    public class BasePacketComposer
+    {
+        public virtual void ResendPackets(ulong timestep, ref int counter) { Logging.BMSLog.LogWarning(&quot;Warning: BasePacketComposer:ResendPackets() was invoked directly. This is not supposed to happen!&quot;); }
+
+        /// &lt;summary&gt;
+        /// The frame that is to be sent to the user
+        /// &lt;/summary&gt;
+        public FrameStream Frame { get; protected set; }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,76,26,77,0],[26,78,26,205,0],[26,206,26,207,0],[31,36,31,40,0],[31,41,31,55,0]]);
+    </script>
+  </body>
+</html>

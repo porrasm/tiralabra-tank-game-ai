@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\frame\factory.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BeardedManStudios.Forge.Networking.Frame
+{
+	public static class Factory
+	{
+		private static byte[] DecodeHead(byte[] bytes, bool useMask, out int indexFirstMask)
+		{
+			int dataLength = bytes[1] &amp; 127;
+			indexFirstMask = 2;
+			if (dataLength == 126)
+				indexFirstMask = 4;
+			else if (dataLength == 127)
+				indexFirstMask = 10;
+
+			// Find the mask if we are pulling one from the data, it is the next 4 bytes after the length bytes
+			IEnumerable&lt;byte&gt; keys = null;
+			if (useMask)
+			{
+				keys = bytes.Skip(indexFirstMask).Take(4);
+				indexFirstMask += 4;
+			}
+
+			// Go through and decode the bytes, if no mask is supplied then copy the remaining bytes after length
+			byte[] decoded = new byte[bytes.Length - indexFirstMask];
+
+			if (useMask)
+				for (int i = indexFirstMask, j = 0; i &lt; bytes.Length; i++, j++)
+				{
+					decoded[j] = (byte)(bytes[i] ^ keys.ElementAt(j % 4));
+				}
+			else
+				Buffer.BlockCopy(bytes, indexFirstMask, decoded, 0, decoded.Length);
+
+			return decoded;
+		}
+
+		/// &lt;summary&gt;
+		/// Decode the message that was receieved over the network, this is after it has been fully
+		/// parsed into a complete byte array
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;bytes&quot;&gt;The bytes that are to be decoded&lt;/param&gt;
+		/// &lt;param name=&quot;useMask&quot;&gt;Determines if a mask was used and if it should find the mask&lt;/param&gt;
+		/// &lt;returns&gt;The frame that was found during decoding&lt;/returns&gt;
+		public static FrameStream DecodeMessage(byte[] bytes, bool useMask, int groupId, NetworkingPlayer sender, byte receivers = 255)
+		{
+			int indexFirstMask = 0;
+			byte[] decoded = DecodeHead(bytes, useMask, out indexFirstMask);
+			return ReadFrameStream(bytes[0], decoded, indexFirstMask, groupId, sender, receivers);
+		}
+
+		public static FrameStream ReadFrameStream(byte firstByte, byte[] decoded, int indexFirstMask, int groupId, NetworkingPlayer sender, byte receivers = 255)
+		{
+			// TCP sends as a stream, so we didn&#39;t get the group id from the packet compilation
+			// In this case we need to read it as the first set of bytes after the mask
+			if (groupId == MessageGroupIds.TCP_FIND_GROUP_ID)
+			{
+				groupId = BitConverter.ToInt32(decoded, 0);
+				indexFirstMask = 4;
+			}
+			else
+				indexFirstMask = 0;
+
+			// Find out what kind of frame this is and construct the appropriate frame for reading
+			switch (firstByte)
+			{
+				case Binary.CONTROL_BYTE:
+					return new Binary(decoded, indexFirstMask, groupId, sender, receivers);
+				case ConnectionClose.CONTROL_BYTE:
+					return new ConnectionClose(decoded, indexFirstMask, groupId, sender, receivers);
+				case Continuation.CONTROL_BYTE:
+					return new Continuation(decoded, indexFirstMask, groupId, sender, receivers);
+				case Error.CONTROL_BYTE:
+					return new Error(decoded, indexFirstMask, groupId, sender, receivers);
+				case Ping.CONTROL_BYTE:
+					return new Ping(decoded, indexFirstMask, groupId, sender, receivers);
+				case Pong.CONTROL_BYTE:
+					return new Pong(decoded, indexFirstMask, groupId, sender, receivers);
+				case Text.CONTROL_BYTE:
+					return new Text(decoded, indexFirstMask, groupId, sender, receivers);
+				default:
+					throw new BaseNetworkException(&quot;Message received but header doesn&#39;t define correct frame type.&quot;);
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[29,3,29,4,0],[30,4,30,36,0],[31,4,31,23,0],[32,4,32,26,0],[33,5,33,24,0],[34,9,34,31,0],[35,5,35,25,0],[38,4,38,34,0],[39,4,39,16,0],[40,4,40,5,0],[41,5,41,47,0],[42,5,42,25,0],[43,4,43,5,0],[46,4,46,61,0],[48,4,48,16,0],[49,10,49,32,0],[49,34,49,39,0],[49,41,49,57,0],[49,59,49,62,0],[49,64,49,67,0],[50,5,50,6,0],[51,6,51,60,0],[52,5,52,6,0],[54,5,54,73,0],[56,4,56,19,0],[57,3,57,4,0],[67,3,67,4,0],[68,4,68,27,0],[69,4,69,68,0],[70,4,70,90,0],[71,3,71,4,0],[74,3,74,4,0],[77,4,77,53,0],[78,4,78,5,0],[79,5,79,48,0],[80,5,80,24,0],[81,4,81,5,0],[83,5,83,24,0],[86,4,86,22,0],[89,6,89,77,0],[91,6,91,86,0],[93,6,93,83,0],[95,6,95,76,0],[97,6,97,75,0],[99,6,99,75,0],[101,6,101,75,0],[103,6,103,103,0],[105,3,105,4,0]]);
+    </script>
+  </body>
+</html>

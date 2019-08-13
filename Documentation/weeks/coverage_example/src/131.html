@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\tcpclient.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+namespace BeardedManStudios.Forge.Networking
+{
+    // new TCPClient as of September 2018
+    public class TCPClient : TCPClientBase
+    {
+        protected override void Initialize(string host, ushort port, bool pendCreates = true)
+        {
+            base.Initialize(host, port, pendCreates);
+            InitializeTCPClient(host, port);
+        }
+
+        protected void InitializeTCPClient(string host, ushort port)
+        {
+            //Set the port
+            SetPort(port);
+        }
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[7,9,7,10,0],[8,13,8,54,0],[9,13,9,45,0],[10,9,10,10,0],[13,9,13,10,0],[15,13,15,27,0],[16,9,16,10,0]]);
+    </script>
+  </body>
+</html>

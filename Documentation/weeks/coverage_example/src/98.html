@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\controls\ui_slider.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+public class UI_Slider : MonoBehaviour {
+
+    #region fields
+    [SerializeField]
+    private TankControls.Control control;
+    [SerializeField]
+    private int multiplier;
+
+    private TankControls controls;
+    private RectTransform stick;
+    
+    public float Value { get; private set; }
+
+    private float posLimit;
+    private float limitHigh = 0.9f;
+    private float limitLow = 0.1f;
+    private float endLimit = 0.1f;
+    #endregion
+
+
+    void Start() {
+        stick = transform.GetChild(0).GetComponent&lt;RectTransform&gt;();
+
+        float x = GetComponent&lt;RectTransform&gt;().sizeDelta.x;
+
+        posLimit = GetComponent&lt;RectTransform&gt;().sizeDelta.y / 2 - x;
+        stick.sizeDelta = new Vector2(x, x);
+        print(&quot;offset: &quot; + posLimit);
+
+        InitializeEvents();
+        GetControls();
+    }
+
+    private void GetControls() {
+        TankNetworking.MyTank(delegate (TankControls controls) { this.controls = controls; });
+    }
+
+    private void InitializeEvents() {
+        EventTrigger trigger = gameObject.AddComponent&lt;EventTrigger&gt;();
+
+        EventTrigger.Entry downEntry = new EventTrigger.Entry();
+        EventTrigger.Entry dragEntry = new EventTrigger.Entry();
+        EventTrigger.Entry upEntry = new EventTrigger.Entry();
+
+        downEntry.eventID = EventTriggerType.PointerDown;
+        dragEntry.eventID = EventTriggerType.Drag;
+        upEntry.eventID = EventTriggerType.PointerUp;
+
+        downEntry.callback.AddListener((data) =&gt; { OnDragDelegate((PointerEventData)data); });
+        dragEntry.callback.AddListener((data) =&gt; { OnDragDelegate((PointerEventData)data); });
+        upEntry.callback.AddListener((data) =&gt; { OnPointerUp((PointerEventData)data); });
+
+        trigger.triggers.Add(downEntry);
+        trigger.triggers.Add(dragEntry);
+        trigger.triggers.Add(upEntry);
+    }
+
+    private void Update() {
+        UpdateStickPosition();
+    }
+
+    private void UpdateStickPosition() {
+
+
+    }
+
+    private void OnDragDelegate(PointerEventData data) {
+
+        Vector3 pos = transform.position;
+        Vector3 newPos = pos;
+        newPos.y = data.position.y;
+
+        if (newPos.y &gt; pos.y + posLimit) {
+            newPos.y = pos.y + posLimit;
+        } else if (newPos.y &lt; pos.y - posLimit) {
+            newPos.y = pos.y - posLimit;
+        }
+
+
+        SetPosition(newPos);
+    }
+
+    public void OnPointerUp(PointerEventData eventData) {
+        SetPosition(transform.position);
+    }
+
+    private void SetPosition(Vector3 pos) {
+        stick.position = pos;
+        Value = GetValue(transform.position.y, pos.y);
+    }
+
+    private float GetValue(float def, float y) {
+
+        float distance = y - def;
+        float value = distance / posLimit;
+
+        int mult = GetMultiplier(distance);
+
+        value *= 1 + endLimit;
+        value -= endLimit * mult;
+
+
+        if (mult &gt; 0) {
+            if (value &lt; limitLow) {
+                value = 0;
+            } else if (value &gt; limitHigh) {
+                value = 1;
+            }
+        } else if (mult &lt; 0) {
+            if (value &gt; -limitLow) {
+                value = 0;
+            } else if (value &lt; -limitHigh) {
+                value = -1;
+            }
+        }
+
+        value *= multiplier;
+
+        if (controls != null) {
+            controls.ProcessControl(control, value);
+        }
+
+        return value;
+    }
+    private int GetMultiplier(float distance) {
+        if (distance &gt; 0) {
+            return 1;
+        } else if (distance == 0) {
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[17,26,17,30,0],[17,31,17,43,0],[20,5,20,36,0],[21,5,21,35,0],[22,5,22,35,0],[26,18,26,19,0],[27,9,27,69,0],[29,9,29,61,0],[31,9,31,70,0],[32,9,32,45,0],[33,9,33,38,0],[35,9,35,28,0],[36,9,36,23,0],[37,5,37,6,0],[39,32,39,33,0],[40,9,40,64,0],[40,64,40,65,0],[40,65,40,66,0],[40,66,40,91,0],[40,91,40,92,0],[40,92,40,93,0],[40,93,40,95,0],[40,9,40,95,0],[41,5,41,6,0],[43,37,43,38,0],[44,9,44,72,0],[46,9,46,65,0],[47,9,47,65,0],[48,9,48,63,0],[50,9,50,58,0],[51,9,51,51,0],[52,9,52,54,0],[54,9,54,50,0],[54,50,54,51,0],[54,51,54,52,0],[54,52,54,91,0],[54,91,54,92,0],[54,92,54,93,0],[54,93,54,95,0],[54,9,54,95,0],[55,9,55,50,0],[55,50,55,51,0],[55,51,55,52,0],[55,52,55,91,0],[55,91,55,92,0],[55,92,55,93,0],[55,93,55,95,0],[55,9,55,95,0],[56,9,56,48,0],[56,48,56,49,0],[56,49,56,50,0],[56,50,56,86,0],[56,86,56,87,0],[56,87,56,88,0],[56,88,56,90,0],[56,9,56,90,0],[58,9,58,41,0],[59,9,59,41,0],[60,9,60,39,0],[61,5,61,6,0],[63,27,63,28,0],[64,9,64,31,0],[65,5,65,6,0],[67,40,67,41,0],[70,5,70,6,0],[72,56,72,57,0],[74,9,74,42,0],[75,9,75,30,0],[76,9,76,36,0],[78,9,78,41,0],[78,42,78,43,0],[79,13,79,41,0],[80,9,80,10,0],[80,16,80,48,0],[80,49,80,50,0],[81,13,81,41,0],[82,9,82,10,0],[85,9,85,29,0],[86,5,86,6,0],[88,57,88,58,0],[89,9,89,41,0],[90,5,90,6,0],[92,43,92,44,0],[93,9,93,30,0],[94,9,94,55,0],[95,5,95,6,0],[97,48,97,49,0],[99,9,99,34,0],[100,9,100,43,0],[102,9,102,44,0],[104,9,104,31,0],[105,9,105,34,0],[108,9,108,22,0],[108,23,108,24,0],[109,13,109,34,0],[109,35,109,36,0],[110,17,110,27,0],[111,13,111,14,0],[111,20,111,42,0],[111,43,111,44,0],[112,17,112,27,0],[113,13,113,14,0],[114,9,114,10,0],[114,16,114,29,0],[114,30,114,31,0],[115,13,115,35,0],[115,36,115,37,0],[116,17,116,27,0],[117,13,117,14,0],[117,20,117,43,0],[117,44,117,45,0],[118,17,118,28,0],[119,13,119,14,0],[120,9,120,10,0],[122,9,122,29,0],[124,9,124,30,0],[124,31,124,32,0],[125,13,125,53,0],[126,9,126,10,0],[128,9,128,22,0],[129,5,129,6,0],[130,47,130,48,0],[131,9,131,26,0],[131,27,131,28,0],[132,13,132,22,0],[133,16,133,34,0],[133,35,133,36,0],[134,13,134,22,0],[135,16,135,17,0],[136,13,136,23,0],[138,5,138,6,0]]);
+    </script>
+  </body>
+</html>

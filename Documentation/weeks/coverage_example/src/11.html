@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\generated\usergenerated\networkcameranetworkobject.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using BeardedManStudios.Forge.Networking.Frame;
+using BeardedManStudios.Forge.Networking.Unity;
+using System;
+using UnityEngine;
+
+namespace BeardedManStudios.Forge.Networking.Generated
+{
+	[GeneratedInterpol(&quot;{\&quot;inter\&quot;:[0.15]&quot;)]
+	public partial class NetworkCameraNetworkObject : NetworkObject
+	{
+		public const int IDENTITY = 7;
+
+		private byte[] _dirtyFields = new byte[1];
+
+		#pragma warning disable 0067
+		public event FieldChangedEvent fieldAltered;
+		#pragma warning restore 0067
+		[ForgeGeneratedField]
+		private Vector3 _position;
+		public event FieldEvent&lt;Vector3&gt; positionChanged;
+		public InterpolateVector3 positionInterpolation = new InterpolateVector3() { LerpT = 0.15f, Enabled = true };
+		public Vector3 position
+		{
+			get { return _position; }
+			set
+			{
+				// Don&#39;t do anything if the value is the same
+				if (_position == value)
+					return;
+
+				// Mark the field as dirty for the network to transmit
+				_dirtyFields[0] |= 0x1;
+				_position = value;
+				hasDirtyFields = true;
+			}
+		}
+
+		public void SetpositionDirty()
+		{
+			_dirtyFields[0] |= 0x1;
+			hasDirtyFields = true;
+		}
+
+		private void RunChange_position(ulong timestep)
+		{
+			if (positionChanged != null) positionChanged(_position, timestep);
+			if (fieldAltered != null) fieldAltered(&quot;position&quot;, _position, timestep);
+		}
+
+		protected override void OwnershipChanged()
+		{
+			base.OwnershipChanged();
+			SnapInterpolations();
+		}
+		
+		public void SnapInterpolations()
+		{
+			positionInterpolation.current = positionInterpolation.target;
+		}
+
+		public override int UniqueIdentity { get { return IDENTITY; } }
+
+		protected override BMSByte WritePayload(BMSByte data)
+		{
+			UnityObjectMapper.Instance.MapBytes(data, _position);
+
+			return data;
+		}
+
+		protected override void ReadPayload(BMSByte payload, ulong timestep)
+		{
+			_position = UnityObjectMapper.Instance.Map&lt;Vector3&gt;(payload);
+			positionInterpolation.current = _position;
+			positionInterpolation.target = _position;
+			RunChange_position(timestep);
+		}
+
+		protected override BMSByte SerializeDirtyFields()
+		{
+			dirtyFieldsData.Clear();
+			dirtyFieldsData.Append(_dirtyFields);
+
+			if ((0x1 &amp; _dirtyFields[0]) != 0)
+				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _position);
+
+			// Reset all the dirty fields
+			for (int i = 0; i &lt; _dirtyFields.Length; i++)
+				_dirtyFields[i] = 0;
+
+			return dirtyFieldsData;
+		}
+
+		protected override void ReadDirtyFields(BMSByte data, ulong timestep)
+		{
+			if (readDirtyFlags == null)
+				Initialize();
+
+			Buffer.BlockCopy(data.byteArr, data.StartIndex(), readDirtyFlags, 0, readDirtyFlags.Length);
+			data.MoveStartIndex(readDirtyFlags.Length);
+
+			if ((0x1 &amp; readDirtyFlags[0]) != 0)
+			{
+				if (positionInterpolation.Enabled)
+				{
+					positionInterpolation.target = UnityObjectMapper.Instance.Map&lt;Vector3&gt;(data);
+					positionInterpolation.Timestep = timestep;
+				}
+				else
+				{
+					_position = UnityObjectMapper.Instance.Map&lt;Vector3&gt;(data);
+					RunChange_position(timestep);
+				}
+			}
+		}
+
+		public override void InterpolateUpdate()
+		{
+			if (IsOwner)
+				return;
+
+			if (positionInterpolation.Enabled &amp;&amp; !positionInterpolation.current.UnityNear(positionInterpolation.target, 0.0015f))
+			{
+				_position = (Vector3)positionInterpolation.Interpolate();
+				//RunChange_position(positionInterpolation.Timestep);
+			}
+		}
+
+		private void Initialize()
+		{
+			if (readDirtyFlags == null)
+				readDirtyFlags = new byte[1];
+
+		}
+
+		public NetworkCameraNetworkObject() : base() { Initialize(); }
+		public NetworkCameraNetworkObject(NetWorker networker, INetworkBehavior networkBehavior = null, int createCode = 0, byte[] metadata = null) : base(networker, networkBehavior, createCode, metadata) { Initialize(); }
+		public NetworkCameraNetworkObject(NetWorker networker, uint serverId, FrameStream frame) : base(networker, serverId, frame) { Initialize(); }
+
+		// DO NOT TOUCH, THIS GETS GENERATED PLEASE EXTEND THIS CLASS IF YOU WISH TO HAVE CUSTOM CODE ADDITIONS
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[13,3,13,45,0],[13,3,13,45,0],[13,3,13,45,0],[21,3,21,112,0],[21,3,21,112,0],[21,3,21,112,0],[24,8,24,9,0],[24,10,24,27,0],[24,28,24,29,0],[26,4,26,5,0],[28,5,28,28,0],[29,6,29,13,0],[32,5,32,28,0],[33,5,33,23,0],[34,5,34,27,0],[35,4,35,5,0],[39,3,39,4,0],[40,4,40,27,0],[41,4,41,26,0],[42,3,42,4,0],[45,3,45,4,0],[46,4,46,32,0],[46,33,46,70,0],[47,4,47,29,0],[47,30,47,76,0],[48,3,48,4,0],[51,3,51,4,0],[52,4,52,28,0],[53,4,53,25,0],[54,3,54,4,0],[57,3,57,4,0],[58,4,58,65,0],[59,3,59,4,0],[61,44,61,45,0],[61,46,61,62,0],[61,63,61,64,0],[64,3,64,4,0],[65,4,65,57,0],[67,4,67,16,0],[68,3,68,4,0],[71,3,71,4,0],[72,4,72,65,0],[73,4,73,46,0],[74,4,74,45,0],[75,4,75,33,0],[76,3,76,4,0],[79,3,79,4,0],[80,4,80,28,0],[81,4,81,41,0],[83,4,83,37,0],[84,5,84,69,0],[87,9,87,18,0],[87,20,87,43,0],[87,45,87,48,0],[88,5,88,25,0],[90,4,90,27,0],[91,3,91,4,0],[94,3,94,4,0],[95,4,95,31,0],[96,5,96,18,0],[98,4,98,96,0],[99,4,99,47,0],[101,4,101,39,0],[102,4,102,5,0],[103,5,103,39,0],[104,5,104,6,0],[105,6,105,83,0],[106,6,106,48,0],[107,5,107,6,0],[109,5,109,6,0],[110,6,110,64,0],[111,6,111,35,0],[112,5,112,6,0],[113,4,113,5,0],[114,3,114,4,0],[117,3,117,4,0],[118,4,118,16,0],[119,5,119,12,0],[121,4,121,121,0],[122,4,122,5,0],[123,5,123,62,0],[125,4,125,5,0],[126,3,126,4,0],[129,3,129,4,0],[130,4,130,31,0],[131,5,131,34,0],[133,3,133,4,0],[135,41,135,47,0],[135,48,135,49,0],[135,50,135,63,0],[135,64,135,65,0],[136,145,136,199,0],[136,200,136,201,0],[136,202,136,215,0],[136,216,136,217,0],[137,94,137,126,0],[137,127,137,128,0],[137,129,137,142,0],[137,143,137,144,0]]);
+    </script>
+  </body>
+</html>

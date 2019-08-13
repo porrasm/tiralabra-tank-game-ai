@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\rpc.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+using BeardedManStudios.Source.Threading;
+using System;
+using System.Collections.Generic;
+
+namespace BeardedManStudios.Forge.Networking
+{
+	public class Rpc
+	{
+		public static IThreadRunner MainThreadRunner { get; set; }
+
+		public byte Id { get; private set; }
+
+		public int ArgumentCount { get; private set; }
+
+		private Action&lt;RpcArgs&gt; callback = null;
+		private Type[] argumentTypes = null;
+
+		public Rpc(Action&lt;RpcArgs&gt; callback, Type[] argumentTypes)
+		{
+			ArgumentCount = argumentTypes.Length;
+			this.callback = callback;
+			this.argumentTypes = argumentTypes;
+		}
+
+		public object[] ReadArgs(BMSByte data)
+		{
+			List&lt;object&gt; arguments = new List&lt;object&gt;();
+			foreach (Type t in argumentTypes)
+				arguments.Add(ObjectMapper.Instance.Map(t, data));
+
+			return arguments.ToArray();
+		}
+
+		public void Invoke(RpcArgs rpcArgs, bool skipMainThreadRunner = false)
+		{
+			if (MainThreadRunner != null &amp;&amp; !skipMainThreadRunner)
+				MainThreadRunner.Execute(() =&gt; { callback(rpcArgs); });
+			else
+				callback(rpcArgs);
+		}
+
+		public void ValidateParameters(object[] arguments)
+		{
+			if (arguments.Length != argumentTypes.Length)
+			{
+				string argTypes = &quot;&quot;;
+
+				for (int i = 0; i &lt; arguments.Length; i++)
+				{
+					if (!string.IsNullOrEmpty(argTypes))
+					{
+						argTypes += &quot;, &quot;;
+					}
+
+					argTypes += arguments[i].GetType();
+				}
+
+				throw new BaseNetworkException(&quot;There are &quot; + arguments.Length + &quot; supplied arguments, but this Rpc expects &quot; + argumentTypes.Length + &quot;. Args: &quot; + argTypes);
+			}
+
+			for (int i = 0; i &lt; arguments.Length; i++)
+			{
+				if (arguments[i].GetType() != argumentTypes[i])
+					throw new BaseNetworkException(&quot;The argument with index &quot; + i + &quot; was expected to be a &quot; + argumentTypes[i] + &quot; but got &quot; + arguments[i].GetType() + &quot; instead&quot;);
+			}
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[28,50,28,54,0],[28,55,28,59,0],[30,20,30,24,0],[30,25,30,37,0],[32,30,32,34,0],[32,35,32,47,0],[34,3,34,43,0],[35,3,35,39,0],[37,3,37,61,0],[38,3,38,4,0],[39,4,39,41,0],[40,4,40,29,0],[41,4,41,39,0],[42,3,42,4,0],[45,3,45,4,0],[46,4,46,48,0],[47,4,47,11,0],[47,13,47,19,0],[47,20,47,22,0],[47,23,47,36,0],[48,5,48,55,0],[50,4,50,31,0],[51,3,51,4,0],[54,3,54,4,0],[55,4,55,58,0],[56,5,56,36,0],[56,36,56,37,0],[56,37,56,38,0],[56,38,56,56,0],[56,56,56,57,0],[56,57,56,58,0],[56,58,56,60,0],[56,5,56,60,0],[58,5,58,23,0],[59,3,59,4,0],[62,3,62,4,0],[63,4,63,49,0],[64,4,64,5,0],[65,5,65,26,0],[67,10,67,19,0],[67,21,67,41,0],[67,43,67,46,0],[68,5,68,6,0],[69,6,69,42,0],[70,6,70,7,0],[71,7,71,24,0],[72,6,72,7,0],[74,6,74,41,0],[75,5,75,6,0],[77,5,77,163,0],[80,9,80,18,0],[80,20,80,40,0],[80,42,80,45,0],[81,4,81,5,0],[82,5,82,52,0],[83,6,83,167,0],[84,4,84,5,0],[85,3,85,4,0]]);
+    </script>
+  </body>
+</html>

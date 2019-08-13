@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\lifetime.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Lifetime : MonoBehaviour {
+
+    private float lifetime;
+
+    void Update() {
+        lifetime -= Time.deltaTime;
+
+        if (lifetime &lt;= 0) {
+            Destroy(gameObject);
+        }
+    }
+
+    public static void SetLifetime(GameObject g, float t) {
+        Lifetime l = g.AddComponent&lt;Lifetime&gt;();
+        l.lifetime = t;
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[9,19,9,20,0],[10,9,10,36,0],[12,9,12,27,0],[12,28,12,29,0],[13,13,13,33,0],[14,9,14,10,0],[15,5,15,6,0],[17,59,17,60,0],[18,9,18,49,0],[19,9,19,24,0],[20,5,20,6,0]]);
+    </script>
+  </body>
+</html>

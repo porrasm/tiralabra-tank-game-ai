@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\tools\tankpathvisualizer.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+public class TankPathVisualizer : MonoBehaviour {
+
+    #region fields
+    TankDFSPath dfs;
+    TankAStarPath aStar;
+    LineRenderer line;
+
+    private IntCoords start;
+
+    public byte[,] level;
+    #endregion
+
+    private void Init() {
+        dfs = new TankDFSPath(TankLevelGenerator.Instance.Level);
+        aStar = new TankAStarPath(TankLevelGenerator.Instance.Level);
+        line = GetComponent&lt;LineRenderer&gt;();
+    }
+
+    private void Update() {
+        if (Input.GetKeyDown(KeyCode.R)) {
+            dfs = null;
+        }
+        if (Input.GetKeyDown(KeyCode.T)) {
+            level = TankLevelGenerator.Instance.Level;
+            Init();
+        }
+        if (Input.GetKeyDown(KeyCode.X)) {
+
+            Debug.Log(&quot;Creating test level&quot;);
+
+            List&lt;TankLevelGenerator.Step&gt; steps = new List&lt;TankLevelGenerator.Step&gt;();
+
+            for (int x = 0; x &lt; 10; x++) {
+                for (int y = 0; y &lt; 10; y++) {
+                    TankLevelGenerator.Step step = new TankLevelGenerator.Step();
+                    step.Coords = new IntCoords(x, y);
+                    step.Wall = TankCell.CellWall.Both;
+                    steps.Add(step);
+                }
+            }
+
+            Debug.Log(&quot;Step count: &quot; + steps.Count);
+
+            TankMazeGenerator g = new TankMazeGenerator();
+            g.LevelFromSteps(out level, steps);
+
+            dfs = new TankDFSPath(level);
+            aStar = new TankAStarPath(level);
+            line = GetComponent&lt;LineRenderer&gt;();
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftShift)) {
+            Comparison();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            start = Vector.PositionToCoords(Vector.FromVector3(world));
+        }
+        if (Input.GetKeyDown(KeyCode.Mouse0)) {
+            UpdateRouteAStar();
+        }
+        if (Input.GetKey(KeyCode.Mouse1)) {
+            UpdateRouteDFS();
+        }
+
+        DrawLevel(level);
+    }
+
+    public void DrawLevel(byte[,] level) {
+
+        if (level == null) {
+            return;
+        }
+
+        for (int x = 0; x &lt; 10; x++) {
+            for (int y = 0; y &lt; 10; y++) {
+                DrawAvailable(new IntCoords(x, y), level[x, y]);
+            }
+        }
+
+    }
+    private void DrawAvailable(IntCoords coords, byte allowed) {
+
+        for (int i = 0; i &lt; 8; i++) {
+
+            TankDirection direction = (TankDirection)i;
+
+            if (TankDirectionTools.AllowedDirection(allowed, direction)) {
+                IntCoords newCoords = coords.MoveToDirection(direction);
+                DrawLine(coords, newCoords);
+            }
+        }
+
+    }
+    private void DrawLine(IntCoords a, IntCoords b) {
+        UnityEngine.Debug.DrawLine(Vector.ToVector3(Vector.CoordsToPosition(a)), Vector.ToVector3(Vector.CoordsToPosition(b)));
+    }
+
+    private void Comparison() {
+
+        IntCoords start = new IntCoords();
+
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+
+        for (int x = 1; x &lt; TankSettings.LevelWidth; x++) {
+            for (int y = 1; y &lt; TankSettings.LevelHeight; y++) {
+                dfs.FindPath(start, new IntCoords(x, y));
+            }
+        }
+
+        watch.Stop();
+
+        long elapsedDFS = watch.ElapsedMilliseconds;
+
+        print(&quot;For DFS it took &quot; + elapsedDFS + &quot; millisecond to complete&quot;);
+
+        watch = System.Diagnostics.Stopwatch.StartNew();
+        for (int x = 1; x &lt; TankSettings.LevelWidth; x++) {
+            for (int y = 1; y &lt; TankSettings.LevelHeight; y++) {
+                aStar.FindPath(start, new IntCoords(x, y));
+            }
+        }
+
+        watch.Stop();
+
+        long elapsedAStar = watch.ElapsedMilliseconds;
+
+        print(&quot;For A* it took &quot; + elapsedAStar + &quot; millisecond to complete&quot;);
+
+        print(&quot;A* / DFS = &quot; + (1.0 * elapsedAStar / elapsedDFS));
+        print(&quot;DFS / A* = &quot; + (1.0 * elapsedDFS / elapsedAStar));
+    }
+
+    private void UpdateRouteDFS() {
+
+        if (dfs == null) {
+            return;
+        }
+
+        IntCoords coords = MouseToCoords();
+        //StartCoroutine(dfs.DFSSearchSafe(new IntCoords(0, 0), coords));
+
+
+        DrawRoute(dfs.FindPath(start, coords));
+
+        //DrawRoute(route);
+    }
+    private void UpdateRouteAStar() {
+
+        if (aStar == null) {
+            return;
+        }
+
+        IntCoords coords = MouseToCoords();
+        //StartCoroutine(dfs.DFSSearchSafe(new IntCoords(0, 0), coords));
+
+        Vector[] route = aStar.FindPath(start, coords);
+
+        DrawRoute(route);
+
+        //DrawRoute(route);
+    }
+
+    private IntCoords MouseToCoords() {
+
+        Vector3 mouse = Input.mousePosition;
+        Vector3 world = Camera.main.ScreenToWorldPoint(mouse);
+
+        UnityEngine.Debug.DrawLine(Vector3.zero, world);
+
+        return Vector.PositionToCoords(Vector.FromVector3(world));
+    }
+
+    private Vector3[] RouteToPos(Stack&lt;IntCoords&gt; route) {
+
+        Vector3[] pos = new Vector3[route.Count];
+
+        for (int i = 0; i &lt; pos.Length; i++) {
+            pos[pos.Length - 1 - i] = Vector.ToVector3(Vector.CoordsToPosition(route.Pop()));
+        }
+
+        return pos;
+    }
+
+    public static void DrawRoute(Vector[] positions) {
+        DrawRoute(positions.Select(o =&gt; o.Vector3).ToArray());
+    }
+    public static void DrawRoute(Vector3[] positions) {
+        LineRenderer line = GameObject.FindGameObjectWithTag(&quot;Scripts&quot;).GetComponent&lt;LineRenderer&gt;();
+        if (line == null) {
+            return;
+        }
+
+        line.positionCount = positions.Length;
+        line.SetPositions(positions);
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,25,18,26,0],[19,9,19,57,0],[20,9,20,61,0],[21,9,21,45,0],[22,5,22,6,0],[24,27,24,28,0],[25,9,25,41,0],[25,42,25,43,0],[26,13,26,24,0],[27,9,27,10,0],[28,9,28,41,0],[28,42,28,43,0],[29,13,29,46,0],[30,13,30,20,0],[31,9,31,10,0],[32,9,32,41,0],[32,42,32,43,0],[34,13,34,46,0],[36,13,36,87,0],[38,18,38,27,0],[38,29,38,35,0],[38,37,38,40,0],[38,42,38,43,0],[39,22,39,31,0],[39,33,39,39,0],[39,41,39,44,0],[39,46,39,47,0],[40,21,40,82,0],[41,21,41,55,0],[42,21,42,56,0],[43,21,43,37,0],[44,17,44,18,0],[45,13,45,14,0],[47,13,47,53,0],[49,13,49,59,0],[50,13,50,48,0],[52,13,52,42,0],[53,13,53,46,0],[54,13,54,49,0],[55,9,55,10,0],[57,9,57,49,0],[57,50,57,51,0],[58,13,58,26,0],[59,9,59,10,0],[61,9,61,45,0],[61,46,61,47,0],[62,13,62,81,0],[63,13,63,72,0],[64,9,64,10,0],[65,9,65,46,0],[65,47,65,48,0],[66,13,66,32,0],[67,9,67,10,0],[68,9,68,42,0],[68,43,68,44,0],[69,13,69,30,0],[70,9,70,10,0],[72,9,72,26,0],[73,5,73,6,0],[75,42,75,43,0],[77,9,77,27,0],[77,28,77,29,0],[78,13,78,20,0],[81,14,81,23,0],[81,25,81,31,0],[81,33,81,36,0],[81,38,81,39,0],[82,18,82,27,0],[82,29,82,35,0],[82,37,82,40,0],[82,42,82,43,0],[83,17,83,65,0],[84,13,84,14,0],[85,9,85,10,0],[87,5,87,6,0],[88,64,88,65,0],[90,14,90,23,0],[90,25,90,30,0],[90,32,90,35,0],[90,37,90,38,0],[92,13,92,56,0],[94,13,94,73,0],[94,74,94,75,0],[95,17,95,73,0],[96,17,96,45,0],[97,13,97,14,0],[98,9,98,10,0],[100,5,100,6,0],[101,53,101,54,0],[102,9,102,128,0],[103,5,103,6,0],[105,31,105,32,0],[107,9,107,43,0],[109,9,109,61,0],[111,14,111,23,0],[111,25,111,52,0],[111,54,111,57,0],[111,59,111,60,0],[112,18,112,27,0],[112,29,112,57,0],[112,59,112,62,0],[112,64,112,65,0],[113,17,113,58,0],[114,13,114,14,0],[115,9,115,10,0],[117,9,117,22,0],[119,9,119,53,0],[121,9,121,77,0],[123,9,123,57,0],[124,14,124,23,0],[124,25,124,52,0],[124,54,124,57,0],[124,59,124,60,0],[125,18,125,27,0],[125,29,125,57,0],[125,59,125,62,0],[125,64,125,65,0],[126,17,126,60,0],[127,13,127,14,0],[128,9,128,10,0],[130,9,130,22,0],[132,9,132,55,0],[134,9,134,78,0],[136,9,136,66,0],[137,9,137,66,0],[138,5,138,6,0],[140,35,140,36,0],[142,9,142,25,0],[142,26,142,27,0],[143,13,143,20,0],[146,9,146,44,0],[150,9,150,48,0],[153,5,153,6,0],[154,37,154,38,0],[156,9,156,27,0],[156,28,156,29,0],[157,13,157,20,0],[160,9,160,44,0],[163,9,163,56,0],[165,9,165,26,0],[168,5,168,6,0],[170,39,170,40,0],[172,9,172,45,0],[173,9,173,63,0],[175,9,175,57,0],[177,9,177,67,0],[178,5,178,6,0],[180,58,180,59,0],[182,9,182,50,0],[184,14,184,23,0],[184,25,184,39,0],[184,41,184,44,0],[184,46,184,47,0],[185,13,185,94,0],[186,9,186,10,0],[188,9,188,20,0],[189,5,189,6,0],[191,54,191,55,0],[192,9,192,41,0],[192,41,192,50,0],[192,50,192,63,0],[192,9,192,63,0],[193,5,193,6,0],[194,55,194,56,0],[195,9,195,102,0],[196,9,196,26,0],[196,27,196,28,0],[197,13,197,20,0],[200,9,200,47,0],[201,9,201,38,0],[202,5,202,6,0]]);
+    </script>
+  </body>
+</html>

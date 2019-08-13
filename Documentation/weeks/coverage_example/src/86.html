@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\colors.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Colors {
+
+    public static Color GetBasicColor(PlayerColor pcolor) {
+        return GetBasicColor(pcolor, 255);
+    }
+
+    public static Color GetBasicColor(PlayerColor pcolor, byte alpha) {
+
+        Color32 color = new Color32(0, 0, 0, alpha);
+
+        switch (pcolor) {
+            case PlayerColor.Black:
+                color = new Color32(16, 16, 16, alpha);
+                break;
+            case PlayerColor.Red:
+                color = new Color32(255, 46, 25, alpha);
+                break;
+            case PlayerColor.Green:
+                color = new Color32(41, 218, 32, alpha);
+                break;
+            case PlayerColor.Blue:
+                color = new Color32(0, 119, 255, alpha);
+                break;
+            case PlayerColor.Cyan:
+                color = new Color32(73, 225, 255, alpha);
+                break;
+            case PlayerColor.Purple:
+                color = new Color32(185, 33, 235, alpha);
+                break;
+            case PlayerColor.Magenta:
+                color = new Color32(255, 91, 240, alpha);
+                break;
+            case PlayerColor.Orange:
+                color = new Color32(255, 139, 0, alpha);
+                break;
+            case PlayerColor.Yellow:
+                color = new Color32(255, 255, 76, alpha);
+                break;
+        }
+
+        return color;
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[7,59,7,60,0],[8,9,8,43,0],[9,5,9,6,0],[11,71,11,72,0],[13,9,13,53,0],[15,9,15,24,0],[17,17,17,56,0],[18,17,18,23,0],[20,17,20,57,0],[21,17,21,23,0],[23,17,23,57,0],[24,17,24,23,0],[26,17,26,57,0],[27,17,27,23,0],[29,17,29,58,0],[30,17,30,23,0],[32,17,32,58,0],[33,17,33,23,0],[35,17,35,58,0],[36,17,36,23,0],[38,17,38,57,0],[39,17,39,23,0],[41,17,41,58,0],[42,17,42,23,0],[45,9,45,22,0],[46,5,46,6,0]]);
+    </script>
+  </body>
+</html>

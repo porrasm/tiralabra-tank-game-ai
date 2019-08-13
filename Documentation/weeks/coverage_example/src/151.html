@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\networking\player.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using BeardedManStudios.Forge.Networking;
+using BeardedManStudios.Forge.Networking.Generated;
+using BeardedManStudios.Forge.Networking.Unity;
+using System.Linq;
+using UnityEngine;
+
+public class Player : ClientBehavior {
+
+    #region fields
+    [SerializeField]
+    private bool local;
+    [SerializeField]
+    private bool ai;
+
+    private string playerName;
+    private int score;
+
+    private uint networkPlayerID = uint.MaxValue;
+    public int ID { get; set; }
+    public PlayerColor Color { get; set; }
+    public string Name {
+        get {
+            if (playerName == null) {
+                return &quot;&quot;;
+            } else {
+                return playerName;
+            }
+        }
+        set {
+            playerName = value;
+        }
+    } 
+    public int Score {
+        get {
+            if (networkObject.IsServer) {
+                return score;
+            } else {
+                score = networkObject.Score;
+                return score;
+            }
+        } set {
+            if (networkObject.IsServer) {
+                score = value;
+                networkObject.Score = score;
+            } 
+        } }
+    public byte Ready { get; set; }
+    public bool Primary { get { return ID == 0; } }
+
+    public NetworkingPlayer NetPlayer { get; set; }
+    public bool Local { get =&gt; local; set {
+            if (Server.Networker.IsServer) {
+                local = value;
+            } else {
+                Debug.LogError(&quot;Setting local failed&quot;);
+            }
+        } }
+    public bool AI { get =&gt; ai; set {
+            if (Server.Networker.IsServer) {
+                ai = value;
+            }
+        } }
+    #endregion
+
+    #region Initialization
+    protected override void NetworkStart() {
+        base.NetworkStart();
+
+        InitializeClient();
+    }
+
+    private void Start() {
+        transform.SetParent(GameObject.FindGameObjectWithTag(&quot;Players&quot;).transform);
+    }
+    
+    public static void CreateNewClient() {
+        NetworkManager.Instance.InstantiateClient();
+    }
+    public static void CreateNewAI() {
+        ClientBehavior beh = NetworkManager.Instance.InstantiateClient();
+    }
+    public static void CreateNewLocalPlayer() {
+
+    }
+
+    public void InitializeClient() {
+
+        networkPlayerID = networkObject.MyPlayerId;
+
+        if (!Server.Networker.IsServer) {
+            networkObject.SendRpc(RPC_SET_NETWORK_PLAYER_I_D_R_P_C, Receivers.All, networkObject.MyPlayerId);
+            return;
+        }
+
+        Scripts.GetScriptComponent&lt;ClientManager&gt;().AddPlayer(this);
+
+        UpdateClient();
+    }
+    #endregion
+
+    public void UpdateClient() {
+        if (!networkObject.IsOwner &amp;&amp; !Server.Networker.IsServer) {
+            print(&quot;Was not server or owner&quot;);
+            return;
+        }
+
+        networkObject.SendRpc(RPC_UPDATE_CLIENT_RPC, Receivers.AllBuffered, (byte)ID, (byte)Color, Name, Ready);
+    }
+    public void ToggleColor() {
+        networkObject.SendRpc(RPC_TOGGLE_COLOR_RPC, Receivers.AllBuffered);
+    }
+    public void ChangeName(string name) {
+        if (!networkObject.IsOwner &amp;&amp; !Server.Networker.IsServer) {
+            print(&quot;Was not server or owner&quot;);
+            return;
+        }
+
+        networkObject.SendRpc(RPC_CHANGE_NAME_RPC, Receivers.AllBuffered, name);
+    }
+
+    #region RPCs
+    public override void UpdateClientRpc(RpcArgs args) {
+
+        ID = args.GetAt&lt;byte&gt;(0);
+        Color = (PlayerColor)args.GetAt&lt;byte&gt;(1);
+        Name = args.GetAt&lt;string&gt;(2);
+        Ready = args.GetAt&lt;byte&gt;(3);
+
+
+        // If byte value is 2, the game will start
+        if (networkObject.IsServer) {
+            if (Ready == 2) {
+                GameManager.StartGame();
+            }
+        }
+    }
+    public override void ToggleColorRpc(RpcArgs args) {
+
+        if (!networkObject.IsServer) {
+            return;
+        }
+
+        Color = Scripts.GetScriptComponent&lt;ClientManager&gt;().GetNextFreeColor(Color);
+        UpdateClient();
+    }
+    public override void ChangeNameRpc(RpcArgs args) {
+
+        if (!networkObject.IsServer) {
+            return;
+        }
+
+        string name = args.GetAt&lt;string&gt;(0);
+
+        Name = Scripts.GetScriptComponent&lt;ClientManager&gt;().GetFreeName(name);
+        UpdateClient();
+    }
+    public override void SetNetworkPlayerIDRPC(RpcArgs args) {
+        networkPlayerID = args.GetNext&lt;uint&gt;();
+    }
+    #endregion
+
+    #region tools
+    public static bool Matches(Player a, Player b) {
+
+        if (a == null &amp;&amp; b == null) {
+            return true;
+        } else if (a != null &amp;&amp; b != null) {
+            return a.Matches(b);
+        }
+
+        return false;
+    }
+    public bool Matches(Player other) {
+
+        if (other == null) {
+            return false;
+        }
+
+        bool names = Name.Equals(other.Name);
+        bool ids = ID == other.ID;
+        bool color = Color == other.Color;
+
+        return names &amp;&amp; ids &amp;&amp; color;
+    }
+
+    public override string ToString() {
+        return &quot;Player &quot; + ID + &quot;, Name: &quot; + Name + &quot;, Color: &quot; + Color;
+    }
+
+    public static Player MyPlayer() {
+        GameObject parent = GameObject.FindGameObjectWithTag(&quot;Players&quot;);
+
+        foreach (Transform child in parent.transform) {
+            Player p = child.GetComponent&lt;Player&gt;();
+
+            if (p.networkObject.IsOwner) {
+                return p;
+            } else if (p.local) {
+                return p;
+            }
+        }
+
+        return null;
+    }
+    public static Player MyPlayer(uint networkPlayerID) {
+        GameObject parent = GameObject.FindGameObjectWithTag(&quot;Players&quot;);
+
+        foreach (Transform child in parent.transform) {
+            Player p = child.GetComponent&lt;Player&gt;();
+
+            if (p.networkPlayerID == networkPlayerID) {
+                return p;
+            }
+        }
+
+        return null;
+    }
+    public static Player PlayerByID(int id) {
+        GameObject parent = GameObject.FindGameObjectWithTag(&quot;Players&quot;);
+
+        foreach (Transform child in parent.transform) {
+            Player p = child.GetComponent&lt;Player&gt;();
+
+            if (p.ID == id) {
+                return p;
+            }
+        }
+
+        return null;
+    }
+    #endregion
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,5,18,50,0],[19,21,19,25,0],[19,26,19,30,0],[20,32,20,36,0],[20,37,20,41,0],[22,13,22,14,0],[23,13,23,36,0],[23,37,23,38,0],[24,17,24,27,0],[25,20,25,21,0],[26,17,26,35,0],[28,9,28,10,0],[29,13,29,14,0],[30,13,30,32,0],[31,9,31,10,0],[34,13,34,14,0],[35,13,35,40,0],[35,41,35,42,0],[36,17,36,30,0],[37,20,37,21,0],[38,17,38,45,0],[39,17,39,30,0],[41,9,41,10,0],[41,15,41,16,0],[42,13,42,40,0],[42,41,42,42,0],[43,17,43,31,0],[44,17,44,45,0],[45,13,45,14,0],[46,9,46,10,0],[47,25,47,29,0],[47,30,47,34,0],[48,31,48,32,0],[48,33,48,48,0],[48,49,48,50,0],[50,41,50,45,0],[50,46,50,50,0],[51,32,51,37,0],[51,43,51,44,0],[52,13,52,43,0],[52,44,52,45,0],[53,17,53,31,0],[54,13,54,14,0],[54,20,54,21,0],[55,17,55,56,0],[56,13,56,14,0],[57,9,57,10,0],[58,29,58,31,0],[58,37,58,38,0],[59,13,59,43,0],[59,44,59,45,0],[60,17,60,28,0],[61,13,61,14,0],[62,9,62,10,0],[66,44,66,45,0],[67,9,67,29,0],[69,9,69,28,0],[70,5,70,6,0],[72,26,72,27,0],[73,9,73,84,0],[74,5,74,6,0],[76,42,76,43,0],[77,9,77,53,0],[78,5,78,6,0],[79,38,79,39,0],[80,9,80,74,0],[81,5,81,6,0],[82,47,82,48,0],[84,5,84,6,0],[86,36,86,37,0],[88,9,88,52,0],[90,9,90,40,0],[90,41,90,42,0],[91,13,91,110,0],[92,13,92,20,0],[95,9,95,69,0],[97,9,97,24,0],[98,5,98,6,0],[101,32,101,33,0],[102,9,102,66,0],[102,67,102,68,0],[103,13,103,46,0],[104,13,104,20,0],[107,9,107,113,0],[108,5,108,6,0],[109,31,109,32,0],[110,9,110,76,0],[111,5,111,6,0],[112,41,112,42,0],[113,9,113,66,0],[113,67,113,68,0],[114,13,114,46,0],[115,13,115,20,0],[118,9,118,81,0],[119,5,119,6,0],[122,56,122,57,0],[124,9,124,34,0],[125,9,125,50,0],[126,9,126,38,0],[127,9,127,37,0],[131,9,131,36,0],[131,37,131,38,0],[132,13,132,28,0],[132,29,132,30,0],[133,17,133,41,0],[134,13,134,14,0],[135,9,135,10,0],[136,5,136,6,0],[137,55,137,56,0],[139,9,139,37,0],[139,38,139,39,0],[140,13,140,20,0],[143,9,143,85,0],[144,9,144,24,0],[145,5,145,6,0],[146,54,146,55,0],[148,9,148,37,0],[148,38,148,39,0],[149,13,149,20,0],[152,9,152,45,0],[154,9,154,78,0],[155,9,155,24,0],[156,5,156,6,0],[157,62,157,63,0],[158,9,158,48,0],[159,5,159,6,0],[163,52,163,53,0],[165,9,165,36,0],[165,37,165,38,0],[166,13,166,25,0],[167,16,167,43,0],[167,44,167,45,0],[168,13,168,33,0],[171,9,171,22,0],[172,5,172,6,0],[173,39,173,40,0],[175,9,175,27,0],[175,28,175,29,0],[176,13,176,26,0],[179,9,179,46,0],[180,9,180,35,0],[181,9,181,43,0],[183,9,183,38,0],[184,5,184,6,0],[186,39,186,40,0],[187,9,187,73,0],[188,5,188,6,0],[190,37,190,38,0],[191,9,191,73,0],[193,9,193,16,0],[193,18,193,33,0],[193,34,193,36,0],[193,37,193,53,0],[193,55,193,56,0],[194,13,194,53,0],[196,13,196,41,0],[196,42,196,43,0],[197,17,197,26,0],[198,20,198,32,0],[198,33,198,34,0],[199,17,199,26,0],[201,9,201,10,0],[203,9,203,21,0],[204,5,204,6,0],[205,57,205,58,0],[206,9,206,73,0],[208,9,208,16,0],[208,18,208,33,0],[208,34,208,36,0],[208,37,208,53,0],[208,55,208,56,0],[209,13,209,53,0],[211,13,211,54,0],[211,55,211,56,0],[212,17,212,26,0],[214,9,214,10,0],[216,9,216,21,0],[217,5,217,6,0],[218,45,218,46,0],[219,9,219,73,0],[221,9,221,16,0],[221,18,221,33,0],[221,34,221,36,0],[221,37,221,53,0],[221,55,221,56,0],[222,13,222,53,0],[224,13,224,28,0],[224,29,224,30,0],[225,17,225,26,0],[227,9,227,10,0],[229,9,229,21,0],[230,5,230,6,0]]);
+    </script>
+  </body>
+</html>

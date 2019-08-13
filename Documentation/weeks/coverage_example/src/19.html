@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\tankevents.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TankEvents : MonoBehaviour {
+
+    #region fields
+    private static TankEvents instance;
+
+    public enum EventType { BulletEvent }
+
+    public delegate void VoidEvent();
+    private VoidEvent bulletEvents;
+    #endregion
+
+    public void UnsubscribeFromEvent(VoidEvent e, EventType type) {
+        AddOrRemoveEvent(e, type, false);
+    }
+    public void SubscribeToEvent(VoidEvent e, EventType type) {
+        AddOrRemoveEvent(e, type, false);
+        AddOrRemoveEvent(e, type, true);
+    }
+    private void AddOrRemoveEvent(VoidEvent e, EventType type, bool add) {
+        switch (type) {
+            case EventType.BulletEvent:
+                if (add) {
+                    bulletEvents += e;
+                } else {
+                    bulletEvents -= e;
+                }
+                break;
+        }
+    }
+
+    public void CallEvent(EventType type) {
+
+        print(&quot;Call event&quot;);
+
+        switch (type) {
+            case EventType.BulletEvent:
+                print(&quot;Call event: &quot; + type + &quot;, &quot; + bulletEvents);
+                bulletEvents?.Invoke();
+                break;
+        }
+    }
+
+    public static TankEvents Instance {
+        get {
+            if (instance == null) {
+                instance = Scripts.GetScriptComponent&lt;TankEvents&gt;();
+            }
+
+            return instance;
+        }
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[16,67,16,68,0],[17,9,17,42,0],[18,5,18,6,0],[19,63,19,64,0],[20,9,20,42,0],[21,9,21,41,0],[22,5,22,6,0],[23,74,23,75,0],[24,9,24,22,0],[26,17,26,25,0],[26,26,26,27,0],[27,21,27,39,0],[28,17,28,18,0],[28,24,28,25,0],[29,21,29,39,0],[30,17,30,18,0],[31,17,31,23,0],[33,5,33,6,0],[35,43,35,44,0],[37,9,37,29,0],[39,9,39,22,0],[41,17,41,68,0],[42,17,42,40,0],[43,17,43,23,0],[45,5,45,6,0],[48,13,48,14,0],[49,13,49,34,0],[49,35,49,36,0],[50,17,50,69,0],[51,13,51,14,0],[53,13,53,29,0],[54,9,54,10,0]]);
+    </script>
+  </body>
+</html>

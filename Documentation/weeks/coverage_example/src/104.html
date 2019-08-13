@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\collidercallback.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ColliderCallback : MonoBehaviour {
+
+    public delegate void CollisionCallback(GameObject obj, Collision collision);
+    public delegate void TriggerCallback(GameObject obj, Collider collider);
+    private CollisionCallback collisions;
+    private TriggerCallback tEnter;
+    private TriggerCallback tExit;
+
+    public void AddCollisionCallback(CollisionCallback callback) {
+        collisions += callback;
+    }
+
+    public void AddTriggerEnterCallback(TriggerCallback callback) {
+        tEnter += callback;
+    }
+
+    public void AddTriggerExitCallback(TriggerCallback callback) {
+        tExit += callback;
+    }
+
+    private void OnCollisionEnter(Collision collision) {
+
+        if (collisions == null) {
+            return;
+        }
+
+        collisions(gameObject, collision);
+    }
+    private void OnTriggerEnter(Collider collider) {
+
+        if (tEnter == null) {
+            return;
+        }
+
+        tEnter(gameObject, collider);
+    }
+    private void OnTriggerExit(Collider collider) {
+
+        if (tExit == null) {
+            return;
+        }
+
+        tExit(gameObject, collider);
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[13,66,13,67,0],[14,9,14,32,0],[15,5,15,6,0],[17,67,17,68,0],[18,9,18,28,0],[19,5,19,6,0],[21,66,21,67,0],[22,9,22,27,0],[23,5,23,6,0],[25,56,25,57,0],[27,9,27,32,0],[27,33,27,34,0],[28,13,28,20,0],[31,9,31,43,0],[32,5,32,6,0],[33,52,33,53,0],[35,9,35,28,0],[35,29,35,30,0],[36,13,36,20,0],[39,9,39,38,0],[40,5,40,6,0],[41,51,41,52,0],[43,9,43,27,0],[43,28,43,29,0],[44,13,44,20,0],[47,9,47,37,0],[48,5,48,6,0]]);
+    </script>
+  </body>
+</html>

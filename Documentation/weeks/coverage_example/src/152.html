@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\interpolatequaternion.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+------------------------------\
+|                                                             |
+|                        !!!NOTICE!!!                         |
+|                                                             |
+|  These libraries are under heavy development so they are    |
+|  subject to make many changes as development continues.     |
+|  For this reason, the libraries may not be well commented.  |
+|  THANK YOU for supporting forge with all your feedback      |
+|  suggestions, bug reports and comments!                     |
+|                                                             |
+|                               - The Forge Team              |
+|                                 Bearded Man Studios, Inc.   |
+|                                                             |
+|  This source code, project files, and associated files are  |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2015) and   |
+|  may not be redistributed without written permission.       |
+|                                                             |
+\------------------------------+-----------------------------*/
+
+
+
+using UnityEngine;
+
+namespace BeardedManStudios.Forge.Networking.Unity
+{
+	public struct InterpolateQuaternion : IInterpolator&lt;Quaternion&gt;
+	{
+		public Quaternion current;
+		public Quaternion target;
+		public float LerpT { get; set; }
+		public bool Enabled { get; set; }
+		public ulong Timestep { get; set; }
+
+		public Quaternion Interpolate()
+		{
+			if (!Enabled) return target;
+
+			current = Quaternion.Slerp(current, target, LerpT);
+			return current;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[30,24,30,28,0],[30,29,30,33,0],[31,25,31,29,0],[31,30,31,34,0],[32,27,32,31,0],[32,32,32,36,0],[35,3,35,4,0],[36,4,36,17,0],[36,18,36,32,0],[38,4,38,55,0],[39,4,39,19,0],[40,3,40,4,0]]);
+    </script>
+  </body>
+</html>

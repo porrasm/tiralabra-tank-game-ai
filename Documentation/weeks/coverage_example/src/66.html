@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\udpgroupids.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+using System.Collections.Generic;
+
+namespace BeardedManStudios.Forge.Networking
+{
+	public static class MessageGroupIds
+	{
+		private static int groupId = START_OF_GENERIC_IDS;
+		public static Dictionary&lt;string, int&gt; groupIdLookup = new Dictionary&lt;string, int&gt;();
+
+		public static int GetId(string key)
+		{
+			if (!groupIdLookup.ContainsKey(key))
+				groupIdLookup.Add(key, ++groupId);
+
+			return groupIdLookup[key];
+		}
+
+		public const int TCP_FIND_GROUP_ID = 0;
+		public const int NETWORK_ID_REQUEST = 1;
+		public const int NETWORK_OBJECT_RPC = 2;
+		public const int CREATE_NETWORK_OBJECT_REQUEST = 3;
+		public const int NAT_SERVER_CONNECT = 4;
+		public const int NAT_SERVER_REGISTER = 5;
+		public const int NAT_ROUTE_REQUEST = 6;
+		public const int MAX_CONNECTIONS = 7;
+		public const int DISCONNECT = 8;
+		public const int MASTER_SERVER_REGISTER = 9;
+		public const int MASTER_SERVER_UPDATE = 10;
+		public const int MASTER_SERVER_GET = 11;
+		public const int PING = 12;
+		public const int PONG = 13;
+		public const int VOIP = 14;
+		public const int CACHE = 15;
+		public const int VIEW_INITIALIZE = 16;
+		public const int VIEW_CHANGE = 17;
+		public const int NOT_ACCEPT_CONNECTIONS = 18;
+        public const int AUTHENTICATION_CHALLENGE = 19;
+        public const int AUTHENTICATION_RESPONSE = 20;
+        public const int AUTHENTICATION_FAILURE = 21;
+
+        public const int START_OF_GENERIC_IDS = 10000;
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,3,26,53,0],[27,3,27,87,0],[30,3,30,4,0],[31,4,31,40,0],[32,5,32,39,0],[34,4,34,30,0],[35,3,35,4,0]]);
+    </script>
+  </body>
+</html>

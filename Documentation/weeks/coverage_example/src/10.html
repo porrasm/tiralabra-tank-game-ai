@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\localnetworkscanning.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Net;
+using System.Net.Sockets;
+
+namespace BeardedManStudios.Source.Forge.Networking
+{
+    public static class LocalNetworkScanning
+    {
+        /// &lt;summary&gt;
+		/// Get the local Ip address
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;The Local Ip Address&lt;/returns&gt;
+		public static string GetLocalIPAddress()
+        {
+            IPHostEntry host;
+            string localIP = &quot;&quot;;
+            host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (IPAddress ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork &amp;&amp; IsPrivateIP(ip)) // JM: check for all local ranges
+                {
+                    localIP = ip.ToString();
+                    break;
+                }
+            }
+
+            return localIP;
+        }
+
+        private static bool IsPrivateIP(IPAddress myIPAddress)
+        {
+            if (myIPAddress.AddressFamily == AddressFamily.InterNetwork)
+            {
+                byte[] ipBytes = myIPAddress.GetAddressBytes();
+
+                // 10.0.0.0/24 
+                if (ipBytes[0] == 10)
+                {
+                    return true;
+                }
+                // 172.16.0.0/16
+                else if (ipBytes[0] == 172 &amp;&amp; ipBytes[1] &gt;= 16 &amp;&amp; ipBytes[1] &lt;= 31)
+                {
+                    return true;
+                }
+                // 192.168.0.0/16
+                else if (ipBytes[0] == 192 &amp;&amp; ipBytes[1] == 168)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[13,9,13,10,0],[15,13,15,33,0],[16,13,16,56,0],[17,13,17,20,0],[17,22,17,34,0],[17,35,17,37,0],[17,38,17,54,0],[18,13,18,14,0],[19,17,19,87,0],[20,17,20,18,0],[21,21,21,45,0],[22,21,22,27,0],[24,13,24,14,0],[26,13,26,28,0],[27,9,27,10,0],[30,9,30,10,0],[31,13,31,73,0],[32,13,32,14,0],[33,17,33,64,0],[36,17,36,38,0],[37,17,37,18,0],[38,21,38,33,0],[41,22,41,84,0],[42,17,42,18,0],[43,21,43,33,0],[46,22,46,65,0],[47,17,47,18,0],[48,21,48,33,0],[50,13,50,14,0],[52,13,52,26,0],[53,9,53,10,0]]);
+    </script>
+  </body>
+</html>

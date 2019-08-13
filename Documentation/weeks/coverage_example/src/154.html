@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\tcpmasterclient.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+using System;
+using System.Threading;
+
+namespace BeardedManStudios.Forge.Networking
+{
+	/// &lt;summary&gt;
+	/// The purpose of this master client is for the master server to register
+	/// &lt;/summary&gt;
+	public class TCPMasterClient : TCPClient
+	{
+		protected override void Initialize(string host, ushort port, bool pendCreates = false)
+		{
+            base.Initialize(host, port, pendCreates);
+            base.InitializeTCPClient(host, port);
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[31,3,31,4,0],[32,13,32,54,0],[33,13,33,50,0],[34,3,34,4,0]]);
+    </script>
+  </body>
+</html>

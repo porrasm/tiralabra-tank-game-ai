@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\tankastarpath.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TankAStarPath : TankAIPathfinding {
+
+    #region fields
+    private Node[,] nodes;
+    private double cost, costDiag;
+
+    private IntCoords start;
+    private IntCoords end;
+
+    LinkedPriorityList&lt;Node&gt; open;
+    // Replace
+    HashSet&lt;IntCoords&gt; closed;
+
+    private class Node {
+
+        public Node(IntCoords coords, double cost) {
+            this.Coords = coords;
+            G = cost;
+        }
+
+        public Node prev;
+        public IntCoords Coords { get; private set; }
+        public double G { get; set; }
+
+
+        public double F(IntCoords end) {
+            return G + Coords.Distance(end);
+        }
+
+        public override bool Equals(object obj) {
+            if (obj.GetType() == GetType()) {
+                return Coords == ((Node)obj).Coords;
+            }
+            return false;
+        }
+        public override int GetHashCode() {
+            return Coords.GetHashCode();
+        }
+    }
+    #endregion
+
+    public TankAStarPath(byte[,] level) :base(level) {
+        cost = 1;
+        costDiag = Maths.Sqrt(2);
+    }
+
+    
+    public override Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
+
+        this.start = start;
+        this.end = end;
+
+        open = new LinkedPriorityList&lt;Node&gt;();
+        // Replace
+        closed = new HashSet&lt;IntCoords&gt;();
+
+        Node n = new Node(start, 0);
+        open.Add(n, n.F(end));
+
+        while (open.Count &gt; 0) {
+
+            n = open.Remove();
+
+            if (foundCondition(n.Coords)) {
+                return NodeToPath(n);
+            }
+
+            closed.Add(n.Coords);
+
+            byte allowed = level[n.Coords.x, n.Coords.y];
+            for (int i = 0; i &lt; 8; i++) {
+
+                Node neighbour = GetChild(n, allowed, i);
+
+                if (neighbour == null) {
+                    continue;
+                }
+
+                double tentative_gScore = n.G + DirCost(i);
+
+                if (tentative_gScore &lt; neighbour.G) {
+                    neighbour.prev = n;
+                    neighbour.G = tentative_gScore;
+                }
+            }
+        }
+
+        return NodeToPath(n);
+    }
+
+    private Node GetChild(Node n, byte allowed, int i) {
+
+        TankDirection d = (TankDirection)i;
+
+        if (!TankDirectionTools.AllowedDirection(allowed, d)) {
+            return null;
+        }
+
+        double cost = DirCost(i);
+
+        IntCoords newCoords = n.Coords.MoveToDirection(d);
+
+        if (closed.Contains(newCoords)) {
+            return null;
+        }
+
+        Node newNode = open.Find(new Node(newCoords, 0));
+
+        if (newNode != null) {
+            return newNode;
+        }
+
+        newNode = new Node(newCoords, double.PositiveInfinity);
+        newNode.prev = n;
+        open.Add(newNode, newNode.F(end));
+
+        return newNode;
+    }
+    private double DirCost(int i) {
+        if (i &gt; 3) {
+            return costDiag;
+        }
+        return cost;
+    }
+
+    // Improve
+    private Vector[] NodeToPath(Node node) {
+
+        int count = 0;
+
+        Node n = node;
+
+        while (n.prev != null) {
+            count++;
+            n = n.prev;
+        }
+
+        Vector[] route = new Vector[count+1];
+
+        for (int i = count; i &gt; 0; i--) {
+            route[i] = Vector.CoordsToPosition(node.Coords);
+            node = node.prev;
+        }
+        route[0] = Vector.CoordsToPosition(start);
+
+        return route;
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[20,9,20,51,1],[20,52,20,53,1],[21,13,21,34,1],[22,13,22,22,1],[23,9,23,10,1],[26,35,26,39,1],[26,40,26,52,1],[27,27,27,31,1],[27,32,27,36,1],[30,40,30,41,1],[31,13,31,45,1],[32,9,32,10,1],[34,49,34,50,1],[35,13,35,44,1],[35,45,35,46,1],[36,17,36,53,1],[38,13,38,26,0],[39,9,39,10,1],[40,43,40,44,0],[41,13,41,41,0],[42,9,42,10,0],[46,42,46,53,1],[46,54,46,55,1],[47,9,47,18,1],[48,9,48,34,1],[49,5,49,6,1],[52,102,52,103,1],[54,9,54,28,1],[55,9,55,24,1],[57,9,57,47,1],[59,9,59,43,1],[61,9,61,37,1],[62,9,62,31,1],[64,9,64,31,1],[64,32,64,33,1],[66,13,66,31,1],[68,13,68,42,1],[68,43,68,44,1],[69,17,69,38,1],[72,13,72,34,1],[74,13,74,58,1],[75,18,75,27,1],[75,29,75,34,1],[75,36,75,39,1],[75,41,75,42,1],[77,17,77,58,1],[79,17,79,39,1],[79,40,79,41,1],[80,21,80,30,1],[83,17,83,60,1],[85,17,85,52,1],[85,53,85,54,1],[86,21,86,40,1],[87,21,87,52,1],[88,17,88,18,1],[89,13,89,14,1],[90,9,90,10,1],[92,9,92,30,0],[93,5,93,6,1],[95,56,95,57,1],[97,9,97,44,1],[99,9,99,62,1],[99,63,99,64,1],[100,13,100,25,1],[103,9,103,34,1],[105,9,105,59,1],[107,9,107,40,1],[107,41,107,42,1],[108,13,108,25,1],[111,9,111,58,1],[113,9,113,29,1],[113,30,113,31,1],[114,13,114,28,1],[117,9,117,64,1],[118,9,118,26,1],[119,9,119,43,1],[121,9,121,24,1],[122,5,122,6,1],[123,35,123,36,1],[124,9,124,19,1],[124,20,124,21,1],[125,13,125,29,1],[127,9,127,21,1],[128,5,128,6,1],[131,44,131,45,1],[133,9,133,23,1],[135,9,135,23,1],[137,9,137,31,1],[137,32,137,33,1],[138,13,138,21,1],[139,13,139,24,1],[140,9,140,10,1],[142,9,142,46,1],[144,14,144,27,1],[144,29,144,34,1],[144,36,144,39,1],[144,41,144,42,1],[145,13,145,61,1],[146,13,146,30,1],[147,9,147,10,1],[148,9,148,51,1],[150,9,150,22,1],[151,5,151,6,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\powerups\tankpowerup_multiball.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+class TankPowerup_MultiBall : TankPowerup {
+
+    private int bounces = 8;
+
+    public override void Use() {
+        base.Use();
+
+        TankWeapon weapon = GetComponent&lt;TankWeapon&gt;();
+
+        TankPowerup_MultiBall_Bullet bullet = weapon.FirePrefab(TankGameHost.Game().MultiballPrefab).GetComponent&lt;TankPowerup_MultiBall_Bullet&gt;();
+        int damage = TankSettings.P_MultiBall_Damage * (int)Mathf.Pow(2, bounces);
+
+        bullet.Initialize(GetComponent&lt;TankPlayer&gt;(), bullet.transform, bounces, damage, bullet.transform.forward, false);
+        print(&quot;multiball fired: &quot; + bullet);
+    }
+
+    private void AddMultiball(TankBullet bullet, int bouncesLeft) {
+
+        bullet.Bounces = bouncesLeft;
+        var cb = bullet.gameObject.AddComponent&lt;ColliderCallback&gt;();
+        cb.AddCollisionCallback(OnBulletCollision);
+    }
+
+    private void OnBulletCollision(GameObject obj, Collision collision) {
+        
+        
+
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[7,5,7,29,0],[9,32,9,33,0],[10,9,10,20,0],[12,9,12,56,0],[14,9,14,147,0],[15,9,15,83,0],[17,9,17,123,0],[18,9,18,45,0],[19,5,19,6,0],[21,67,21,68,0],[23,9,23,38,0],[24,9,24,69,0],[25,9,25,52,0],[26,5,26,6,0],[28,73,28,74,0],[32,5,32,6,0]]);
+    </script>
+  </body>
+</html>

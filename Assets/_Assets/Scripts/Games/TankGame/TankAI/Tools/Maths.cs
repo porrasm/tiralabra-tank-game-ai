@@ -10,15 +10,16 @@ public class Maths {
 
     public static float Power(float f, int power) {
 
+        double d = f;
         double result = 1;
 
         if (power > 0) {
             for (int i = 0; i < power; i++) {
-                result *= f;
+                result *= d;
             }
         } else if (power < 0) {
             for (int i = 0; i < power; i++) {
-                result /= f;
+                result /= d;
             }
         }
 

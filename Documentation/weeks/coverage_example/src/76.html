@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\generated\usergenerated\tanknetworkingbehavior.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using BeardedManStudios.Forge.Networking;
+using BeardedManStudios.Forge.Networking.Unity;
+using UnityEngine;
+
+namespace BeardedManStudios.Forge.Networking.Generated
+{
+	[GeneratedRPC(&quot;{\&quot;types\&quot;:[[\&quot;int\&quot;, \&quot;bool\&quot;][\&quot;byte\&quot;]]&quot;)]
+	[GeneratedRPCVariableNames(&quot;{\&quot;types\&quot;:[[\&quot;PlayerID\&quot;, \&quot;Force\&quot;][\&quot;State\&quot;]]&quot;)]
+	public abstract partial class TankNetworkingBehavior : NetworkBehavior
+	{
+		public const byte RPC_SET_OWNER_R_P_C = 0 + 5;
+		public const byte RPC_CHANGE_STATE_R_P_C = 1 + 5;
+		
+		public TankNetworkingNetworkObject networkObject = null;
+
+		public override void Initialize(NetworkObject obj)
+		{
+			// We have already initialized this object
+			if (networkObject != null &amp;&amp; networkObject.AttachedBehavior != null)
+				return;
+			
+			networkObject = (TankNetworkingNetworkObject)obj;
+			networkObject.AttachedBehavior = this;
+
+			base.SetupHelperRpcs(networkObject);
+			networkObject.RegisterRpc(&quot;SetOwnerRPC&quot;, SetOwnerRPC, typeof(int), typeof(bool));
+			networkObject.RegisterRpc(&quot;ChangeStateRPC&quot;, ChangeStateRPC, typeof(byte));
+
+			networkObject.onDestroy += DestroyGameObject;
+
+			if (!obj.IsOwner)
+			{
+				if (!skipAttachIds.ContainsKey(obj.NetworkId)){
+					uint newId = obj.NetworkId + 1;
+					ProcessOthers(gameObject.transform, ref newId);
+				}
+				else
+					skipAttachIds.Remove(obj.NetworkId);
+			}
+
+			if (obj.Metadata != null)
+			{
+				byte transformFlags = obj.Metadata[0];
+
+				if (transformFlags != 0)
+				{
+					BMSByte metadataTransform = new BMSByte();
+					metadataTransform.Clone(obj.Metadata);
+					metadataTransform.MoveStartIndex(1);
+
+					if ((transformFlags &amp; 0x01) != 0 &amp;&amp; (transformFlags &amp; 0x02) != 0)
+					{
+						MainThreadManager.Run(() =&gt;
+						{
+							transform.position = ObjectMapper.Instance.Map&lt;Vector3&gt;(metadataTransform);
+							transform.rotation = ObjectMapper.Instance.Map&lt;Quaternion&gt;(metadataTransform);
+						});
+					}
+					else if ((transformFlags &amp; 0x01) != 0)
+					{
+						MainThreadManager.Run(() =&gt; { transform.position = ObjectMapper.Instance.Map&lt;Vector3&gt;(metadataTransform); });
+					}
+					else if ((transformFlags &amp; 0x02) != 0)
+					{
+						MainThreadManager.Run(() =&gt; { transform.rotation = ObjectMapper.Instance.Map&lt;Quaternion&gt;(metadataTransform); });
+					}
+				}
+			}
+
+			MainThreadManager.Run(() =&gt;
+			{
+				NetworkStart();
+				networkObject.Networker.FlushCreateActions(networkObject);
+			});
+		}
+
+		protected override void CompleteRegistration()
+		{
+			base.CompleteRegistration();
+			networkObject.ReleaseCreateBuffer();
+		}
+
+		public override void Initialize(NetWorker networker, byte[] metadata = null)
+		{
+			Initialize(new TankNetworkingNetworkObject(networker, createCode: TempAttachCode, metadata: metadata));
+		}
+
+		private void DestroyGameObject(NetWorker sender)
+		{
+			MainThreadManager.Run(() =&gt; { try { Destroy(gameObject); } catch { } });
+			networkObject.onDestroy -= DestroyGameObject;
+		}
+
+		public override NetworkObject CreateNetworkObject(NetWorker networker, int createCode, byte[] metadata = null)
+		{
+			return new TankNetworkingNetworkObject(networker, this, createCode, metadata);
+		}
+
+		protected override void InitializedTransform()
+		{
+			networkObject.SnapInterpolations();
+		}
+
+		/// &lt;summary&gt;
+		/// Arguments:
+		/// int PlayerID
+		/// bool Force
+		/// &lt;/summary&gt;
+		public abstract void SetOwnerRPC(RpcArgs args);
+		/// &lt;summary&gt;
+		/// Arguments:
+		/// byte State
+		/// &lt;/summary&gt;
+		public abstract void ChangeStateRPC(RpcArgs args);
+
+		// DO NOT TOUCH, THIS GETS GENERATED PLEASE EXTEND THIS CLASS IF YOU WISH TO HAVE CUSTOM CODE ADDITIONS
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[14,3,14,59,0],[17,3,17,4,0],[19,4,19,72,0],[20,5,20,12,0],[22,4,22,53,0],[23,4,23,42,0],[25,4,25,40,0],[26,4,26,85,0],[27,4,27,78,0],[29,4,29,49,0],[31,4,31,21,0],[32,4,32,5,0],[33,5,33,51,0],[33,51,33,52,0],[34,6,34,37,0],[35,6,35,53,0],[36,5,36,6,0],[38,6,38,42,0],[39,4,39,5,0],[41,4,41,29,0],[42,4,42,5,0],[43,5,43,43,0],[45,5,45,29,0],[46,5,46,6,0],[47,6,47,48,0],[48,6,48,44,0],[49,6,49,42,0],[51,6,51,71,0],[52,6,52,7,0],[53,7,54,7,0],[54,7,54,8,0],[54,8,55,8,0],[55,8,55,83,0],[55,83,56,8,0],[56,8,56,86,0],[56,86,57,7,0],[57,7,57,8,0],[57,8,57,10,0],[53,7,57,10,0],[58,6,58,7,0],[59,11,59,44,0],[60,6,60,7,0],[61,7,61,35,0],[61,35,61,36,0],[61,36,61,37,0],[61,37,61,112,0],[61,112,61,113,0],[61,113,61,114,0],[61,114,61,116,0],[61,7,61,116,0],[62,6,62,7,0],[63,11,63,44,0],[64,6,64,7,0],[65,7,65,35,0],[65,35,65,36,0],[65,36,65,37,0],[65,37,65,115,0],[65,115,65,116,0],[65,116,65,117,0],[65,117,65,119,0],[65,7,65,119,0],[66,6,66,7,0],[67,5,67,6,0],[68,4,68,5,0],[70,4,71,4,0],[71,4,71,5,0],[71,5,72,5,0],[72,5,72,20,0],[72,20,73,5,0],[73,5,73,63,0],[73,63,74,4,0],[74,4,74,5,0],[74,5,74,7,0],[70,4,74,7,0],[75,3,75,4,0],[78,3,78,4,0],[79,4,79,32,0],[80,4,80,40,0],[81,3,81,4,0],[84,3,84,4,0],[85,4,85,107,0],[86,3,86,4,0],[89,3,89,4,0],[90,4,90,32,0],[90,32,90,33,0],[90,33,90,38,0],[90,38,90,39,0],[90,39,90,40,0],[90,40,90,60,0],[90,60,90,61,0],[90,61,90,62,0],[90,62,90,63,0],[90,63,90,68,0],[90,68,90,69,0],[90,69,90,70,0],[90,70,90,71,0],[90,71,90,72,0],[90,72,90,73,0],[90,73,90,74,0],[90,74,90,76,0],[90,4,90,76,0],[91,4,91,49,0],[92,3,92,4,0],[95,3,95,4,0],[96,4,96,82,0],[97,3,97,4,0],[100,3,100,4,0],[101,4,101,39,0],[102,3,102,4,0]]);
+    </script>
+  </body>
+</html>

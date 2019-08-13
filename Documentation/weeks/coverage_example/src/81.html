@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankgamemanager.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+public class TankGameManager : MonoBehaviour {
+
+    private const float INITIALIZE_WAIT_TIME = 1f;
+
+    private bool roundIsOn = false;
+
+    private TankLevelGenerator generator;
+
+    public delegate void RoundStart();
+    private RoundStart roundCallbacks;
+
+    private void Start() {
+        generator = GameObject.FindGameObjectWithTag(&quot;Level&quot;).GetComponent&lt;TankLevelGenerator&gt;();
+        roundIsOn = true;
+        Invoke(&quot;Enable&quot;, INITIALIZE_WAIT_TIME);
+    }
+    private void Enable() {
+        roundIsOn = false;
+    }
+
+    private void Update() {
+        StartRound();
+    }
+
+    private TankNetworking[] Players {
+        get {
+            return GameObject.FindGameObjectsWithTag(&quot;Player&quot;).Select(g =&gt; g.GetComponent&lt;TankNetworking&gt;()).ToArray();
+        }
+    }
+
+    public void StartGame() {
+
+    }
+
+    private bool AllInitialized() {
+
+        foreach (TankNetworking p in Players) {
+            if (p.networkObject == null || !p.networkObject.NetworkReady) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    #region Round
+    private void StartRound() {
+
+        if (roundIsOn) {
+            return;
+        }
+
+        if (!AllInitialized()) {
+            return;
+        }
+
+        roundIsOn = true;
+
+        print(&quot;Round started&quot;);
+
+        StartCoroutine(RoundCoroutine());
+    }
+    private IEnumerator RoundCoroutine() {
+
+        float roundTime = 0;
+
+        generator.GenerateLevel();
+
+        SetPlayerPositions();
+        SetPlayerStates(TankPlayer.PlayerState.Locked);
+
+        generator.BuildGeneratedLevel();
+
+        while (generator.Building) {
+            yield return null;
+        }
+
+        // Emergency stop
+        SetPlayerPositions();
+
+        yield return new WaitForSeconds(TankSettings.ExtraWaitTime);
+
+        TankNetworking[] players = Players;
+
+        SetPlayerStates(TankPlayer.PlayerState.Enabled);
+
+        CallRoundStart();
+
+        while (roundTime &lt; TankSettings.RoundTime &amp;&amp; AliveCount(players) &gt; 1) {
+            roundTime += Time.deltaTime;
+            yield return null;
+        }
+
+        if (AliveCount(players) == 1) {
+            GiveWin();
+        }
+
+        print(&quot;Round ended&quot;);
+        yield return new WaitForSeconds(TankSettings.RoundEndWaitTime);
+        roundIsOn = false;
+
+    }
+    private int AliveCount(TankNetworking[] players) {
+
+        int count = 0;
+
+        foreach (TankNetworking p in players) {
+            if (p.State == TankPlayer.PlayerState.Enabled) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+    private void GiveWin() {
+        foreach (TankNetworking p in Players) {
+            if (p.State == TankPlayer.PlayerState.Enabled) {
+                Debug.LogWarning(&quot;Not implemented&quot;);
+                p.TankScore += TankSettings.WinScore;
+            }
+        }
+    }
+
+    private void SetPlayerPositions() {
+
+        Queue&lt;Transform&gt; spawns = RandomSpawns();
+
+        StopTanks();
+
+        foreach (TankNetworking p in Players) {
+
+            Transform spawn = spawns.Dequeue();
+
+            p.transform.position = spawn.position;
+            p.transform.eulerAngles = spawn.eulerAngles;
+        }
+    }
+    private void SetPlayerStates(TankPlayer.PlayerState state) {
+        foreach (TankPlayer p in Players.Select(p =&gt; p.GetComponent&lt;TankPlayer&gt;()).ToArray()) {
+            p.SetPlayerState(state);
+        }
+    }
+    private void StopTanks() {
+        foreach (TankController c in Players.Select(p =&gt; p.GetComponent&lt;TankController&gt;()).ToArray()) {
+            c.StopTank();
+        }
+    }
+
+    private Queue&lt;Transform&gt; RandomSpawns() {
+
+        System.Random rnd = new System.Random();
+
+        List&lt;Transform&gt; spawns = new List&lt;Transform&gt;();
+        foreach (Transform spawn in GameObject.FindGameObjectWithTag(&quot;Respawn&quot;).transform) {
+            spawns.Add(spawn);
+        }
+
+        Queue&lt;Transform&gt; rSpawns = new Queue&lt;Transform&gt;();
+
+        for (int i = 0; i &lt; 4; i++) {
+
+            int r = rnd.Next(0, 4 - i);
+
+            rSpawns.Enqueue(spawns[i]);
+            spawns.RemoveAt(i);
+        }
+
+        for (int i = 0; i &lt; spawns.Count; i++) {
+
+            int r = rnd.Next(0, spawns.Count);
+
+            rSpawns.Enqueue(spawns[i]);
+            spawns.RemoveAt(i);
+            i--;
+        }
+
+        return rSpawns;
+    }
+    #endregion
+
+    #region Callbacks
+    public void SubscribeRoundStart(RoundStart callback) {
+        roundCallbacks += callback;
+    }
+
+    private void CallRoundStart() {
+        if (roundCallbacks != null) {
+            roundCallbacks();
+        }
+    }
+    #endregion
+
+    public static TankGameManager Instance() {
+        return GameObject.FindGameObjectWithTag(&quot;Game&quot;).GetComponent&lt;TankGameManager&gt;();
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[10,5,10,36,0],[17,26,17,27,0],[18,9,18,98,0],[19,9,19,26,0],[20,9,20,48,0],[21,5,21,6,0],[22,27,22,28,0],[23,9,23,27,0],[24,5,24,6,0],[26,27,26,28,0],[27,9,27,22,0],[28,5,28,6,0],[31,13,31,14,0],[32,13,32,76,0],[32,76,32,108,0],[32,108,32,120,0],[32,13,32,120,0],[33,9,33,10,0],[36,29,36,30,0],[38,5,38,6,0],[40,35,40,36,0],[42,9,42,16,0],[42,18,42,34,0],[42,35,42,37,0],[42,38,42,45,0],[42,47,42,48,0],[43,13,43,74,0],[43,75,43,76,0],[44,17,44,30,0],[46,9,46,10,0],[48,9,48,21,0],[49,5,49,6,0],[52,31,52,32,0],[54,9,54,23,0],[54,24,54,25,0],[55,13,55,20,0],[58,9,58,31,0],[58,32,58,33,0],[59,13,59,20,0],[62,9,62,26,0],[64,9,64,32,0],[66,9,66,42,0],[67,5,67,6,0],[68,42,68,43,0],[70,9,70,29,0],[72,9,72,35,0],[74,9,74,30,0],[75,9,75,56,0],[77,9,77,41,0],[79,9,79,35,0],[79,36,79,37,0],[80,13,80,31,0],[81,9,81,10,0],[84,9,84,30,0],[86,9,86,69,0],[88,9,88,44,0],[90,9,90,57,0],[92,9,92,26,0],[94,9,94,78,0],[94,79,94,80,0],[95,13,95,41,0],[96,13,96,31,0],[97,9,97,10,0],[99,9,99,38,0],[99,39,99,40,0],[100,13,100,23,0],[101,9,101,10,0],[103,9,103,30,0],[104,9,104,72,0],[105,9,105,27,0],[107,5,107,6,0],[108,54,108,55,0],[110,9,110,23,0],[112,9,112,16,0],[112,18,112,34,0],[112,35,112,37,0],[112,38,112,45,0],[112,47,112,48,0],[113,13,113,59,0],[113,60,113,61,0],[114,17,114,25,0],[115,13,115,14,0],[116,9,116,10,0],[118,9,118,22,0],[119,5,119,6,0],[120,28,120,29,0],[121,9,121,16,0],[121,18,121,34,0],[121,35,121,37,0],[121,38,121,45,0],[121,47,121,48,0],[122,13,122,59,0],[122,60,122,61,0],[123,17,123,53,0],[124,17,124,54,0],[125,13,125,14,0],[126,9,126,10,0],[127,5,127,6,0],[129,39,129,40,0],[131,9,131,50,0],[133,9,133,21,0],[135,9,135,16,0],[135,18,135,34,0],[135,35,135,37,0],[135,38,135,45,0],[135,47,135,48,0],[137,13,137,48,0],[139,13,139,51,0],[140,13,140,57,0],[141,9,141,10,0],[142,5,142,6,0],[143,64,143,65,0],[144,9,144,16,0],[144,18,144,30,0],[144,31,144,33,0],[144,34,144,54,0],[144,54,144,82,0],[144,82,144,93,0],[144,34,144,93,0],[144,95,144,96,0],[145,13,145,37,0],[146,9,146,10,0],[147,5,147,6,0],[148,30,148,31,0],[149,9,149,16,0],[149,18,149,34,0],[149,35,149,37,0],[149,38,149,58,0],[149,58,149,90,0],[149,90,149,101,0],[149,38,149,101,0],[149,103,149,104,0],[150,13,150,26,0],[151,9,151,10,0],[152,5,152,6,0],[154,45,154,46,0],[156,9,156,49,0],[158,9,158,56,0],[159,9,159,16,0],[159,18,159,33,0],[159,34,159,36,0],[159,37,159,90,0],[159,92,159,93,0],[160,13,160,31,0],[161,9,161,10,0],[163,9,163,59,0],[165,14,165,23,0],[165,25,165,30,0],[165,32,165,35,0],[165,37,165,38,0],[167,13,167,40,0],[169,13,169,40,0],[170,13,170,32,0],[171,9,171,10,0],[173,14,173,23,0],[173,25,173,41,0],[173,43,173,46,0],[173,48,173,49,0],[175,13,175,47,0],[177,13,177,40,0],[178,13,178,32,0],[179,13,179,17,0],[180,9,180,10,0],[182,9,182,24,0],[183,5,183,6,0],[187,58,187,59,0],[188,9,188,36,0],[189,5,189,6,0],[191,35,191,36,0],[192,9,192,36,0],[192,37,192,38,0],[193,13,193,30,0],[194,9,194,10,0],[195,5,195,6,0],[198,46,198,47,0],[199,9,199,89,0],[200,5,200,6,0]]);
+    </script>
+  </body>
+</html>

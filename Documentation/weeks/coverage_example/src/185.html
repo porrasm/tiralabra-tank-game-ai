@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\tankdirection.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+
+public enum TankDirection { None = -2, Backtrack = -1, Up = 0, Right = 1, Down = 2, Left = 3, UpRight = 4, DownRight = 5, DownLeft = 6, UpLeft = 7 }
+
+public static class TankDirectionTools {
+    public static byte ToByte(TankDirection direction) {
+        return (byte)(1 &lt;&lt; (int)direction);
+    }
+    public static void SetDirectionBit(ref byte value, TankDirection direction) {
+        byte bit = ToByte(direction);
+        value = (byte)(value | bit);
+    }
+    public static bool AllowedDirection(byte directions, TankDirection direction) {
+        return (directions &amp; ToByte(direction)) != 0;
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[5,56,5,57,1],[6,9,6,44,1],[7,5,7,6,1],[8,81,8,82,1],[9,9,9,38,1],[10,9,10,37,1],[11,5,11,6,1],[12,83,12,84,1],[13,9,13,54,1],[14,5,14,6,1]]);
+    </script>
+  </body>
+</html>

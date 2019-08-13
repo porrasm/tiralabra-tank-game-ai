@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\argumentparser.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+using System.Collections.Generic;
+
+namespace BeardedManStudios
+{
+	// A simple dummy class for parsing the string arguments of a generic program, including flags
+	public static class ArgumentParser
+	{
+		/// &lt;summary&gt;
+		/// Parse a string array for the various arguments that were supplied
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;args&quot;&gt;The arguments that were sent to the program&lt;/param&gt;
+		/// &lt;returns&gt;A dictionary of arguments with a key being the index or the flag starting with &quot;-&quot;&lt;/returns&gt;
+		public static Dictionary&lt;string, string&gt; Parse(string[] args)
+		{
+			Dictionary&lt;string, string&gt; parsedArgs = new Dictionary&lt;string, string&gt;();
+
+			int floatingArgIndex = 0;
+			for (int i = 0; i &lt; args.Length; i++)
+			{
+				if (args[i].StartsWith(&quot;--&quot;))
+					parsedArgs.Add(args[i], args[i]);
+				else if (args[i].StartsWith(&quot;-&quot;))
+					parsedArgs.Add(args[i++], args[i]);
+				else
+					parsedArgs.Add((floatingArgIndex++).ToString(), args[i]);
+			}
+
+			return parsedArgs;
+		}
+	}
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[33,3,33,4,0],[34,4,34,77,0],[36,4,36,29,0],[37,9,37,18,0],[37,20,37,35,0],[37,37,37,40,0],[38,4,38,5,0],[39,5,39,34,0],[40,6,40,39,0],[41,10,41,38,0],[42,6,42,41,0],[44,6,44,63,0],[45,4,45,5,0],[47,4,47,22,0],[48,3,48,4,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\bmsbyte.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+/*-----------------------------+-------------------------------\
+|                                                              |
+|                         !!!NOTICE!!!                         |
+|                                                              |
+|  These libraries are under heavy development so they are     |
+|  subject to make many changes as development continues.      |
+|  For this reason, the libraries may not be well commented.   |
+|  THANK YOU for supporting forge with all your feedback       |
+|  suggestions, bug reports and comments!                      |
+|                                                              |
+|                              - The Forge Team                |
+|                                Bearded Man Studios, Inc.     |
+|                                                              |
+|  This source code, project files, and associated files are   |
+|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
+|  may not be redistributed without written permission.        |
+|                                                              |
+\------------------------------+------------------------------*/
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace BeardedManStudios
+{
+	/// &lt;summary&gt;
+	/// This is the main byte wrapper class for manipulating cached bytes
+	/// &lt;/summary&gt;
+	public sealed class BMSByte
+	{
+		/// &lt;summary&gt;
+		/// A lookup of various types that are allowed to be stored and pulled from this object
+		/// &lt;/summary&gt;
+		private static Dictionary&lt;Type, Array&gt; allowedTypes = new Dictionary&lt;Type, Array&gt;()
+		{
+			{ typeof(char), new char[1] },
+			{ typeof(string), new string[1] },
+			{ typeof(bool), new bool[1] },
+			{ typeof(sbyte), new sbyte[1] },
+			{ typeof(byte), new byte[1] },
+			{ typeof(short), new short[1] },
+			{ typeof(ushort), new ushort[1] },
+			{ typeof(int), new int[1] },
+			{ typeof(uint), new uint[1] },
+			{ typeof(long), new long[1] },
+			{ typeof(ulong), new ulong[1] },
+			{ typeof(float), new float[1] },
+			{ typeof(double), new double[1] },
+		};
+
+		/// &lt;summary&gt;
+		/// The current read/write index for this object
+		/// &lt;/summary&gt;
+		private int index = 0;
+
+		/// &lt;summary&gt;
+		/// The starting byte for the internal byte array
+		/// &lt;/summary&gt;
+		public int StartPointer { get; private set; }
+
+		/// &lt;summary&gt;
+		/// The interpreted size of the internal byte array
+		/// &lt;/summary&gt;
+		public int Size { get; private set; }
+
+		/// &lt;summary&gt;
+		/// The internal byte array
+		/// &lt;/summary&gt;
+		public byte[] byteArr = new byte[1];
+
+		/// &lt;summary&gt;
+		/// Constructs a BMSByte
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;raw&quot;&gt;This determines if this is being used for WriteRaw&lt;/param&gt;
+		public BMSByte()
+		{
+			Size = 0;
+			StartPointer = 0;
+		}
+
+		/// &lt;summary&gt;
+		/// Manually set the interpreted size of the interal byte array (will resize if larger)
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;newSize&quot;&gt;The size to be resized to&lt;/param&gt;
+		public void SetSize(int newSize)
+		{
+			if (byteArr.Length &lt; newSize)
+				Array.Resize&lt;byte&gt;(ref byteArr, newSize);
+
+			Size = newSize;
+		}
+
+		/// &lt;summary&gt;
+		/// Get the starting index (virtual head) of the internal byte array
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;offset&quot;&gt;Adds this amount to the internal index to start from there&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		public int StartIndex(int offset = 0)
+		{
+			return StartPointer + offset;
+		}
+
+		/// &lt;summary&gt;
+		/// Moves the starting index (virtual head) manually
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;offset&quot;&gt;The amount to move the starting index (virtual head) by&lt;/param&gt;
+		public int MoveStartIndex(int offset)
+		{
+			StartPointer += offset;
+
+			if (index &lt; StartPointer)
+				index = StartPointer;
+
+			Size -= offset;
+
+			return StartPointer;
+		}
+
+		/// &lt;summary&gt;
+		/// Resets the internal byte array and assignes the passed byte array to it
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;input&quot;&gt;The bytes to be cloned into the internal byte array&lt;/param&gt;
+		public BMSByte Clone(byte[] input, int count = 0)
+		{
+			if (count == 0)
+				count = input.Length;
+
+			PointToStart();
+
+			if (byteArr.Length &lt;= count)
+				Array.Resize&lt;byte&gt;(ref byteArr, count + 1);
+
+			Buffer.BlockCopy(input, 0, byteArr, index, count);
+			Size = count;
+			PointToEnd();
+
+			return this;
+		}
+
+		/// &lt;summary&gt;
+		/// Resets the internal byte array and assignes the internal byte array of the passed in BMSByte to this ones internal byte array
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;otherBytes&quot;&gt;The other BMSByte that will have its internal byte array cloned to this one&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		public BMSByte Clone(BMSByte otherBytes)
+		{
+			PointToStart();
+
+			if (byteArr.Length &lt;= otherBytes.Size)
+				Array.Resize&lt;byte&gt;(ref byteArr, otherBytes.Size + 1);
+
+			Buffer.BlockCopy(otherBytes.byteArr, otherBytes.StartIndex(), byteArr, StartIndex() + index, otherBytes.Size);
+
+			Size = otherBytes.Size;
+			PointToEnd();
+
+			return this;
+		}
+
+		/// &lt;summary&gt;
+		/// Adds the bytes to the end of the byte array and resizes when needed
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;input&quot;&gt;The bytes to be appended to the end of the internal byte array&lt;/param&gt;
+		public void Append(byte[] input)
+		{
+			if (byteArr.Length &lt;= index + input.Length)
+				Array.Resize&lt;byte&gt;(ref byteArr, index + input.Length + 1);
+
+			Buffer.BlockCopy(input, 0, byteArr, index, input.Length);
+
+			Size += input.Length;
+
+			PointToEnd();
+		}
+
+
+		/// &lt;summary&gt;
+		/// Adds the arrays of bytes to the end of the byte array and resizes only ONCE
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;input&quot;&gt;The bytes arrays to be appended to the end of the internal byte array&lt;/param&gt;
+		public void Append(params byte[][] input)
+		{
+			int lengthSum = 0;
+			foreach (byte[] array in input)
+			{
+				lengthSum += array.Length;
+			}
+
+			if (byteArr.Length &lt;= index + lengthSum)
+				Array.Resize&lt;byte&gt;(ref byteArr, index + lengthSum + 1);
+
+			foreach (byte[] array in input)
+			{
+				Buffer.BlockCopy(array, 0, byteArr, index, array.Length);
+				Size += array.Length;
+				PointToEnd();
+			}
+
+		}
+
+
+		/// &lt;summary&gt;
+		/// Adds the bytes to the end of the byte array and resizes when needed
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;input&quot;&gt;The BMSByte where the bytes will be pulled and appended to the end of this internal byte array&lt;/param&gt;
+		public void Append(BMSByte input)
+		{
+			if (input == null)
+				return;
+
+			if (byteArr.Length &lt;= index + input.Size)
+				Array.Resize&lt;byte&gt;(ref byteArr, index + input.Size + 1);
+
+			Buffer.BlockCopy(input.byteArr, input.StartIndex(), byteArr, index, input.Size);
+
+			Size += input.Size;
+
+			PointToEnd();
+		}
+
+		/// &lt;summary&gt;
+		/// Copies the passed byte array starting at the start index and for a specified count to
+		/// the end of the internal byte array and resizes when needed
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;input&quot;&gt;The byte array to be appended to the end of the internal byte array&lt;/param&gt;
+		/// &lt;param name=&quot;start&quot;&gt;What index to start copying from on the passed byte array&lt;/param&gt;
+		/// &lt;param name=&quot;count&quot;&gt;How many bytes to read from the start of the passed byte array&lt;/param&gt;
+		public void BlockCopy(byte[] input, int start, int count)
+		{
+			if (count == 0)
+				return;
+
+			if (byteArr.Length &lt;= index + count)
+				Array.Resize&lt;byte&gt;(ref byteArr, count + Size + 1);
+
+			Buffer.BlockCopy(input, start, byteArr, index, count);
+			Size += count;
+			PointToEnd();
+		}
+
+		/// &lt;summary&gt;
+		/// Copies the passed object&#39;s bytes starting at the start index and for a specified count to
+		/// the end of the internal byte array and resizes when needed
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;obj&quot;&gt;The object to be converted into bytes&lt;/param&gt;
+		/// &lt;param name=&quot;count&quot;&gt;The size in bytes to copy from the start of the passed object&lt;/param&gt;
+		public void BlockCopy&lt;T&gt;(object obj, int count)
+		{
+			if (count == 0)
+				return;
+
+			if (byteArr.Length &lt;= index + count)
+				Array.Resize&lt;byte&gt;(ref byteArr, Size + count + 1);
+
+			if (obj is string)
+				Buffer.BlockCopy(Encoding.UTF8.GetBytes(((string)obj)), 0, byteArr, index, count);
+			else
+				Buffer.BlockCopy(GetArray&lt;T&gt;(obj), 0, byteArr, index, count);
+
+			Size = index + count;
+			PointToEnd();
+		}
+
+		/// &lt;summary&gt;
+		/// Removes a range of bytes from the internal byte array
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;count&quot;&gt;How many bytes to be removed from the start&lt;/param&gt;
+		public void RemoveStart(int count)
+		{
+			if (count &gt; byteArr.Length)
+				throw new Exception(&quot;Can&#39;t remove more than what is in the array&quot;);
+
+			StartPointer += count;
+
+			Size -= count;
+
+			if (index &lt; StartPointer)
+				index = StartPointer;
+		}
+
+		/// &lt;summary&gt;
+		/// Remove a range of bytes from the internal byte array, this will iterate
+		/// and rearrange so using it often is not suggested, use RemoveStart when you can
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;start&quot;&gt;The start index for the internal byte array to begin removing bytes from&lt;/param&gt;
+		/// &lt;param name=&quot;count&quot;&gt;The amount of bytes to remove starting from the passed in start&lt;/param&gt;
+		public void RemoveRange(int start, int count)
+		{
+			if (start + count &gt; byteArr.Length)
+				throw new Exception(&quot;Can&#39;t remove more than what is in the array&quot;);
+
+			for (int i = 0; i &lt; byteArr.Length - count - start - 1; i++)
+				byteArr[start + i] = byteArr[start + count + i];
+
+			Size -= count;
+			index -= count;
+		}
+
+		/// &lt;summary&gt;
+		/// Compresses the byte array so that it is sent properly across the Network
+		/// This is often used just as you are sending the message
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;Returns this BMSByte object&lt;/returns&gt;
+		public BMSByte Compress()
+		{
+			if (StartPointer == 0)
+				return this;
+
+			for (int i = 0; i &lt; byteArr.Length - StartPointer - 1; i++)
+				byteArr[i] = byteArr[StartPointer + i];
+
+			StartPointer = 0;
+
+			return this;
+		}
+
+		/// &lt;summary&gt;
+		/// Pulls a byte array based off of the BMSByte metadata
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;The array of raw byte data&lt;/returns&gt;
+		public byte[] CompressBytes()
+		{
+			byte[] data = new byte[Size];
+			Buffer.BlockCopy(byteArr, StartPointer, data, 0, data.Length);
+			return data;
+		}
+
+		/// &lt;summary&gt;
+		/// Inserts a set of bytes at a specified index into the internal byte array
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;start&quot;&gt;The index that the new byte array will be inserted from in the internal byte array&lt;/param&gt;
+		/// &lt;param name=&quot;data&quot;&gt;The bytes that will be inserted at the specified point&lt;/param&gt;
+		public void InsertRange(int start, byte[] data)
+		{
+			if (byteArr.Length &lt;= Size + data.Length)
+				Array.Resize&lt;byte&gt;(ref byteArr, data.Length + Size);
+
+			for (int i = byteArr.Length - 1; i &gt; start + data.Length - 1; i--)
+				byteArr[i] = byteArr[i - data.Length];
+
+			Size = index + data.Length - StartPointer;
+			index = start;
+
+			Buffer.BlockCopy(data, 0, byteArr, index, data.Length);
+
+			PointToEnd();
+		}
+
+		/// &lt;summary&gt;
+		/// Inserts a set of bytes at a specified index into the internal byte array
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;start&quot;&gt;The index that the new byte array will be inserted from in the internal byte array&lt;/param&gt;
+		/// &lt;param name=&quot;data&quot;&gt;The BMSByte object will be inserted at the specified point&lt;/param&gt;
+		public void InsertRange(int start, BMSByte data)
+		{
+			if (byteArr.Length &lt;= Size + data.Size)
+				Array.Resize&lt;byte&gt;(ref byteArr, data.Size + Size);
+
+			for (int i = byteArr.Length - 1; i &gt; start + data.Size - 1; i--)
+				byteArr[i] = byteArr[i - data.Size];
+
+			Size = index + data.Size - StartPointer;
+			index = start;
+
+			Buffer.BlockCopy(data.byteArr, data.StartIndex(), byteArr, index, data.Size);
+
+			PointToEnd();
+		}
+
+		/// &lt;summary&gt;
+		/// Point the index to the end of the internal byte array of valid data
+		/// &lt;/summary&gt;
+		private void PointToEnd()
+		{
+			index = Size;
+		}
+
+		/// &lt;summary&gt;
+		/// Point the index to the start of the valid internal byte array data (0)
+		/// &lt;/summary&gt;
+		private void PointToStart()
+		{
+			index = 0;
+			StartPointer = 0;
+		}
+
+		/// &lt;summary&gt;
+		/// An externally accessable method for resetting the pointer, will call internal PointToStart method
+		/// &lt;/summary&gt;
+		public void ResetPointer()
+		{
+			PointToStart();
+		}
+
+		/// &lt;summary&gt;
+		/// Clears out the internal byte array
+		/// &lt;/summary&gt;
+		public void Clear(bool raw = false)
+		{
+			index = 0;
+			Size = 0;
+			StartPointer = 0;
+
+			if (raw)
+				Append(new byte[] { 1 });
+		}
+		
+		/// &lt;summary&gt;
+		/// Get an array of a specific type from the internally tracked byte array
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;type&quot;&gt;The type of array to be pulled&lt;/param&gt;
+		/// &lt;param name=&quot;o&quot;&gt;&lt;/param&gt;
+		/// &lt;returns&gt;The updated array of data&lt;/returns&gt;
+		private Array GetArray&lt;T&gt;(object o)
+		{
+			Type type = typeof(T);
+			if (allowedTypes.ContainsKey(type))
+			{
+				T[] array = (T[])allowedTypes[type];
+				array[0] = (T)o;
+				return array;
+
+			}
+			else
+				throw new Exception(&quot;The type &quot; + type.ToString() + &quot; is not allowed&quot;);
+		}
+		/// &lt;summary&gt;
+		/// Used to get the size of a specific type of object, will only be types specified in the type lookup
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;obj&quot;&gt;The object to analyze the size of&lt;/param&gt;
+		/// &lt;returns&gt;The size in bytes required for the object&lt;/returns&gt;
+		private int GetSize(object obj)
+		{
+			if (obj is sbyte)
+				return 1;
+			else if (obj is byte)
+				return 1;
+			else if (obj is char)
+				return 1;
+			else if (obj is bool)
+				return sizeof(bool);
+			else if (obj is short)
+				return sizeof(short);
+			else if (obj is ushort)
+				return sizeof(ushort);
+			else if (obj is int)
+				return sizeof(int);
+			else if (obj is uint)
+				return sizeof(uint);
+			else if (obj is long)
+				return sizeof(long);
+			else if (obj is ulong)
+				return sizeof(ulong);
+			else if (obj is float)
+				return sizeof(float);
+			else if (obj is double)
+				return sizeof(double);
+			else
+				throw new Exception(&quot;The type &quot; + obj.GetType().ToString() + &quot; is not allowed&quot;);
+		}
+
+		/// &lt;summary&gt;
+		/// This will get the value for a basic data type in this data
+		/// &lt;/summary&gt;
+		/// &lt;typeparam name=&quot;T&quot;&gt;The type to convert the bytes for&lt;/typeparam&gt;
+		/// &lt;param name=&quot;start&quot;&gt;The byte start index to read from&lt;/param&gt;
+		/// &lt;returns&gt;The value of the object&lt;/returns&gt;
+		public T GetBasicType&lt;T&gt;(int start, bool moveIndex = false)
+		{
+			return (T)GetBasicType(typeof(T), start, moveIndex);
+		}
+
+		public T GetBasicType&lt;T&gt;(bool moveIndex = true)
+		{
+			T obj = GetBasicType&lt;T&gt;(StartIndex(), moveIndex);
+			return obj;
+		}
+
+		/// &lt;summary&gt;
+		/// This will get the value for a basic data type in this data
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;type&quot;&gt;The type to convert the bytes for&lt;/typeparam&gt;
+		/// &lt;param name=&quot;start&quot;&gt;The byte start index to read from&lt;/param&gt;
+		/// &lt;returns&gt;The value of the object&lt;/returns&gt;
+		public object GetBasicType(Type type, int start, bool moveIndex = false)
+		{
+			if (type == typeof(sbyte))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(sbyte));
+
+				return byteArr[start];
+			}
+			else if (type == typeof(byte))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(byte));
+
+				return byteArr[start];
+			}
+			else if (type == typeof(char))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(char));
+
+				return byteArr[start];
+			}
+			else if (type == typeof(short))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(short));
+
+				return BitConverter.ToInt16(byteArr, start);
+			}
+			else if (type == typeof(ushort))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(ushort));
+
+				return BitConverter.ToUInt16(byteArr, start);
+			}
+			else if (type == typeof(bool))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(bool));
+
+				return BitConverter.ToBoolean(byteArr, start);
+			}
+			else if (type == typeof(int))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(int));
+
+				return BitConverter.ToInt32(byteArr, start);
+			}
+			else if (type == typeof(uint))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(uint));
+
+				return BitConverter.ToUInt32(byteArr, start);
+			}
+			else if (type == typeof(float))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(float));
+
+				return BitConverter.ToSingle(byteArr, start);
+			}
+			else if (type == typeof(long))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(long));
+
+				return BitConverter.ToInt64(byteArr, start);
+			}
+			else if (type == typeof(ulong))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(ulong));
+
+				return BitConverter.ToUInt64(byteArr, start);
+			}
+			else if (type == typeof(double))
+			{
+				if (moveIndex)
+					MoveStartIndex(sizeof(double));
+
+				return BitConverter.ToDouble(byteArr, start);
+			}
+			else if (type == typeof(string))
+				return GetString(start, moveIndex);
+			else if (type == typeof(Vector))
+				return GetVector(start, moveIndex);
+			else if (type.IsArray)
+			{
+				int rank = type.GetArrayRank();
+				Type targetType = type.GetElementType();
+
+				//int startingIndex = StartIndex();
+				MoveStartIndex(sizeof(int));
+
+				if (rank &gt; 4)
+					throw new Exception(&quot;Currently the system only supports up to 4 dimensions in an array&quot;);
+
+				int i, j, k, l, x, y, z, w;
+				switch (rank)
+				{
+					case 1:
+						x = GetBasicType&lt;int&gt;(StartIndex(), true);
+						object[] one = new object[x];
+						for (i = 0; i &lt; x; i++)
+							one[i] = GetBasicType(targetType, StartIndex(), true);
+						return one;
+					case 2:
+						x = GetBasicType&lt;int&gt;(StartIndex(), true);
+						y = GetBasicType&lt;int&gt;(StartIndex(), true);
+						object[,] two = new object[x, y];
+						for (i = 0; i &lt; x; i++)
+							for (j = 0; j &lt; y; j++)
+								two[i, j] = GetBasicType(targetType, StartIndex(), true);
+						return two;
+					case 3:
+						x = GetBasicType&lt;int&gt;(StartIndex(), true);
+						y = GetBasicType&lt;int&gt;(StartIndex(), true);
+						z = GetBasicType&lt;int&gt;(StartIndex(), true);
+						object[,,] three = new object[x, y, z];
+						for (i = 0; i &lt; x; i++)
+							for (j = 0; j &lt; y; j++)
+								for (k = 0; k &lt; z; k++)
+									three[i, j, k] = GetBasicType(targetType, StartIndex(), true);
+						return three;
+					case 4:
+						x = GetBasicType&lt;int&gt;(StartIndex(), true);
+						y = GetBasicType&lt;int&gt;(StartIndex(), true);
+						z = GetBasicType&lt;int&gt;(StartIndex(), true);
+						w = GetBasicType&lt;int&gt;(StartIndex(), true);
+						object[,,,] four = new object[x, y, z, w];
+						for (i = 0; i &lt; x; i++)
+							for (j = 0; j &lt; y; j++)
+								for (k = 0; k &lt; z; k++)
+									for (l = 0; l &lt; w; l++)
+										four[i, j, k, l] = GetBasicType(targetType, StartIndex(), true);
+						return four;
+				}
+
+				throw new Exception(&quot;Deserialize case not found for this array&quot;);
+			}
+#if WINDOWS_UWP
+			else if (type == typeof(Enum))
+#else
+			else if (type.IsEnum)
+#endif
+				return GetBasicType(Enum.GetUnderlyingType(type), start, moveIndex);
+			else
+				throw new Exception(&quot;The type &quot; + type.ToString() + &quot; is gettable from basic type, maybe try one of the other getters?&quot;);
+		}
+
+		/// &lt;summary&gt;
+		/// This will get the string value from this data
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;start&quot;&gt;The byte start index to read from&lt;/param&gt;
+		/// &lt;returns&gt;The string value&lt;/returns&gt;
+		public string GetString(int start, bool moveIndex = false)
+		{
+			int length = BitConverter.ToInt32(byteArr, start);
+
+			if (moveIndex)
+				MoveStartIndex(sizeof(int));
+
+			if (length &lt;= 0)
+				return string.Empty;
+
+			if (moveIndex)
+				MoveStartIndex(length);
+
+			return Encoding.UTF8.GetString(byteArr, start + sizeof(int), length);
+		}
+
+		public Vector GetVector(int start, bool moveIndex = false)
+		{
+			Vector vec = new Vector
+			{
+				x = GetBasicType&lt;float&gt;(start, false),
+				y = GetBasicType&lt;float&gt;(start + sizeof(float), false),
+				z = GetBasicType&lt;float&gt;(start + (sizeof(float) * 2), false)
+			};
+
+			if (moveIndex)
+				MoveStartIndex(sizeof(float) * 3);
+
+			return vec;
+		}
+
+		/// &lt;summary&gt;
+		/// Gets a byte array from the internally tracked byte array
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;start&quot;&gt;Where to start getting bytes from in the internal byte array&lt;/param&gt;
+		/// &lt;param name=&quot;moveIndex&quot;&gt;If the index should be moved automatically after this process&lt;/param&gt;
+		/// &lt;returns&gt;The found byte array&lt;/returns&gt;
+		public byte[] GetByteArray(int start, bool moveIndex = false)
+		{
+			int length = BitConverter.ToInt32(byteArr, start);
+
+			if (moveIndex)
+				MoveStartIndex(sizeof(int));
+
+			if (length &lt;= 0)
+				return new byte[0];
+
+			if (moveIndex)
+				MoveStartIndex(length);
+
+			byte[] data = new byte[length];
+			Buffer.BlockCopy(byteArr, start + sizeof(int), data, 0, length);
+			return data;
+		}
+
+		/// &lt;summary&gt;
+		/// Support for indexer
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;i&quot;&gt;The index of the byte array to access&lt;/param&gt;
+		/// &lt;returns&gt;The byte at the specidifed index&lt;/returns&gt;
+		public byte this[int i]
+		{
+			get { return byteArr[i]; }
+			set { byteArr[i] = value; }
+		}
+
+		/// &lt;summary&gt;
+		/// Checks to see if the internal byte array of this and another BMSByte have the same value
+		/// If a BMSByte is not supplied, then the base Equals method will be executed
+		/// &lt;/summary&gt;
+		/// &lt;param name=&quot;obj&quot;&gt;&lt;/param&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		public override bool Equals(object obj)
+		{
+			// This operation can be slow so don&#39;t do it often
+			if (obj is BMSByte)
+			{
+				if (StartIndex() != ((BMSByte)obj).StartIndex())
+					return false;
+
+				if (Size != ((BMSByte)obj).Size)
+					return false;
+
+				for (int i = StartIndex(); i &lt; Size; i++)
+				{
+					if (byteArr[i] != ((BMSByte)obj)[i])
+						return false;
+				}
+
+				return true;
+			}
+			else
+				return base.Equals(obj);
+		}
+
+		/// &lt;summary&gt;
+		/// Get the hash code
+		/// &lt;/summary&gt;
+		/// &lt;returns&gt;&lt;/returns&gt;
+		public override int GetHashCode()
+		{
+			return base.GetHashCode();
+		}
+	}
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[36,3,51,5,0],[56,3,56,25,0],[61,29,61,33,0],[61,34,61,46,0],[66,21,66,25,0],[66,26,66,38,0],[71,3,71,39,0],[77,3,77,19,0],[78,3,78,4,0],[79,4,79,13,0],[80,4,80,21,0],[81,3,81,4,0],[88,3,88,4,0],[89,4,89,33,0],[90,5,90,46,0],[92,4,92,19,0],[93,3,93,4,0],[101,3,101,4,0],[102,4,102,33,0],[103,3,103,4,0],[110,3,110,4,0],[111,4,111,27,0],[113,4,113,29,0],[114,5,114,26,0],[116,4,116,19,0],[118,4,118,24,0],[119,3,119,4,0],[126,3,126,4,0],[127,4,127,19,0],[128,5,128,26,0],[130,4,130,19,0],[132,4,132,32,0],[133,5,133,48,0],[135,4,135,54,0],[136,4,136,17,0],[137,4,137,17,0],[139,4,139,16,0],[140,3,140,4,0],[148,3,148,4,0],[149,4,149,19,0],[151,4,151,42,0],[152,5,152,58,0],[154,4,154,114,0],[156,4,156,27,0],[157,4,157,17,0],[159,4,159,16,0],[160,3,160,4,0],[167,3,167,4,0],[168,4,168,47,0],[169,5,169,63,0],[171,4,171,61,0],[173,4,173,25,0],[175,4,175,17,0],[176,3,176,4,0],[184,3,184,4,0],[185,4,185,22,0],[186,4,186,11,0],[186,13,186,25,0],[186,26,186,28,0],[186,29,186,34,0],[187,4,187,5,0],[188,5,188,31,0],[189,4,189,5,0],[191,4,191,44,0],[192,5,192,60,0],[194,4,194,11,0],[194,13,194,25,0],[194,26,194,28,0],[194,29,194,34,0],[195,4,195,5,0],[196,5,196,62,0],[197,5,197,26,0],[198,5,198,18,0],[199,4,199,5,0],[201,3,201,4,0],[209,3,209,4,0],[210,4,210,22,0],[211,5,211,12,0],[213,4,213,45,0],[214,5,214,61,0],[216,4,216,84,0],[218,4,218,23,0],[220,4,220,17,0],[221,3,221,4,0],[231,3,231,4,0],[232,4,232,19,0],[233,5,233,12,0],[235,4,235,40,0],[236,5,236,55,0],[238,4,238,58,0],[239,4,239,18,0],[240,4,240,17,0],[241,3,241,4,0],[250,3,250,4,0],[251,4,251,19,0],[252,5,252,12,0],[254,4,254,40,0],[255,5,255,55,0],[257,4,257,22,0],[258,5,258,87,0],[260,5,260,66,0],[262,4,262,25,0],[263,4,263,17,0],[264,3,264,4,0],[271,3,271,4,0],[272,4,272,31,0],[273,5,273,72,0],[275,4,275,26,0],[277,4,277,18,0],[279,4,279,29,0],[280,5,280,26,0],[281,3,281,4,0],[290,3,290,4,0],[291,4,291,39,0],[292,5,292,72,0],[294,9,294,18,0],[294,20,294,58,0],[294,60,294,63,0],[295,5,295,53,0],[297,4,297,18,0],[298,4,298,19,0],[299,3,299,4,0],[307,3,307,4,0],[308,4,308,26,0],[309,5,309,17,0],[311,9,311,18,0],[311,20,311,57,0],[311,59,311,62,0],[312,5,312,44,0],[314,4,314,21,0],[316,4,316,16,0],[317,3,317,4,0],[324,3,324,4,0],[325,4,325,33,0],[326,4,326,66,0],[327,4,327,16,0],[328,3,328,4,0],[336,3,336,4,0],[337,4,337,45,0],[338,5,338,57,0],[340,9,340,35,0],[340,37,340,64,0],[340,66,340,69,0],[341,5,341,43,0],[343,4,343,46,0],[344,4,344,18,0],[346,4,346,59,0],[348,4,348,17,0],[349,3,349,4,0],[357,3,357,4,0],[358,4,358,43,0],[359,5,359,55,0],[361,9,361,35,0],[361,37,361,62,0],[361,64,361,67,0],[362,5,362,41,0],[364,4,364,44,0],[365,4,365,18,0],[367,4,367,81,0],[369,4,369,17,0],[370,3,370,4,0],[376,3,376,4,0],[377,4,377,17,0],[378,3,378,4,0],[384,3,384,4,0],[385,4,385,14,0],[386,4,386,21,0],[387,3,387,4,0],[393,3,393,4,0],[394,4,394,19,0],[395,3,395,4,0],[401,3,401,4,0],[402,4,402,14,0],[403,4,403,13,0],[404,4,404,21,0],[406,4,406,12,0],[407,5,407,30,0],[408,3,408,4,0],[417,3,417,4,0],[418,4,418,26,0],[419,4,419,39,0],[420,4,420,5,0],[421,5,421,41,0],[422,5,422,21,0],[423,5,423,18,0],[427,5,427,76,0],[428,3,428,4,0],[435,3,435,4,0],[436,4,436,21,0],[437,5,437,14,0],[438,9,438,25,0],[439,5,439,14,0],[440,9,440,25,0],[441,5,441,14,0],[442,9,442,25,0],[443,5,443,25,0],[444,9,444,26,0],[445,5,445,26,0],[446,9,446,27,0],[447,5,447,27,0],[448,9,448,24,0],[449,5,449,24,0],[450,9,450,25,0],[451,5,451,25,0],[452,9,452,25,0],[453,5,453,25,0],[454,9,454,26,0],[455,5,455,26,0],[456,9,456,26,0],[457,5,457,26,0],[458,9,458,27,0],[459,5,459,27,0],[461,5,461,85,0],[462,3,462,4,0],[471,3,471,4,0],[472,4,472,56,0],[473,3,473,4,0],[476,3,476,4,0],[477,4,477,53,0],[478,4,478,15,0],[479,3,479,4,0],[488,3,488,4,0],[489,4,489,30,0],[490,4,490,5,0],[491,5,491,19,0],[492,6,492,36,0],[494,5,494,27,0],[496,9,496,34,0],[497,4,497,5,0],[498,5,498,19,0],[499,6,499,35,0],[501,5,501,27,0],[503,9,503,34,0],[504,4,504,5,0],[505,5,505,19,0],[506,6,506,35,0],[508,5,508,27,0],[510,9,510,35,0],[511,4,511,5,0],[512,5,512,19,0],[513,6,513,36,0],[515,5,515,49,0],[517,9,517,36,0],[518,4,518,5,0],[519,5,519,19,0],[520,6,520,37,0],[522,5,522,50,0],[524,9,524,34,0],[525,4,525,5,0],[526,5,526,19,0],[527,6,527,35,0],[529,5,529,51,0],[531,9,531,33,0],[532,4,532,5,0],[533,5,533,19,0],[534,6,534,34,0],[536,5,536,49,0],[538,9,538,34,0],[539,4,539,5,0],[540,5,540,19,0],[541,6,541,35,0],[543,5,543,50,0],[545,9,545,35,0],[546,4,546,5,0],[547,5,547,19,0],[548,6,548,36,0],[550,5,550,50,0],[552,9,552,34,0],[553,4,553,5,0],[554,5,554,19,0],[555,6,555,35,0],[557,5,557,49,0],[559,9,559,35,0],[560,4,560,5,0],[561,5,561,19,0],[562,6,562,36,0],[564,5,564,50,0],[566,9,566,36,0],[567,4,567,5,0],[568,5,568,19,0],[569,6,569,37,0],[571,5,571,50,0],[573,9,573,36,0],[574,5,574,40,0],[575,9,575,36,0],[576,5,576,40,0],[577,9,577,26,0],[578,4,578,5,0],[579,5,579,36,0],[580,5,580,45,0],[583,5,583,33,0],[585,5,585,18,0],[586,6,586,95,0],[589,5,589,18,0],[592,7,592,49,0],[593,7,593,36,0],[594,12,594,17,0],[594,19,594,24,0],[594,26,594,29,0],[595,8,595,62,0],[596,7,596,18,0],[598,7,598,49,0],[599,7,599,49,0],[600,7,600,40,0],[601,12,601,17,0],[601,19,601,24,0],[601,26,601,29,0],[602,13,602,18,0],[602,20,602,25,0],[602,27,602,30,0],[603,9,603,66,0],[604,7,604,18,0],[606,7,606,49,0],[607,7,607,49,0],[608,7,608,49,0],[609,7,609,46,0],[610,12,610,17,0],[610,19,610,24,0],[610,26,610,29,0],[611,13,611,18,0],[611,20,611,25,0],[611,27,611,30,0],[612,14,612,19,0],[612,21,612,26,0],[612,28,612,31,0],[613,10,613,72,0],[614,7,614,20,0],[616,7,616,49,0],[617,7,617,49,0],[618,7,618,49,0],[619,7,619,49,0],[620,7,620,49,0],[621,12,621,17,0],[621,19,621,24,0],[621,26,621,29,0],[622,13,622,18,0],[622,20,622,25,0],[622,27,622,30,0],[623,14,623,19,0],[623,21,623,26,0],[623,28,623,31,0],[624,15,624,20,0],[624,22,624,27,0],[624,29,624,32,0],[625,11,625,75,0],[626,7,626,19,0],[629,5,629,70,0],[634,9,634,25,0],[636,5,636,73,0],[638,5,638,126,0],[639,3,639,4,0],[647,3,647,4,0],[648,4,648,54,0],[650,4,650,18,0],[651,5,651,33,0],[653,4,653,20,0],[654,5,654,25,0],[656,4,656,18,0],[657,5,657,28,0],[659,4,659,73,0],[660,3,660,4,0],[663,3,663,4,0],[664,4,669,6,0],[671,4,671,18,0],[672,5,672,39,0],[674,4,674,15,0],[675,3,675,4,0],[684,3,684,4,0],[685,4,685,54,0],[687,4,687,18,0],[688,5,688,33,0],[690,4,690,20,0],[691,5,691,24,0],[693,4,693,18,0],[694,5,694,28,0],[696,4,696,35,0],[697,4,697,68,0],[698,4,698,16,0],[699,3,699,4,0],[708,8,708,9,0],[708,10,708,28,0],[708,29,708,30,0],[709,8,709,9,0],[709,10,709,29,0],[709,30,709,31,0],[719,3,719,4,0],[721,4,721,23,0],[722,4,722,5,0],[723,5,723,53,0],[724,6,724,19,0],[726,5,726,37,0],[727,6,727,19,0],[729,10,729,30,0],[729,32,729,40,0],[729,42,729,45,0],[730,5,730,6,0],[731,6,731,42,0],[732,7,732,20,0],[733,5,733,6,0],[735,5,735,17,0],[738,5,738,29,0],[739,3,739,4,0],[746,3,746,4,0],[747,4,747,30,0],[748,3,748,4,0]]);
+    </script>
+  </body>
+</html>

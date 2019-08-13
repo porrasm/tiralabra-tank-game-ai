@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\datastructures\vector.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
+
+public struct Vector {
+
+    public float x, y, z;
+
+    public Vector(Vector3 vector3) {
+        x = vector3.x;
+        y = vector3.y;
+        z = vector3.z;
+    }
+    public Vector(float x, float y, float z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+    public Vector(double x, double y, double z) {
+        this.x = (float)x;
+        this.y = (float)y;
+        this.z = (float)z;
+    }
+
+    public float Magnitude() {
+        float value = Maths.Power(x, 2) + Maths.Power(y, 2) + Maths.Power(z, 2);
+        return Maths.Sqrt(value);
+    }
+
+    public Vector Normalized {
+        get {
+            double magnitude = Magnitude();
+            if (magnitude == 0) {
+                return this;
+            }
+            return this / magnitude;
+        }
+    }
+    public Vector3 Vector3 {
+        get {
+            return new Vector3(x, y, z);
+        }
+    }
+
+    #region Vector tools
+    public static Vector FromVector3(Vector3 vector) {
+        return new Vector(vector.x, vector.y, vector.z);
+    }
+    public static Vector3 ToVector3(Vector vector) {
+        return new Vector3(vector.x, vector.y, vector.z);
+    }
+
+    public static Vector Zero {
+        get {
+            return new Vector(0, 0, 0);
+        }
+    }
+
+    /// &lt;summary&gt;
+    /// This is used to get the position of a cell.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;x&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;y&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;Cells position in the game.&lt;/returns&gt;
+    public static Vector CoordsToPosition(IntCoords coords) {
+
+        Vector vector = Zero;
+
+        vector.x = 0.5f + coords.x;
+        vector.z = 0.5f + coords.y;
+
+        return vector;
+    }
+
+    public static IntCoords PositionToCoords(Vector3 vector) {
+        return PositionToCoords(FromVector3(vector));
+    }
+    public static IntCoords PositionToCoords(Vector position) {
+        return new IntCoords((int)position.x, (int)position.z);
+    }
+
+    public static float Distance(Vector3 vector1, Vector3 vector2) {
+        return Distance(FromVector3(vector1), FromVector3(vector2));
+    }
+    public static float Distance(Vector vector1, Vector vector2) {
+        Vector distance = vector2 - vector1;
+        return Maths.Abs(distance.Magnitude());
+    }
+
+
+    #endregion
+
+    #region Math
+    public static float Dot(Vector a, Vector b) {
+
+        double xA = a.x;
+        double xB = b.x;
+        double yA = a.y;
+        double yB = b.y;
+        double zA = a.z;
+        double zB = b.z;
+
+        return (float)(xA * xB + yA * yB + zA * zB);
+    }
+    public static double DotAccurate(Vector a, Vector b) {
+
+        double xA = a.x;
+        double xB = b.x;
+        double yA = a.y;
+        double yB = b.y;
+        double zA = a.z;
+        double zB = b.z;
+
+        return xA * xB + yA * yB + zA * zB;
+    }
+
+    // Replace this
+    public static Vector Reflect(Vector d, Vector n) {
+
+        return new Vector(Vector3.Reflect(d.Vector3, n.Vector3));
+
+        double dot = DotAccurate(d, n);
+
+        Vector v2dn = 2 * dot * n;
+
+        return d - v2dn;
+    }
+    #endregion
+
+    #region Operators
+    public static Vector operator +(Vector a, Vector b) {
+        return new Vector(a.x + b.x, a.y + b.y, a.z + b.z);
+    }
+    public static Vector operator -(Vector a, Vector b) {
+        return new Vector(a.x - b.x, a.y - b.y, a.z - b.z);
+    }
+
+    public static Vector operator *(Vector a, Vector b) {
+        return new Vector(a.x * b.x, a.y * b.y, a.z * b.z);
+    }
+    public static Vector operator /(Vector a, Vector b) {
+        return new Vector(a.x / b.x, a.y / b.y, a.z / b.z);
+    }
+
+    public static Vector operator *(float f, Vector v) {
+        return new Vector(v.x * f, v.y * f, v.z * f);
+    }
+    public static Vector operator *(double f, Vector v) {
+        return new Vector(v.x * f, v.y * f, v.z * f);
+    }
+    public static Vector operator /(Vector a, float b) {
+        return new Vector(a.x / b, a.y / b, a.z / b);
+    }
+    public static Vector operator /(Vector a, double b) {
+        return new Vector(a.x / b, a.y / b, a.z / b);
+    }
+
+    public static bool operator ==(Vector a, Vector b) {
+        return a.x == b.x &amp;&amp; a.y == b.y &amp;&amp; a.z == b.z;
+    }
+    public static bool operator !=(Vector a, Vector b) {
+        return a.x != b.x || a.y != b.y || a.z != b.z;
+    }
+    #endregion
+
+    public override string ToString() {
+        return &quot;(&quot; + x + &quot;, &quot; + y + &quot;, &quot; + z + &quot;)&quot;;
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[12,36,12,37,0],[13,9,13,23,0],[14,9,14,23,0],[15,9,15,23,0],[16,5,16,6,0],[17,46,17,47,1],[18,9,18,20,1],[19,9,19,20,1],[20,9,20,20,1],[21,5,21,6,1],[22,49,22,50,1],[23,9,23,27,1],[24,9,24,27,1],[25,9,25,27,1],[26,5,26,6,1],[28,30,28,31,1],[29,9,29,81,1],[30,9,30,34,1],[31,5,31,6,1],[34,13,34,14,1],[35,13,35,44,1],[36,13,36,32,1],[36,33,36,34,0],[37,17,37,29,0],[39,13,39,37,1],[40,9,40,10,1],[43,13,43,14,0],[44,13,44,41,0],[45,9,45,10,0],[49,54,49,55,1],[50,9,50,57,1],[51,5,51,6,1],[52,52,52,53,1],[53,9,53,58,1],[54,5,54,6,1],[57,13,57,14,1],[58,13,58,40,1],[59,9,59,10,1],[68,61,68,62,1],[70,9,70,30,1],[72,9,72,36,1],[73,9,73,36,1],[75,9,75,23,1],[76,5,76,6,1],[78,62,78,63,0],[79,9,79,54,0],[80,5,80,6,0],[81,63,81,64,1],[82,9,82,64,1],[83,5,83,6,1],[85,68,85,69,0],[86,9,86,69,0],[87,5,87,6,0],[88,66,88,67,1],[89,9,89,45,1],[90,9,90,48,1],[91,5,91,6,1],[97,49,97,50,0],[99,9,99,25,0],[100,9,100,25,0],[101,9,101,25,0],[102,9,102,25,0],[103,9,103,25,0],[104,9,104,25,0],[106,9,106,53,0],[107,5,107,6,0],[108,58,108,59,0],[110,9,110,25,0],[111,9,111,25,0],[112,9,112,25,0],[113,9,113,25,0],[114,9,114,25,0],[115,9,115,25,0],[117,9,117,44,0],[118,5,118,6,0],[121,54,121,55,0],[123,9,123,66,0],[130,5,130,6,0],[134,57,134,58,1],[135,9,135,60,1],[136,5,136,6,1],[137,57,137,58,1],[138,9,138,60,1],[139,5,139,6,1],[141,57,141,58,1],[142,9,142,60,1],[143,5,143,6,1],[144,57,144,58,1],[145,9,145,60,1],[146,5,146,6,1],[148,56,148,57,1],[149,9,149,54,1],[150,5,150,6,1],[151,57,151,58,0],[152,9,152,54,0],[153,5,153,6,0],[154,56,154,57,1],[155,9,155,54,1],[156,5,156,6,1],[157,57,157,58,1],[158,9,158,54,1],[159,5,159,6,1],[161,56,161,57,1],[162,9,162,55,1],[163,5,163,6,1],[164,56,164,57,0],[165,9,165,55,0],[166,5,166,6,0],[169,39,169,40,0],[170,9,170,52,0],[171,5,171,6,0]]);
+    </script>
+  </body>
+</html>
