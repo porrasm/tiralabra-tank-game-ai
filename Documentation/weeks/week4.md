@@ -12,9 +12,7 @@
 
 Today I split my level generator into 2 scripts (1 which generates the map & 1 which builds it in the game). This allows me to test the pathfinding algorithms.
 
-I also created initial tests for A* and DFS but ran into serious problem. The A* gives different results when run from a test environment.
-
-When testing the algorithm manually (in an empty level with no walls) the algorithm gives the straightest and therefore shortest route to the goal. The route from coordinates (0, 0) to (0, 9) is a straight line. However when testing the algorithm on an empty level it won't give a straight path. The path from (0, 0) to (0, 9) is not straight and is different every time I run the test.
+I also created initial tests for A* and DFS.
 
 ### Tu 13.8.2019
 
