@@ -20,8 +20,6 @@ public class TankMazeGenerator {
 
     public void LevelFromSteps(out byte[,] oLevel, List<TankLevelGenerator.Step> levelSteps) {
 
-        // oLevel = null;
-
         InitializeVariables();
         steps = levelSteps;
         SetLevelArray();
@@ -107,17 +105,14 @@ public class TankMazeGenerator {
 
             step.Coords = coords.MoveToDirection(TankDirection.Down);
             step.Wall = TankCell.CellWall.Top;
-
         } else if (direction == TankDirection.Right) {
 
             step.Coords = coords.MoveToDirection(TankDirection.Left);
             step.Wall = TankCell.CellWall.Right;
-
         } else if (direction == TankDirection.Down) {
 
             step.Coords = coords;
             step.Wall = TankCell.CellWall.Top;
-
         } else if (direction == TankDirection.Left) {
 
             step.Coords = coords;

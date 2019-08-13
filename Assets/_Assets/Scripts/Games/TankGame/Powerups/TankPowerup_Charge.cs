@@ -9,7 +9,7 @@ public class TankPowerup_Charge : TankPowerup {
     private float speed;
     private bool used;
 
-    ColliderCallback colliderCallback;
+    private ColliderCallback colliderCallback;
 
     private void Start() {
         powerupType = Type.Charge;

@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-class TankPowerup_MultiBall_Bullet : TankBullet {
+public class TankPowerup_MultiBall_Bullet : TankBullet {
 
     private int tiltAngle = 30;
     private bool ignoreFirst;
 
-    void Start() {
+    private void Start() {
     }
 
     public void Initialize(TankPlayer owner, Transform other, int bounces, int damage, Vector3 velocity, bool ignoreFirst) {
@@ -58,7 +58,6 @@ class TankPowerup_MultiBall_Bullet : TankBullet {
         InitializeCopy(copy.GetComponent<TankPowerup_MultiBall_Bullet>());
         TiltDirection(true);
     }
-    static int cp;
 
     private void InitializeCopy(TankPowerup_MultiBall_Bullet bullet) {
 

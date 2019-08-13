@@ -1,6 +1,4 @@
-﻿using BeardedManStudios.Forge.Networking;
-using BeardedManStudios.Forge.Networking.Generated;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,7 +16,9 @@ public class TankPlayer : MonoBehaviour {
     // Switch with common class for special settings
     public bool Invulnerable { get; set; }
 
-    public enum PlayerState { Disabled = 0, Locked = 1, Enabled = 2 }
+    public enum PlayerState {
+        Disabled = 0, Locked = 1, Enabled = 2
+    }
     #endregion
 
     private void Start() {
@@ -85,7 +85,6 @@ public class TankPlayer : MonoBehaviour {
     private void UpdateHealth() {
 
         // DO NOT LOWER HEALTH WHEN REGENERATING
-
         if (net.State != PlayerState.Enabled) {
             return;
         }
@@ -142,5 +141,9 @@ public class TankPlayer : MonoBehaviour {
         }
 
         return net.Owner.ID == p.net.Owner.ID;
+    }
+
+    public override int GetHashCode() {
+        return gameObject.GetHashCode();
     }
 }

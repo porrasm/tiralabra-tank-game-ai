@@ -7,7 +7,9 @@ public class TankEvents : MonoBehaviour {
     #region fields
     private static TankEvents instance;
 
-    public enum EventType { BulletEvent }
+    public enum EventType {
+        BulletEvent
+    }
 
     public delegate void VoidEvent();
     private VoidEvent bulletEvents;

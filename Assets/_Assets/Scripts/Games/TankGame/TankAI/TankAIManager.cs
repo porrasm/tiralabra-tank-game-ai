@@ -1,7 +1,7 @@
-﻿using BeardedManStudios.Forge.Networking.Unity;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using BeardedManStudios.Forge.Networking.Unity;
 using UnityEngine;
 
 /// <summary>
@@ -10,8 +10,8 @@ using UnityEngine;
 /// </summary>
 public class TankAIManager : MonoBehaviour {
 
-    public static int AI_COUNT;
-    public static bool PLAYER_ENABLED;
+    public static int AICount;
+    public static bool PlayerEnabled;
 
     #region fields
     #endregion
@@ -40,7 +40,7 @@ public class TankAIManager : MonoBehaviour {
 
             yield return new WaitForSeconds(0.5f);
 
-            for (int i = 0; i < AI_COUNT; i++) {
+            for (int i = 0; i < AICount; i++) {
                 NetworkManager.Instance.InstantiateTankNetworking();
             }
 
@@ -64,7 +64,8 @@ public class TankAIManager : MonoBehaviour {
                 }
 
                 yield return null;
-                //yield return new WaitForSeconds(0.2f);
+
+                // yield return new WaitForSeconds(0.2f);
             }
         }
 

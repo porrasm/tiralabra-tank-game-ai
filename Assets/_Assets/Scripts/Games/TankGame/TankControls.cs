@@ -1,5 +1,4 @@
-﻿using BeardedManStudios.Forge.Networking.Generated;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,7 +13,9 @@ public class TankControls : MonoBehaviour {
 
     private bool testControls;
 
-    public enum Control { Movement, Rotation, HeadRotation, Fire, Powerup }
+    public enum Control {
+        Movement, Rotation, HeadRotation, Fire, Powerup
+    }
     #endregion
 
     private void Start() {
@@ -58,7 +59,6 @@ public class TankControls : MonoBehaviour {
         }
 
         // PC CONTROLS FOR TESTING
-
         Vector2 movement = Vector2.zero;
         float rotation = 0;
 
@@ -105,8 +105,8 @@ public class TankControls : MonoBehaviour {
     private Vector3 FixOrientation(Vector3 orientation) {
 
         orientation -= calibration;
-        // orientation = Quaternion.Euler(Vector3.right) * orientation;
 
+        // orientation = Quaternion.Euler(Vector3.right) * orientation;
         return LimitVector(orientation);
     }
     private Vector3 LimitVector(Vector3 vector) {

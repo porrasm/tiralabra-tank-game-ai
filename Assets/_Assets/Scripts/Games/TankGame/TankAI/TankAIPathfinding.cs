@@ -29,6 +29,7 @@ public class TankAIPathfinding {
 
         return FindPath(start, end, FoundCondition);
     }
+
     /// <summary>
     /// Finds a path from start towards the end with an independent route found condition. The FoundCondition(IntCoords current) function is called on every cell and if it returns true the current route is returned.
     /// </summary>

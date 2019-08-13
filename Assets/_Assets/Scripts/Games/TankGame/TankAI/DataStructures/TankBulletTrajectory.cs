@@ -11,7 +11,7 @@ using UnityEngine;
 public class TankBulletTrajectory {
 
     #region fields;
-    TankAIBulletChecker checker;
+    private TankAIBulletChecker checker;
     private TankAI ai;
     private TankBullet bullet;
     private bool fail;
@@ -47,12 +47,11 @@ public class TankBulletTrajectory {
 
         for (int i = 1; i < Trajectory.Length; i++) {
 
-            
-            //if (HitAI) {
+
+            // if (HitAI) {
             //    Array.Resize(ref trajectory, i + 1);
             //    break;
-            //}
-
+            // }
             if (!CalculateNextHit(ref direction, Trajectory[i - 1], i)) {
                 Array.Resize(ref trajectory, i + 2);
                 break;
@@ -127,4 +126,3 @@ public class TankBulletTrajectory {
         }
     }
 }
-

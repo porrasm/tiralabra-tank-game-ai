@@ -5,34 +5,6 @@ using UnityEngine;
 
 public class TankPowerup : MonoBehaviour {
 
-    public enum Type { Charge, Regenerate, SpeedBoost, Missile, MultiBall, Shield }
-    public enum Behaviour { Passive, OverrideFire, BlockFire }
-
-    protected GameObject tankObject;
-
-    protected Type powerupType;
-    protected Behaviour behaviourType = Behaviour.Passive;
-
-    public Behaviour BehaviourType { get => behaviourType; set => behaviourType = value; }
-    public Type PowerupType { get => powerupType; set => powerupType = value; }
-
-    public virtual void Use() {
-        print("Using powerup: " + powerupType);
-    }
-    public virtual void Remove() {
-        Destroy(this);
-    }
-    public virtual bool BlockFire() {
-        return false;
-    }
-    public virtual bool CustomFire() {
-        return false;
-    }
-
-    public void SetTankObject(GameObject tank) {
-        tankObject = tank;
-    }
-
     #region Set Powerups
     public static TankPowerup GivePowerup(Type type, GameObject tank) {
 
@@ -113,4 +85,37 @@ public class TankPowerup : MonoBehaviour {
         return powerup;
     }
     #endregion
+
+    public enum Type {
+        Charge, Regenerate, SpeedBoost, Missile, MultiBall, Shield
+    }
+
+    public enum Behaviour {
+        Passive, OverrideFire, BlockFire
+    }
+
+    protected GameObject tankObject;
+
+    protected Type powerupType;
+    protected Behaviour behaviourType = Behaviour.Passive;
+
+    public Behaviour BehaviourType { get => behaviourType; set => behaviourType = value; }
+    public Type PowerupType { get => powerupType; set => powerupType = value; }
+
+    public virtual void Use() {
+        print("Using powerup: " + powerupType);
+    }
+    public virtual void Remove() {
+        Destroy(this);
+    }
+    public virtual bool BlockFire() {
+        return false;
+    }
+    public virtual bool CustomFire() {
+        return false;
+    }
+
+    public void SetTankObject(GameObject tank) {
+        tankObject = tank;
+    }   
 }

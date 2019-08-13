@@ -8,6 +8,8 @@ using UnityEngine;
 public class TankLevelGenerator : MonoBehaviour {
 
     #region fields
+    public static TankLevelGenerator Instance { get; private set; }
+
     private TankMazeGenerator generator;
     private List<Step> steps;
     private TankCell[,] cells;
@@ -234,6 +236,4 @@ public class TankLevelGenerator : MonoBehaviour {
         return step.Silent;
     }
     #endregion
-
-    public static TankLevelGenerator Instance { get; private set; }
 }

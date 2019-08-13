@@ -4,14 +4,14 @@ using UnityEngine;
 
 public static class RNG {
 
-	#region fields
+    #region fields
     private static System.Random rnd;
-	#endregion
+    #endregion
 
     static RNG() {
         rnd = new System.Random();
     }
-    
+
     /// <summary>
     /// Returns a random float value between 0 [inclusive] and 1 [exclusive]
     /// </summary>

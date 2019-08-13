@@ -7,7 +7,7 @@ public class DestroyOnStart : MonoBehaviour {
     [SerializeField]
     private bool disable;
 
-    void Start() {
+    private void Start() {
        if (disable) {
             gameObject.SetActive(false);
         } else {

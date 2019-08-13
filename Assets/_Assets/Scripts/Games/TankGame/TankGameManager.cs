@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class TankGameManager : MonoBehaviour {
 
-    private const float INITIALIZE_WAIT_TIME = 1f;
+    private const float InitializeWaitTime = 1f;
 
     private bool roundIsOn = false;
 
@@ -17,7 +17,7 @@ public class TankGameManager : MonoBehaviour {
     private void Start() {
         generator = GameObject.FindGameObjectWithTag("Level").GetComponent<TankLevelGenerator>();
         roundIsOn = true;
-        Invoke("Enable", INITIALIZE_WAIT_TIME);
+        Invoke("Enable", InitializeWaitTime);
     }
     private void Enable() {
         roundIsOn = false;
@@ -34,7 +34,6 @@ public class TankGameManager : MonoBehaviour {
     }
 
     public void StartGame() {
-
     }
 
     private bool AllInitialized() {
@@ -103,8 +102,8 @@ public class TankGameManager : MonoBehaviour {
         print("Round ended");
         yield return new WaitForSeconds(TankSettings.RoundEndWaitTime);
         roundIsOn = false;
-
     }
+
     private int AliveCount(TankNetworking[] players) {
 
         int count = 0;

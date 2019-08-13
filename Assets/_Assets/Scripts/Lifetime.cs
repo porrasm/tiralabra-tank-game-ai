@@ -6,7 +6,7 @@ public class Lifetime : MonoBehaviour {
 
     private float lifetime;
 
-    void Update() {
+    private void Update() {
         lifetime -= Time.deltaTime;
 
         if (lifetime <= 0) {

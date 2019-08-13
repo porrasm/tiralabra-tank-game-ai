@@ -1,6 +1,4 @@
-﻿using BeardedManStudios.Forge.Networking;
-using BeardedManStudios.Forge.Networking.Unity;
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class Scripts : MonoBehaviour {

@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class TankPowerup_Shield : TankPowerup {
 
-    new Behaviour behaviourType = Behaviour.OverrideFire;
+    #region fields
+    private new Behaviour behaviourType = Behaviour.OverrideFire;
 
-    GameObject shield;
+    private GameObject shield;
+    #endregion
 
     public override void Use() {
         base.Use();
@@ -33,5 +35,4 @@ public class TankPowerup_Shield : TankPowerup {
 
         base.Remove();
     }
-
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
+using UnityEngine;
 
 /// <summary>
 /// Used to move a tank through a path.
@@ -22,7 +22,6 @@ public class TankAIMovement : TankAIComponent {
     }
 
     public override void Update() {
-
     }
 
     #region Traversal
@@ -78,10 +77,10 @@ public class TankAIMovement : TankAIComponent {
             return;
         }
 
-        if (Vector.Distance(stuckPos, Vector.FromVector3(ai.transform.position)) < AISettings.StuckTresholdDistance) {
+        if (Vector.Distance(stuckPos, Vector.FromVector3(ai.transform.position)) < TankAISettings.StuckTresholdDistance) {
             stuckTime += Time.deltaTime;
 
-            if (stuckTime > AISettings.StuckTresholdTime) {
+            if (stuckTime > TankAISettings.StuckTresholdTime) {
                 stuck = true;
                 ai.StartCoroutine(RemoveStuck());
             }
@@ -91,7 +90,7 @@ public class TankAIMovement : TankAIComponent {
     }
     private IEnumerator RemoveStuck() {
 
-        float time = AISettings.StuckCooldown;
+        float time = TankAISettings.StuckCooldown;
 
         while (time > 0) {
             time -= Time.deltaTime;
@@ -116,7 +115,7 @@ public class TankAIMovement : TankAIComponent {
         Vector target = path[i];
         Vector current = Vector.FromVector3(ai.transform.position);
 
-        return Vector.Distance(target, current) < AISettings.DistanceLimit;
+        return Vector.Distance(target, current) < TankAISettings.DistanceLimit;
     }
 
     /// <summary>
@@ -130,7 +129,7 @@ public class TankAIMovement : TankAIComponent {
         Vector3 currentRotation = ai.transform.eulerAngles;
         Vector3 targetRotation = Quaternion.LookRotation(Vector.ToVector3(position) - ai.transform.position, Vector3.up).eulerAngles;
 
-        if (Vector3.Angle(currentRotation, targetRotation) < AISettings.MovementAngle) {
+        if (Vector3.Angle(currentRotation, targetRotation) < TankAISettings.MovementAngle) {
             controls.ProcessControl(TankControls.Control.Movement, 1);
         }
     }
@@ -161,13 +160,13 @@ public class TankAIMovement : TankAIComponent {
         // wtf does this do, found from internet
         int rotateDirection = (((target.y - current.y) + 360f) % 360f) > 180.0f ? -1 : 1;
 
-        float angleDif = (((target.y - current.y) + 360f) % 360f);
+        float angleDif = ((target.y - current.y) + 360f) % 360f;
 
         float min = Maths.Min(Maths.Abs(angleDif), Maths.Abs(angleDif - 360));
 
-        if (min < AISettings.TurnAngleLimit) {
+        if (min < TankAISettings.TurnAngleLimit) {
 
-            float factor = min / AISettings.TurnAngleLimit;
+            float factor = min / TankAISettings.TurnAngleLimit;
             return factor * rotateDirection;
         } else {
             return rotateDirection;

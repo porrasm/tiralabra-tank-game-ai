@@ -6,6 +6,5 @@ public class SceneScript : MonoBehaviour {
 
 
     protected virtual void Initialize() {
-
     }
 }

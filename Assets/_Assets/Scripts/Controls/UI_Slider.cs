@@ -13,7 +13,7 @@ public class UI_Slider : MonoBehaviour {
 
     private TankControls controls;
     private RectTransform stick;
-    
+
     public float Value { get; private set; }
 
     private float posLimit;
@@ -23,7 +23,7 @@ public class UI_Slider : MonoBehaviour {
     #endregion
 
 
-    void Start() {
+    private void Start() {
         stick = transform.GetChild(0).GetComponent<RectTransform>();
 
         float x = GetComponent<RectTransform>().sizeDelta.x;
@@ -65,8 +65,6 @@ public class UI_Slider : MonoBehaviour {
     }
 
     private void UpdateStickPosition() {
-
-
     }
 
     private void OnDragDelegate(PointerEventData data) {

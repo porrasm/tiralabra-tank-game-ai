@@ -9,9 +9,9 @@ using UnityEngine;
 public class TankPathVisualizer : MonoBehaviour {
 
     #region fields
-    TankDFSPath dfs;
-    TankAStarPath aStar;
-    LineRenderer line;
+    private TankDFSPath dfs;
+    private TankAStarPath aStar;
+    private LineRenderer line;
 
     private IntCoords start;
 
@@ -86,7 +86,6 @@ public class TankPathVisualizer : MonoBehaviour {
                 DrawAvailable(new IntCoords(x, y), level[x, y]);
             }
         }
-
     }
     private void DrawAvailable(IntCoords coords, byte allowed) {
 
@@ -99,7 +98,6 @@ public class TankPathVisualizer : MonoBehaviour {
                 DrawLine(coords, newCoords);
             }
         }
-
     }
     private void DrawLine(IntCoords a, IntCoords b) {
         UnityEngine.Debug.DrawLine(Vector.ToVector3(Vector.CoordsToPosition(a)), Vector.ToVector3(Vector.CoordsToPosition(b)));
@@ -147,12 +145,8 @@ public class TankPathVisualizer : MonoBehaviour {
         }
 
         IntCoords coords = MouseToCoords();
-        //StartCoroutine(dfs.DFSSearchSafe(new IntCoords(0, 0), coords));
-
 
         DrawRoute(dfs.FindPath(start, coords));
-
-        //DrawRoute(route);
     }
     private void UpdateRouteAStar() {
 
@@ -161,13 +155,10 @@ public class TankPathVisualizer : MonoBehaviour {
         }
 
         IntCoords coords = MouseToCoords();
-        //StartCoroutine(dfs.DFSSearchSafe(new IntCoords(0, 0), coords));
 
         Vector[] route = aStar.FindPath(start, coords);
 
         DrawRoute(route);
-
-        //DrawRoute(route);
     }
 
     private IntCoords MouseToCoords() {

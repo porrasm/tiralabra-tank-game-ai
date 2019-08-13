@@ -1,8 +1,7 @@
-﻿//Backup
+﻿using System.Net;
+using System.Net.Sockets;
 using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Unity;
-using System.Net;
-using System.Net.Sockets;
 using UnityEngine;
 
 public class Server {
@@ -11,20 +10,21 @@ public class Server {
     public const ushort PORT = 15937;
     public static string IP = "127.0.0.1";
 
-    public static string natServerHost = string.Empty;
-    public static ushort natServerPort = 15938;
+    public static string NatServerHost = string.Empty;
+    public static ushort NatServerPort = 15938;
 
     private static NetworkManager manager;
 
     public static NetWorker Networker { get; private set; }
 
-    public static bool useTCP = false;
+    public static bool UseTCP = false;
     #endregion
 
     public static void Initialize() {
         Rpc.MainThreadRunner = MainThreadManager.Instance;
 
-        if (!useTCP) {
+        if (!UseTCP) {
+
             // Do any firewall opening requests on the operating system
             NetWorker.PingForFirewall(PORT);
         }
@@ -34,16 +34,16 @@ public class Server {
 
         SetIP();
 
-        if (useTCP) {
+        if (UseTCP) {
             Networker = new TCPServer(64);
             ((TCPServer)Networker).Connect(IP, PORT);
         } else {
             Networker = new UDPServer(64);
 
-            if (natServerHost.Trim().Length == 0) {
+            if (NatServerHost.Trim().Length == 0) {
                 ((UDPServer)Networker).Connect(IP, PORT);
             } else {
-                ((UDPServer)Networker).Connect(port: PORT, natHost: natServerHost, natPort: natServerPort);
+                ((UDPServer)Networker).Connect(port: PORT, natHost: NatServerHost, natPort: NatServerPort);
             }
         }
 
@@ -69,31 +69,28 @@ public class Server {
 
     public static bool ConnectToServer() {
 
-        //NetWorker.localServerLocated += LocalServerLocated;
-        //NetWorker.RefreshLocalUdpListings(PORT);
-
+        // NetWorker.localServerLocated += LocalServerLocated;
+        // NetWorker.RefreshLocalUdpListings(PORT);
         MonoBehaviour.print("Connecting to :" + IP);
 
         return ConnectToAddress(IP, PORT);
     }
 
-    private static bool ConnectToAddress(string IP, ushort PORT) {
+    private static bool ConnectToAddress(string ip, ushort port) {
         MonoBehaviour.print("Joining game");
 
-        //
-        if (useTCP) {
+        if (UseTCP) {
             Networker = new TCPClient();
-            MonoBehaviour.print("Joining: " + IP + ":" + PORT);
-            ((TCPClient)Networker).Connect(IP, PORT);
+            MonoBehaviour.print("Joining: " + ip + ":" + port);
+            ((TCPClient)Networker).Connect(ip, port);
         } else {
             Networker = new UDPClient();
-            if (natServerHost.Trim().Length == 0) {
-                ((UDPClient)Networker).Connect(IP, PORT);
+            if (NatServerHost.Trim().Length == 0) {
+                ((UDPClient)Networker).Connect(ip, port);
             } else {
-                ((UDPClient)Networker).Connect(IP, PORT, natServerHost, natServerPort);
+                ((UDPClient)Networker).Connect(ip, port, NatServerHost, NatServerPort);
             }
         }
-        //
 
         bool connected = Connected(Networker);
 

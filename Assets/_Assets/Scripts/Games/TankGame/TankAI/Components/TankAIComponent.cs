@@ -1,6 +1,4 @@
-﻿
-
-public class TankAIComponent {
+﻿public class TankAIComponent {
 
     protected TankAI ai;
     public TankAI AI { get => ai; }
@@ -10,6 +8,5 @@ public class TankAIComponent {
     }
 
     public virtual void Update() {
-
     }
 }

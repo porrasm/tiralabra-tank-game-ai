@@ -1,8 +1,8 @@
-﻿using BeardedManStudios.Forge.Networking;
-using BeardedManStudios.Forge.Networking.Generated;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using BeardedManStudios.Forge.Networking;
+using BeardedManStudios.Forge.Networking.Generated;
 using UnityEngine;
 
 public class TankNetworking : TankNetworkingBehavior {
@@ -26,8 +26,6 @@ public class TankNetworking : TankNetworkingBehavior {
     public float Rotation { get => rotation; set => rotation = value; }
     public int Fire { get => fire; set => fire = value; }
     public int Powerup { get => powerup; set => powerup = value; }
-
-    private Vector2 Test() { return movement; }
     #endregion
 
     private void Awake() {

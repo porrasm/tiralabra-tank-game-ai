@@ -13,7 +13,7 @@ public class TankPowerup_Missile : TankPowerup {
     private float initTime = 1;
     private float time, targetTime;
 
-    void Update() {
+    private void Update() {
         MoveCrosshair();
     }
 
@@ -187,7 +187,7 @@ public class TankPowerup_Missile : TankPowerup {
 
         float distance = XZDistance();
 
-        Vector3 direction = (target.position - crosshair.position);
+        Vector3 direction = target.position - crosshair.position;
         direction.y = 0;
 
         direction = direction.normalized * TankSettings.P_MissileSpeed * Time.deltaTime;

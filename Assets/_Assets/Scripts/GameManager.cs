@@ -1,7 +1,5 @@
 ﻿using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Generated;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,7 +7,9 @@ public class GameManager : GamesBehavior {
 
     private static Game currentGame;
 
-    public enum Game { Menu = -2, Lobby = -1, TankGame = 1 }
+    public enum Game {
+        Menu = -2, Lobby = -1, TankGame = 1
+    }
 
     private void Start() {
 

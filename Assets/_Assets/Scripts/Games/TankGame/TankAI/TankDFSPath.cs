@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-//using UnityEngine;
 
 public class TankDFSPath : TankAIPathfinding {
 
@@ -13,17 +12,19 @@ public class TankDFSPath : TankAIPathfinding {
     private IntCoords start, end;
 
     private IntCoords coords;
+
     // Replace list
-    public bool building;
+    private bool building;
     private Stack<IntCoords> route;
 
     private bool found;
 
     private FoundCondition foundCondition;
+
+    public bool Building { get => building; set => building = value; }
     #endregion
 
-    public TankDFSPath(byte[,] level) :base(level) {
-
+    public TankDFSPath(byte[,] level) : base(level) {
     }
 
     /// <summary>
@@ -96,10 +97,7 @@ public class TankDFSPath : TankAIPathfinding {
     /// </summary>
     /// <param name="coords"></param>
     /// <returns></returns>
-
     private TankDirection BestDirection(IntCoords coords) {
-
-        
 
         byte allowed = level[coords.x, coords.y];
         byte used = usedDirections[coords.x, coords.y];
@@ -130,7 +128,6 @@ public class TankDFSPath : TankAIPathfinding {
 
     private float DistanceFrom(IntCoords from, TankDirection direction) {
         from = from.MoveToDirection(direction);        return Vector.Distance(Vector.CoordsToPosition(from), Vector.CoordsToPosition(end));
-
     }
 
     private int Visited(IntCoords coords) {

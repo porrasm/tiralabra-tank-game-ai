@@ -11,24 +11,25 @@ public class TankAStarPath : TankAIPathfinding {
     private IntCoords start;
     private IntCoords end;
 
-    LinkedPriorityList<Node> open;
+    private LinkedPriorityList<Node> open;
+
     // Replace
-    HashSet<IntCoords> closed;
+    private HashSet<IntCoords> closed;
 
     private class Node {
 
         public Node(IntCoords coords, double cost) {
             this.Coords = coords;
-            this.cost = cost;
+            this.Cost = cost;
         }
 
         public Node prev;
         public IntCoords Coords { get; private set; }
-        public double cost { get; set; }
+        public double Cost { get; set; }
 
 
         public double EstimatedCost(IntCoords end) {
-            return cost + Vector.Distance(Vector.CoordsToPosition(Coords), Vector.CoordsToPosition(end));
+            return Cost + Vector.Distance(Vector.CoordsToPosition(Coords), Vector.CoordsToPosition(end));
         }
 
         public override bool Equals(object obj) {
@@ -43,7 +44,7 @@ public class TankAStarPath : TankAIPathfinding {
     }
     #endregion
 
-    public TankAStarPath(byte[,] level) :base(level) {
+    public TankAStarPath(byte[,] level) : base(level) {
         cost = 1;
         costDiag = Maths.Sqrt(2);
     }
@@ -61,6 +62,7 @@ public class TankAStarPath : TankAIPathfinding {
         this.end = end;
 
         open = new LinkedPriorityList<Node>();
+
         // Replace
         closed = new HashSet<IntCoords>();
 
@@ -86,11 +88,11 @@ public class TankAStarPath : TankAIPathfinding {
                     continue;
                 }
 
-                double tentative_gScore = n.cost + DirCost(i);
+                double tentative_gScore = n.Cost + DirCost(i);
 
-                if (tentative_gScore < neighbour.cost) {
+                if (tentative_gScore < neighbour.Cost) {
                     neighbour.prev = n;
-                    neighbour.cost = tentative_gScore;
+                    neighbour.Cost = tentative_gScore;
                 }
             }
         }
@@ -164,7 +166,7 @@ public class TankAStarPath : TankAIPathfinding {
             n = n.prev;
         }
 
-        Vector[] route = new Vector[count+1];
+        Vector[] route = new Vector[count + 1];
 
         for (int i = count; i > 0; i--) {
             route[i] = Vector.CoordsToPosition(node.Coords);

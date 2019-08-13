@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+
 /// <summary>
 /// Simple structure containing x and y coordinates.
 /// </summary>
@@ -10,27 +11,6 @@ public struct IntCoords {
         this.x = x;
         this.y = y;
     }
-
-    /// <summary>
-    /// Distance between coordinates
-    /// </summary>
-    /// <param name="coords"></param>
-    /// <returns></returns>
-    //public float Distance(IntCoords coords) {
-
-    //    float dis = Distance(coords.x, coords.y);
-    //    Debug.Log("from: " + this + " to " + coords + " = " + dis);
-    //    return dis;
-    //}
-    /// <summary>
-    /// Distance between coordinates
-    /// </summary>
-    /// <param name="coords"></param>
-    /// <returns></returns>
-    //public float Distance(int x, int y) {
-    //    float value = Maths.Power(x, 2) + Maths.Power(y, 2);
-    //    return Maths.Sqrt(value);
-    //}
 
     /// <summary>
     /// Moves the coordinates based on the direction.
@@ -85,6 +65,11 @@ public struct IntCoords {
         }
         return false;
     }
+
+    public override int GetHashCode() {
+        return x * 31 + y;
+    }
+
     public static bool operator ==(IntCoords a, IntCoords b) {
         return a.x == b.x && a.y == b.y;
     }

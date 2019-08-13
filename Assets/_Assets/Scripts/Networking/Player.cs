@@ -1,7 +1,6 @@
 ﻿using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Generated;
 using BeardedManStudios.Forge.Networking.Unity;
-using System.Linq;
 using UnityEngine;
 
 public class Player : ClientBehavior {
@@ -45,7 +44,9 @@ public class Player : ClientBehavior {
             } 
         } }
     public byte Ready { get; set; }
-    public bool Primary { get { return ID == 0; } }
+    public bool Primary {
+        get { return ID == 0; }
+    }
 
     public NetworkingPlayer NetPlayer { get; set; }
     public bool Local { get => local; set {
@@ -80,7 +81,6 @@ public class Player : ClientBehavior {
         ClientBehavior beh = NetworkManager.Instance.InstantiateClient();
     }
     public static void CreateNewLocalPlayer() {
-
     }
 
     public void InitializeClient() {

@@ -14,7 +14,5 @@ public class TankAITargetRaycast : TankAIComponent {
     }
 
     public void PossibleDirection(Vector direction) {
-
     }
 }
-

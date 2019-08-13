@@ -37,4 +37,4 @@
 | Date        | Description           | Hours  |
 | ------------- |-------------| -----|
 | 12.8     | Pathfinding tests & attempted bug fix | 3 |
-| 13.8     | Test coverage setup & code documentation & fix DFS & fix pathfinding tests | 4 |
+| 13.8     | Test coverage setup & code documentation & fix DFS & fix pathfinding tests & fix stylecop violations| 5 |

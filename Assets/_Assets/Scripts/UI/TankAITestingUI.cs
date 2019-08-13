@@ -1,5 +1,4 @@
-﻿using BeardedManStudios.Forge.Networking.Unity;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -24,7 +23,6 @@ public class TankAITestingUI : MonoBehaviour {
     #endregion
 
     private void Start() {
-
     }
 
     private void Update() {
@@ -55,8 +53,8 @@ public class TankAITestingUI : MonoBehaviour {
             aiCount = 8;
         }
 
-        TankAIManager.AI_COUNT = aiCount;
-        TankAIManager.PLAYER_ENABLED = !onlyAIs;
+        TankAIManager.AICount = aiCount;
+        TankAIManager.PlayerEnabled = !onlyAIs;
 
         IEnumerator StartCor() {
 

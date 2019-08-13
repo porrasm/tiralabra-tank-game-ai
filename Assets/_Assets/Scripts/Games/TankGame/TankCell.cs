@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class TankCell : MonoBehaviour {
 
-    public enum CellWall { Top, Right, Both }
+    public enum CellWall {
+        Top, Right, Both
+    }
 
     public bool Top {
         get {
@@ -42,7 +44,8 @@ public class TankCell : MonoBehaviour {
         }
 
         if (BothDisabled()) {
-            //Destroy(gameObject);
+
+            // Destroy(gameObject);
         }
     }
 

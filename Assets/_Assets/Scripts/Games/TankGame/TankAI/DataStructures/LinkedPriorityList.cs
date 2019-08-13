@@ -1,5 +1,4 @@
-﻿
-/// <summary>
+﻿/// <summary>
 /// Linked priority list. The type <typeparamref name="T"/> with the lowest priority will always be the first one, and the one with the greates value will be the last one. Functionality is identical to a priority queue.
 /// </summary>
 /// <typeparam name="T"></typeparam>
@@ -8,17 +7,21 @@ public class LinkedPriorityList<T> {
     #region fields
     public int Count { get; private set; }
 
-    private class Node<T> {
+    private class Node<Tn> {
 
-        public Node(T value, double priority, Node<T> next) {
-            this.value = value;
-            this.priority = priority;
-            this.next = next;
+        public Node(Tn value, double priority, Node<Tn> next) {
+            this.Value = value;
+            this.Priority = priority;
+            this.Next = next;
         }
 
-        public T value;
-        public double priority;
-        public Node<T> next;
+        private Tn value;
+        private double priority;
+        private Node<Tn> next;
+
+        public Tn Value { get => value; set => this.value = value; }
+        public double Priority { get => priority; set => priority = value; }
+        public Node<Tn> Next { get => next; set => next = value; }
     }
 
     private Node<T> first;
@@ -38,7 +41,7 @@ public class LinkedPriorityList<T> {
 
         if (Count == 0) {
             AddFirst(nodeVal, priority);
-        } else if (priority < first.priority) {
+        } else if (priority < first.Priority) {
             ReplaceFirst(nodeVal, priority);
         } else {
             AddNew(nodeVal, priority);
@@ -55,11 +58,11 @@ public class LinkedPriorityList<T> {
         Node<T> next = first;
         AddFirst(nodeVal, priority);
 
-        first.next = next;
+        first.Next = next;
     }
     private void AddAfter(Node<T> node, Node<T> newNode) {
-        newNode.next = node.next;
-        node.next = newNode;
+        newNode.Next = node.Next;
+        node.Next = newNode;
     }
 
     private void AddNew(T nodeVal, double priority) {
@@ -67,16 +70,16 @@ public class LinkedPriorityList<T> {
         Node<T> node = first;
         Node<T> newNode = new Node<T>(nodeVal, priority, null);
 
-        while (node.next != null) {
+        while (node.Next != null) {
 
-            if (priority < node.next.priority) {
+            if (priority < node.Next.Priority) {
                 AddAfter(node, newNode);
                 return;
             }
-            node = node.next;
+            node = node.Next;
         }
 
-        node.next = newNode;
+        node.Next = newNode;
     }
     #endregion
 
@@ -86,7 +89,7 @@ public class LinkedPriorityList<T> {
     /// </summary>
     public T First {
         get {
-            return first.value;
+            return first.Value;
         }
     }
 
@@ -100,8 +103,8 @@ public class LinkedPriorityList<T> {
             throw new System.Exception("Queue is empty.");
         }
 
-        T value = first.value;
-        first = first.next;
+        T value = first.Value;
+        first = first.Next;
         Count--;
 
         return value;
@@ -117,10 +120,10 @@ public class LinkedPriorityList<T> {
         Node<T> node = first;
 
         for (int i = 0; i < Count; i++) {
-            if (node.value.Equals(value)) {
-                return node.value;
+            if (node.Value.Equals(value)) {
+                return node.Value;
             }
-            node = node.next;
+            node = node.Next;
         }
 
         return default(T);
@@ -140,10 +143,10 @@ public class LinkedPriorityList<T> {
         Node<T> node = first;
 
         for (int i = 0; i < Count; i++) {
-            if (node.value.Equals(value)) {
+            if (node.Value.Equals(value)) {
                 return true;
             }
-            node = node.next;
+            node = node.Next;
         }
 
         return false;
@@ -160,8 +163,8 @@ public class LinkedPriorityList<T> {
         Node<T> node = first;
 
         for (int i = 0; i < Count; i++) {
-            array[i] = node.value;
-            node = node.next;
+            array[i] = node.Value;
+            node = node.Next;
         }
 
         return array;

@@ -53,10 +53,6 @@ public class TankPowerup_Regenerate : TankPowerup {
 
         GetComponent<TankWeapon>().NullifyPowerup();
 
-        //while (!used) {
-        //    yield return null;
-        //}
-
         Destroy(this);
 
         ParticleSystem par = particle.GetComponent<ParticleSystem>();

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-class TankPowerup_MultiBall : TankPowerup {
+public class TankPowerup_MultiBall : TankPowerup {
 
     private int bounces = 8;
 
@@ -26,8 +26,5 @@ class TankPowerup_MultiBall : TankPowerup {
     }
 
     private void OnBulletCollision(GameObject obj, Collision collision) {
-        
-        
-
     }
 }

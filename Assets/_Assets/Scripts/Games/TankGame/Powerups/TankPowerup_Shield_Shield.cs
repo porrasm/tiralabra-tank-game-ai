@@ -28,11 +28,11 @@ public class TankPowerup_Shield_Shield : MonoBehaviour {
         targetColor = GetComponent<Renderer>().material.color;
 
         transform.localScale = targetScale * 0.01f;
-        //GetComponent<Renderer>().material.color;
+
+        // GetComponent<Renderer>().material.color;
     }
 
-    // Update is called once per frame
-    void Update() {
+    private void Update() {
         transform.position = player.position;
 
         if (!grown) {
@@ -63,7 +63,8 @@ public class TankPowerup_Shield_Shield : MonoBehaviour {
             if (!bullets.Contains(bullet.gameObject)) {
                 bullets.Add(bullet.gameObject);
                 print("Own bullet, returning");
-                //return;
+
+                // return;
             }
         }
 

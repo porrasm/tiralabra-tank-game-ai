@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class TankWallDestroy : MonoBehaviour {
-    // Start is called before the first frame update
-    void Start() {
+
+    private void Start() {
 
         IEnumerator ExplosionCoroutine() {
             List<GameObject> walls = new List<GameObject>();
@@ -29,10 +29,5 @@ public class TankWallDestroy : MonoBehaviour {
         }
 
         StartCoroutine(ExplosionCoroutine());
-    }
-
-    // Update is called once per frame
-    void Update() {
-
     }
 }

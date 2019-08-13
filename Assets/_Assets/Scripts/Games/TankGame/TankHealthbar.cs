@@ -29,12 +29,14 @@ public class TankHealthbar : MonoBehaviour {
     private Color[] barColors;
 
     private float transparency;
-    private enum TransparencyState { Transparent, Opaque, ToTransparent, ToOpaque }
+    private enum TransparencyState {
+        Transparent, Opaque, ToTransparent, ToOpaque
+    }
     private TransparencyState state;
     #endregion
 
 
-    void Start() {
+    private void Start() {
 
         if (barColors.Length != 3) {
             barColors = new Color[3];
@@ -66,7 +68,7 @@ public class TankHealthbar : MonoBehaviour {
         UpdateColors();
     }
 
-    void Update() {
+    private void Update() {
         UpdatePosition();
         UpdateBars();
         UpdateColors();
