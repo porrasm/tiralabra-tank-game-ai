@@ -36,7 +36,7 @@ I implemented a class which uses a prioritized list to sort jobs. The job with t
 
 Today (and this week) I realised that this project may be too large for this course. I'm having problems managing all the different components this AI needs and the lack of time means that often I had to use the first solution that I could think of. Now I have come up with better solutions for every implemented feature but there is not enough time to fix them.
 
-The biggest problem might become the testing. I have no idea how to test my AI (except unit tests) and it seems that integration testing will be extremely time consuming.
+The biggest problem I have might be the testing. I have no idea how to test my AI (except unit tests) and it seems that integration testing will be extremely time consuming.
 
 #### Testing
 
