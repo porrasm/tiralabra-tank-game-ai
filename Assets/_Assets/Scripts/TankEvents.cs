@@ -36,11 +36,8 @@ public class TankEvents : MonoBehaviour {
 
     public void CallEvent(EventType type) {
 
-        print("Call event");
-
         switch (type) {
             case EventType.BulletEvent:
-                print("Call event: " + type + ", " + bulletEvents);
                 bulletEvents?.Invoke();
                 break;
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using BeardedManStudios.Forge.Networking;
 using BeardedManStudios.Forge.Networking.Generated;
 using UnityEngine;
@@ -203,5 +204,8 @@ public class TankNetworking : TankNetworkingBehavior {
         }
 
         Scripts.RunCoroutine(SearchCoroutine());
+    }
+    public static TankNetworking[] Tanks() {
+        return GameObject.FindGameObjectsWithTag("Player").Select(o => o.GetComponent<TankNetworking>()).ToArray();
     }
 }

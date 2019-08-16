@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -93,6 +94,8 @@ public class TankWeapon : MonoBehaviour {
             return;
         }
 
+        fireWait = true;
+
         IEnumerator WaitCoroutine() {
             float time = fireDelay;
 
@@ -103,8 +106,8 @@ public class TankWeapon : MonoBehaviour {
 
             fireWait = false;
         }
+  
 
-        fireWait = true;
         StartCoroutine(WaitCoroutine());
     }
 

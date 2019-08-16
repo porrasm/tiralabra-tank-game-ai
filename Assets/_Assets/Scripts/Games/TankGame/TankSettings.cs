@@ -41,9 +41,9 @@ public class TankSettings : MonoBehaviour {
     public static int MaxHealth = 300;
     public static float HealthLossRatePerSecond = 2;
 
-    public static int BulletDamage = 0;
+    public static int BulletDamage = 60;
     public static int BulletBounces = 5;
-    public static int BulletDamageBounceReduction = 0;
+    public static int BulletDamageBounceReduction = 10;
     public static float BulletAliveTime = 10f;
 
     #endregion
@@ -60,7 +60,7 @@ public class TankSettings : MonoBehaviour {
     #region Tank
     public static int ClipAmount = 5;
     public static float ReloadTime = 3.5f;
-    public static float FireRate = 400;
+    public static float FireRate = 2;
 
     #endregion
 

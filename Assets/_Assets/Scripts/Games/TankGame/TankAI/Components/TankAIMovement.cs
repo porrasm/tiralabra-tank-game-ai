@@ -15,6 +15,11 @@ public class TankAIMovement : TankAIComponent {
     private bool stuck;
     private float stuckTime;
     private Vector stuckPos;
+
+    private int pathIndex;
+
+    private bool urgent;
+    public bool Moving { get; set; }
     #endregion
 
     public TankAIMovement(TankAI ai) : base(ai) {
@@ -31,17 +36,26 @@ public class TankAIMovement : TankAIComponent {
     /// </summary>
     /// <param name="path"></param>
     public void TraversePath(Vector[] path) {
+        TraversePath(path, false);
+    }
+    public void TraversePath(Vector[] path, bool urgent) {
+
+        Moving = true;
+
+        this.urgent = urgent;
+
+        pathIndex++;
 
         TankPathVisualizer.DrawRoute(path);
 
-        ai.StopCoroutine(TraversePathCoroutine());
+        ai.StopCoroutine(TraversePathCoroutine(pathIndex - 1));
         ai.StopCoroutine(RemoveStuck());
 
         this.path = path;
-        ai.StartCoroutine(TraversePathCoroutine());
+        ai.StartCoroutine(TraversePathCoroutine(pathIndex));
     }
 
-    private IEnumerator TraversePathCoroutine() {
+    private IEnumerator TraversePathCoroutine(int pi) {
 
         int index = 0;
 
@@ -52,6 +66,10 @@ public class TankAIMovement : TankAIComponent {
             Vector targetPos = path[index];
 
             while (!InCoords(index)) {
+
+                if (pi != pathIndex) {
+                    yield break;
+                }
 
                 StuckCheck();
 
@@ -66,6 +84,10 @@ public class TankAIMovement : TankAIComponent {
 
             index++;
         }
+
+        Debug.Log("Finished path: " + path[path.Length - 1]);
+
+        Moving = false;
     }
 
     /// <summary>

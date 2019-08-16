@@ -212,6 +212,13 @@ public struct Vector {
     public static bool operator !=(Vector a, Vector b) {
         return a.x != b.x || a.y != b.y || a.z != b.z;
     }
+
+    public static implicit operator Vector(Vector3 v) {
+        return new Vector(v);
+    }
+    public static implicit operator Vector(IntCoords c) {
+        return Vector.CoordsToPosition(c);
+    }
     #endregion
 
     public override string ToString() {

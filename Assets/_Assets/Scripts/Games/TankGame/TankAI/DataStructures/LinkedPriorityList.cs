@@ -1,5 +1,5 @@
 ﻿/// <summary>
-/// Linked priority list. The type <typeparamref name="T"/> with the lowest priority will always be the first one, and the one with the greates value will be the last one. Functionality is identical to a priority queue.
+/// Linked priority list. The type <typeparamref name="T"/> with the lowest priority will always be the first one, and the one with the greatest value will be the last one. Functionality is identical to a priority queue.
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public class LinkedPriorityList<T> {
@@ -81,6 +81,17 @@ public class LinkedPriorityList<T> {
 
         node.Next = newNode;
     }
+
+    // Replace this
+    /// <summary>
+    /// Updates the priority of an element
+    /// </summary>
+    /// <param name="nodeVal"></param>
+    /// <param name="newPriority"></param>
+    public void Update(T nodeVal, double newPriority) {
+        Remove(nodeVal);
+        Add(nodeVal, newPriority);
+    }
     #endregion
 
     #region Getting
@@ -108,6 +119,33 @@ public class LinkedPriorityList<T> {
         Count--;
 
         return value;
+    }
+
+    /// <summary>
+    /// Removes the element from the list
+    /// </summary>
+    /// <param name="nodeVal"></param>
+    public void Remove(T nodeVal) {
+
+        Node<T> node = first;
+
+        if (node.Value.Equals(nodeVal)) {
+
+            first = node.Next;
+            node = null;
+
+            return;
+        }
+
+        for (int i = 0; i < Count; i++) {    
+            
+            if (node.Next.Value.Equals(nodeVal)) {
+                node.Next = node.Next.Next;
+                return;
+            }
+
+            node = node.Next;
+        }
     }
 
     /// <summary>

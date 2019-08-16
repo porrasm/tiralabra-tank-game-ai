@@ -5,10 +5,9 @@ using UnityEngine;
 /// <summary>
 /// Used to calculate all the future trajectories of bullets
 /// </summary>
-public class TankAIBulletChecker : TankAIComponent {
+public class TankAIBulletChecker : TankAIComponent, IBulletCountHolder {
 
     #region fields
-
     private TankBulletTrajectory[] trajectories;
 
     public byte[,] CellBulletCounts { get; private set; }
@@ -29,7 +28,7 @@ public class TankAIBulletChecker : TankAIComponent {
 
         BulletWillHit = false;
 
-        CellBulletCounts = new byte[TankSettings.LevelWidth, TankSettings.LevelHeight];
+        ResetCellBulletCounts();
 
         GameObject[] bullets = GameObject.FindGameObjectsWithTag("Bullet");
 
@@ -45,6 +44,8 @@ public class TankAIBulletChecker : TankAIComponent {
                 BulletWillHit = true;
             }
         }
+
+        TankLevelCellVisualizer.VisualizeCells(CellBulletCounts);
     }
 
     /// <summary>
@@ -60,5 +61,9 @@ public class TankAIBulletChecker : TankAIComponent {
         }
 
         return pf.FindPath(current, new IntCoords(-1, -1), FoundCondition);
-    } 
+    }
+
+    public void ResetCellBulletCounts() {
+        CellBulletCounts = new byte[TankSettings.LevelWidth, TankSettings.LevelHeight];
+    }
 }

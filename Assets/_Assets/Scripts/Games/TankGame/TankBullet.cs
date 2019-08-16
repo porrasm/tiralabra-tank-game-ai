@@ -40,7 +40,6 @@ public class TankBullet : MonoBehaviour {
         AliveTime = TankSettings.BulletAliveTime;
         Bounces = TankSettings.BulletBounces;
 
-        print("Calling event");
         TankEvents.Instance.CallEvent(TankEvents.EventType.BulletEvent);
     }
 
