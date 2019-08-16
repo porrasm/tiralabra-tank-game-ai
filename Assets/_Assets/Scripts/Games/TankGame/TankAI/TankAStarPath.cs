@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[CoverInReport]
 public class TankAStarPath : TankAIPathfinding {
 
     #region fields

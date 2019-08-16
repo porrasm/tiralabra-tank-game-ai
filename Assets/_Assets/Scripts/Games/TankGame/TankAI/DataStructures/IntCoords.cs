@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-
-/// <summary>
+﻿/// <summary>
 /// Simple structure containing x and y coordinates.
 /// </summary>
+[CoverInReport]
 public struct IntCoords {
 
     public int x, y;

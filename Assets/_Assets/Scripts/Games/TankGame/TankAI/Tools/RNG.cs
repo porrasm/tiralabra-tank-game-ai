@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
+[CoverInReport]
 public static class RNG {
 
     #region fields

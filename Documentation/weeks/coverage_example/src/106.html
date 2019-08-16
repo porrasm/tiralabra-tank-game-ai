@@ -2,442 +2,91 @@
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\generated\usergenerated\tanknetworkingnetworkobject.cs</title>
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\datastructures\tankaitargetjob.cs</title>
     <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
     <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
   </head>
   <body>
     <pre id="content" class="source-code">
-using BeardedManStudios.Forge.Networking.Frame;
-using BeardedManStudios.Forge.Networking.Unity;
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace BeardedManStudios.Forge.Networking.Generated
-{
-	[GeneratedInterpol(&quot;{\&quot;inter\&quot;:[0,0,0,0,0,0]&quot;)]
-	public partial class TankNetworkingNetworkObject : NetworkObject
-	{
-		public const int IDENTITY = 9;
+public class TankAITargetJob : TankAIBehaviourJob {
 
-		private byte[] _dirtyFields = new byte[1];
 
-		#pragma warning disable 0067
-		public event FieldChangedEvent fieldAltered;
-		#pragma warning restore 0067
-		[ForgeGeneratedField]
-		private int _Health;
-		public event FieldEvent&lt;int&gt; HealthChanged;
-		public Interpolated&lt;int&gt; HealthInterpolation = new Interpolated&lt;int&gt;() { LerpT = 0f, Enabled = false };
-		public int Health
-		{
-			get { return _Health; }
-			set
-			{
-				// Don&#39;t do anything if the value is the same
-				if (_Health == value)
-					return;
+    #region fields
+    private static float preferredDistance = 2.5f;
+    private static float maxInactiveTime = 2f;
+    private static float calibrateTime = 1f;
 
-				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x1;
-				_Health = value;
-				hasDirtyFields = true;
-			}
-		}
+    #endregion
 
-		public void SetHealthDirty()
-		{
-			_dirtyFields[0] |= 0x1;
-			hasDirtyFields = true;
-		}
+    public TankAITargetJob(TankAI ai, TankNetworking target) : base(ai, target) {
+        JobType = Type.TargetPlayer;
+    }
 
-		private void RunChange_Health(ulong timestep)
-		{
-			if (HealthChanged != null) HealthChanged(_Health, timestep);
-			if (fieldAltered != null) fieldAltered(&quot;Health&quot;, _Health, timestep);
-		}
-		[ForgeGeneratedField]
-		private int _Score;
-		public event FieldEvent&lt;int&gt; ScoreChanged;
-		public Interpolated&lt;int&gt; ScoreInterpolation = new Interpolated&lt;int&gt;() { LerpT = 0f, Enabled = false };
-		public int Score
-		{
-			get { return _Score; }
-			set
-			{
-				// Don&#39;t do anything if the value is the same
-				if (_Score == value)
-					return;
+    public override IEnumerator Execute(int executeIndex) {
 
-				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x2;
-				_Score = value;
-				hasDirtyFields = true;
-			}
-		}
+        Debug.Log(&quot;Executing target job against: &quot; + target.Owner.Name);
 
-		public void SetScoreDirty()
-		{
-			_dirtyFields[0] |= 0x2;
-			hasDirtyFields = true;
-		}
+        this.executeIndex = executeIndex;
 
-		private void RunChange_Score(ulong timestep)
-		{
-			if (ScoreChanged != null) ScoreChanged(_Score, timestep);
-			if (fieldAltered != null) fieldAltered(&quot;Score&quot;, _Score, timestep);
-		}
-		[ForgeGeneratedField]
-		private Vector2 _Movement;
-		public event FieldEvent&lt;Vector2&gt; MovementChanged;
-		public InterpolateVector2 MovementInterpolation = new InterpolateVector2() { LerpT = 0f, Enabled = false };
-		public Vector2 Movement
-		{
-			get { return _Movement; }
-			set
-			{
-				// Don&#39;t do anything if the value is the same
-				if (_Movement == value)
-					return;
+        while (true) {
+            ai.Movement.TraversePath(TargetingPath());
 
-				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x4;
-				_Movement = value;
-				hasDirtyFields = true;
-			}
-		}
+            yield return new WaitForSeconds(RNG.Float * maxInactiveTime);
 
-		public void SetMovementDirty()
-		{
-			_dirtyFields[0] |= 0x4;
-			hasDirtyFields = true;
-		}
+            float time = 0;
 
-		private void RunChange_Movement(ulong timestep)
-		{
-			if (MovementChanged != null) MovementChanged(_Movement, timestep);
-			if (fieldAltered != null) fieldAltered(&quot;Movement&quot;, _Movement, timestep);
-		}
-		[ForgeGeneratedField]
-		private float _Rotation;
-		public event FieldEvent&lt;float&gt; RotationChanged;
-		public InterpolateFloat RotationInterpolation = new InterpolateFloat() { LerpT = 0f, Enabled = false };
-		public float Rotation
-		{
-			get { return _Rotation; }
-			set
-			{
-				// Don&#39;t do anything if the value is the same
-				if (_Rotation == value)
-					return;
+            while (ai.Movement.Moving) {
 
-				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x8;
-				_Rotation = value;
-				hasDirtyFields = true;
-			}
-		}
+                time -= Time.deltaTime;
 
-		public void SetRotationDirty()
-		{
-			_dirtyFields[0] |= 0x8;
-			hasDirtyFields = true;
-		}
+                if (time &lt; 0) {
+                    break;
+                }
 
-		private void RunChange_Rotation(ulong timestep)
-		{
-			if (RotationChanged != null) RotationChanged(_Rotation, timestep);
-			if (fieldAltered != null) fieldAltered(&quot;Rotation&quot;, _Rotation, timestep);
-		}
-		[ForgeGeneratedField]
-		private int _Fire;
-		public event FieldEvent&lt;int&gt; FireChanged;
-		public Interpolated&lt;int&gt; FireInterpolation = new Interpolated&lt;int&gt;() { LerpT = 0f, Enabled = false };
-		public int Fire
-		{
-			get { return _Fire; }
-			set
-			{
-				// Don&#39;t do anything if the value is the same
-				if (_Fire == value)
-					return;
+                if (!CorrectIndex || target.Health &lt;= 0) {
+                    ai.Behaviour.Executing = false;
+                    yield break;
+                }
 
-				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x10;
-				_Fire = value;
-				hasDirtyFields = true;
-			}
-		}
+                yield return null;
+            }
+        }
+    }
 
-		public void SetFireDirty()
-		{
-			_dirtyFields[0] |= 0x10;
-			hasDirtyFields = true;
-		}
+    private Vector[] TargetingPath() {
 
-		private void RunChange_Fire(ulong timestep)
-		{
-			if (FireChanged != null) FireChanged(_Fire, timestep);
-			if (fieldAltered != null) fieldAltered(&quot;Fire&quot;, _Fire, timestep);
-		}
-		[ForgeGeneratedField]
-		private int _Powerup;
-		public event FieldEvent&lt;int&gt; PowerupChanged;
-		public Interpolated&lt;int&gt; PowerupInterpolation = new Interpolated&lt;int&gt;() { LerpT = 0f, Enabled = false };
-		public int Powerup
-		{
-			get { return _Powerup; }
-			set
-			{
-				// Don&#39;t do anything if the value is the same
-				if (_Powerup == value)
-					return;
+        return ai.AStar.FindPath(
+            Vector.PositionToCoords(ai.transform.position), 
+            Vector.PositionToCoords(target.transform.position), 
+            FoundCondition);
+    }
 
-				// Mark the field as dirty for the network to transmit
-				_dirtyFields[0] |= 0x20;
-				_Powerup = value;
-				hasDirtyFields = true;
-			}
-		}
+    private bool FoundCondition(IntCoords current) {
 
-		public void SetPowerupDirty()
-		{
-			_dirtyFields[0] |= 0x20;
-			hasDirtyFields = true;
-		}
+        Vector targetPos = target.transform.position;
+        Vector currentPos = current;
+        Vector aiPos = ai.transform.position;
 
-		private void RunChange_Powerup(ulong timestep)
-		{
-			if (PowerupChanged != null) PowerupChanged(_Powerup, timestep);
-			if (fieldAltered != null) fieldAltered(&quot;Powerup&quot;, _Powerup, timestep);
-		}
+        if (AreClose(aiPos, targetPos)) {
+            return !AreClose(currentPos, targetPos);
+        } else {
+            return AreClose(currentPos, targetPos);
+        }
+    }
 
-		protected override void OwnershipChanged()
-		{
-			base.OwnershipChanged();
-			SnapInterpolations();
-		}
-		
-		public void SnapInterpolations()
-		{
-			HealthInterpolation.current = HealthInterpolation.target;
-			ScoreInterpolation.current = ScoreInterpolation.target;
-			MovementInterpolation.current = MovementInterpolation.target;
-			RotationInterpolation.current = RotationInterpolation.target;
-			FireInterpolation.current = FireInterpolation.target;
-			PowerupInterpolation.current = PowerupInterpolation.target;
-		}
+    private bool AreClose(Vector a, Vector b) {
+        return Vector.Distance(a, b) &lt; preferredDistance;
+    }
 
-		public override int UniqueIdentity { get { return IDENTITY; } }
-
-		protected override BMSByte WritePayload(BMSByte data)
-		{
-			UnityObjectMapper.Instance.MapBytes(data, _Health);
-			UnityObjectMapper.Instance.MapBytes(data, _Score);
-			UnityObjectMapper.Instance.MapBytes(data, _Movement);
-			UnityObjectMapper.Instance.MapBytes(data, _Rotation);
-			UnityObjectMapper.Instance.MapBytes(data, _Fire);
-			UnityObjectMapper.Instance.MapBytes(data, _Powerup);
-
-			return data;
-		}
-
-		protected override void ReadPayload(BMSByte payload, ulong timestep)
-		{
-			_Health = UnityObjectMapper.Instance.Map&lt;int&gt;(payload);
-			HealthInterpolation.current = _Health;
-			HealthInterpolation.target = _Health;
-			RunChange_Health(timestep);
-			_Score = UnityObjectMapper.Instance.Map&lt;int&gt;(payload);
-			ScoreInterpolation.current = _Score;
-			ScoreInterpolation.target = _Score;
-			RunChange_Score(timestep);
-			_Movement = UnityObjectMapper.Instance.Map&lt;Vector2&gt;(payload);
-			MovementInterpolation.current = _Movement;
-			MovementInterpolation.target = _Movement;
-			RunChange_Movement(timestep);
-			_Rotation = UnityObjectMapper.Instance.Map&lt;float&gt;(payload);
-			RotationInterpolation.current = _Rotation;
-			RotationInterpolation.target = _Rotation;
-			RunChange_Rotation(timestep);
-			_Fire = UnityObjectMapper.Instance.Map&lt;int&gt;(payload);
-			FireInterpolation.current = _Fire;
-			FireInterpolation.target = _Fire;
-			RunChange_Fire(timestep);
-			_Powerup = UnityObjectMapper.Instance.Map&lt;int&gt;(payload);
-			PowerupInterpolation.current = _Powerup;
-			PowerupInterpolation.target = _Powerup;
-			RunChange_Powerup(timestep);
-		}
-
-		protected override BMSByte SerializeDirtyFields()
-		{
-			dirtyFieldsData.Clear();
-			dirtyFieldsData.Append(_dirtyFields);
-
-			if ((0x1 &amp; _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Health);
-			if ((0x2 &amp; _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Score);
-			if ((0x4 &amp; _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Movement);
-			if ((0x8 &amp; _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Rotation);
-			if ((0x10 &amp; _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Fire);
-			if ((0x20 &amp; _dirtyFields[0]) != 0)
-				UnityObjectMapper.Instance.MapBytes(dirtyFieldsData, _Powerup);
-
-			// Reset all the dirty fields
-			for (int i = 0; i &lt; _dirtyFields.Length; i++)
-				_dirtyFields[i] = 0;
-
-			return dirtyFieldsData;
-		}
-
-		protected override void ReadDirtyFields(BMSByte data, ulong timestep)
-		{
-			if (readDirtyFlags == null)
-				Initialize();
-
-			Buffer.BlockCopy(data.byteArr, data.StartIndex(), readDirtyFlags, 0, readDirtyFlags.Length);
-			data.MoveStartIndex(readDirtyFlags.Length);
-
-			if ((0x1 &amp; readDirtyFlags[0]) != 0)
-			{
-				if (HealthInterpolation.Enabled)
-				{
-					HealthInterpolation.target = UnityObjectMapper.Instance.Map&lt;int&gt;(data);
-					HealthInterpolation.Timestep = timestep;
-				}
-				else
-				{
-					_Health = UnityObjectMapper.Instance.Map&lt;int&gt;(data);
-					RunChange_Health(timestep);
-				}
-			}
-			if ((0x2 &amp; readDirtyFlags[0]) != 0)
-			{
-				if (ScoreInterpolation.Enabled)
-				{
-					ScoreInterpolation.target = UnityObjectMapper.Instance.Map&lt;int&gt;(data);
-					ScoreInterpolation.Timestep = timestep;
-				}
-				else
-				{
-					_Score = UnityObjectMapper.Instance.Map&lt;int&gt;(data);
-					RunChange_Score(timestep);
-				}
-			}
-			if ((0x4 &amp; readDirtyFlags[0]) != 0)
-			{
-				if (MovementInterpolation.Enabled)
-				{
-					MovementInterpolation.target = UnityObjectMapper.Instance.Map&lt;Vector2&gt;(data);
-					MovementInterpolation.Timestep = timestep;
-				}
-				else
-				{
-					_Movement = UnityObjectMapper.Instance.Map&lt;Vector2&gt;(data);
-					RunChange_Movement(timestep);
-				}
-			}
-			if ((0x8 &amp; readDirtyFlags[0]) != 0)
-			{
-				if (RotationInterpolation.Enabled)
-				{
-					RotationInterpolation.target = UnityObjectMapper.Instance.Map&lt;float&gt;(data);
-					RotationInterpolation.Timestep = timestep;
-				}
-				else
-				{
-					_Rotation = UnityObjectMapper.Instance.Map&lt;float&gt;(data);
-					RunChange_Rotation(timestep);
-				}
-			}
-			if ((0x10 &amp; readDirtyFlags[0]) != 0)
-			{
-				if (FireInterpolation.Enabled)
-				{
-					FireInterpolation.target = UnityObjectMapper.Instance.Map&lt;int&gt;(data);
-					FireInterpolation.Timestep = timestep;
-				}
-				else
-				{
-					_Fire = UnityObjectMapper.Instance.Map&lt;int&gt;(data);
-					RunChange_Fire(timestep);
-				}
-			}
-			if ((0x20 &amp; readDirtyFlags[0]) != 0)
-			{
-				if (PowerupInterpolation.Enabled)
-				{
-					PowerupInterpolation.target = UnityObjectMapper.Instance.Map&lt;int&gt;(data);
-					PowerupInterpolation.Timestep = timestep;
-				}
-				else
-				{
-					_Powerup = UnityObjectMapper.Instance.Map&lt;int&gt;(data);
-					RunChange_Powerup(timestep);
-				}
-			}
-		}
-
-		public override void InterpolateUpdate()
-		{
-			if (IsOwner)
-				return;
-
-			if (HealthInterpolation.Enabled &amp;&amp; !HealthInterpolation.current.UnityNear(HealthInterpolation.target, 0.0015f))
-			{
-				_Health = (int)HealthInterpolation.Interpolate();
-				//RunChange_Health(HealthInterpolation.Timestep);
-			}
-			if (ScoreInterpolation.Enabled &amp;&amp; !ScoreInterpolation.current.UnityNear(ScoreInterpolation.target, 0.0015f))
-			{
-				_Score = (int)ScoreInterpolation.Interpolate();
-				//RunChange_Score(ScoreInterpolation.Timestep);
-			}
-			if (MovementInterpolation.Enabled &amp;&amp; !MovementInterpolation.current.UnityNear(MovementInterpolation.target, 0.0015f))
-			{
-				_Movement = (Vector2)MovementInterpolation.Interpolate();
-				//RunChange_Movement(MovementInterpolation.Timestep);
-			}
-			if (RotationInterpolation.Enabled &amp;&amp; !RotationInterpolation.current.UnityNear(RotationInterpolation.target, 0.0015f))
-			{
-				_Rotation = (float)RotationInterpolation.Interpolate();
-				//RunChange_Rotation(RotationInterpolation.Timestep);
-			}
-			if (FireInterpolation.Enabled &amp;&amp; !FireInterpolation.current.UnityNear(FireInterpolation.target, 0.0015f))
-			{
-				_Fire = (int)FireInterpolation.Interpolate();
-				//RunChange_Fire(FireInterpolation.Timestep);
-			}
-			if (PowerupInterpolation.Enabled &amp;&amp; !PowerupInterpolation.current.UnityNear(PowerupInterpolation.target, 0.0015f))
-			{
-				_Powerup = (int)PowerupInterpolation.Interpolate();
-				//RunChange_Powerup(PowerupInterpolation.Timestep);
-			}
-		}
-
-		private void Initialize()
-		{
-			if (readDirtyFlags == null)
-				readDirtyFlags = new byte[1];
-
-		}
-
-		public TankNetworkingNetworkObject() : base() { Initialize(); }
-		public TankNetworkingNetworkObject(NetWorker networker, INetworkBehavior networkBehavior = null, int createCode = 0, byte[] metadata = null) : base(networker, networkBehavior, createCode, metadata) { Initialize(); }
-		public TankNetworkingNetworkObject(NetWorker networker, uint serverId, FrameStream frame) : base(networker, serverId, frame) { Initialize(); }
-
-		// DO NOT TOUCH, THIS GETS GENERATED PLEASE EXTEND THIS CLASS IF YOU WISH TO HAVE CUSTOM CODE ADDITIONS
-	}
 }
 
     </pre>
     <script type="text/javascript">
-      highlightRanges([[13,3,13,45,0],[13,3,13,45,0],[13,3,13,45,0],[21,3,21,106,0],[21,3,21,106,0],[21,3,21,106,0],[24,8,24,9,0],[24,10,24,25,0],[24,26,24,27,0],[26,4,26,5,0],[28,5,28,26,0],[29,6,29,13,0],[32,5,32,28,0],[33,5,33,21,0],[34,5,34,27,0],[35,4,35,5,0],[39,3,39,4,0],[40,4,40,27,0],[41,4,41,26,0],[42,3,42,4,0],[45,3,45,4,0],[46,4,46,30,0],[46,31,46,64,0],[47,4,47,29,0],[47,30,47,72,0],[48,3,48,4,0],[52,3,52,105,0],[52,3,52,105,0],[52,3,52,105,0],[55,8,55,9,0],[55,10,55,24,0],[55,25,55,26,0],[57,4,57,5,0],[59,5,59,25,0],[60,6,60,13,0],[63,5,63,28,0],[64,5,64,20,0],[65,5,65,27,0],[66,4,66,5,0],[70,3,70,4,0],[71,4,71,27,0],[72,4,72,26,0],[73,3,73,4,0],[76,3,76,4,0],[77,4,77,29,0],[77,30,77,61,0],[78,4,78,29,0],[78,30,78,70,0],[79,3,79,4,0],[83,3,83,110,0],[83,3,83,110,0],[83,3,83,110,0],[86,8,86,9,0],[86,10,86,27,0],[86,28,86,29,0],[88,4,88,5,0],[90,5,90,28,0],[91,6,91,13,0],[94,5,94,28,0],[95,5,95,23,0],[96,5,96,27,0],[97,4,97,5,0],[101,3,101,4,0],[102,4,102,27,0],[103,4,103,26,0],[104,3,104,4,0],[107,3,107,4,0],[108,4,108,32,0],[108,33,108,70,0],[109,4,109,29,0],[109,30,109,76,0],[110,3,110,4,0],[114,3,114,106,0],[114,3,114,106,0],[114,3,114,106,0],[117,8,117,9,0],[117,10,117,27,0],[117,28,117,29,0],[119,4,119,5,0],[121,5,121,28,0],[122,6,122,13,0],[125,5,125,28,0],[126,5,126,23,0],[127,5,127,27,0],[128,4,128,5,0],[132,3,132,4,0],[133,4,133,27,0],[134,4,134,26,0],[135,3,135,4,0],[138,3,138,4,0],[139,4,139,32,0],[139,33,139,70,0],[140,4,140,29,0],[140,30,140,76,0],[141,3,141,4,0],[145,3,145,104,0],[145,3,145,104,0],[145,3,145,104,0],[148,8,148,9,0],[148,10,148,23,0],[148,24,148,25,0],[150,4,150,5,0],[152,5,152,24,0],[153,6,153,13,0],[156,5,156,29,0],[157,5,157,19,0],[158,5,158,27,0],[159,4,159,5,0],[163,3,163,4,0],[164,4,164,28,0],[165,4,165,26,0],[166,3,166,4,0],[169,3,169,4,0],[170,4,170,28,0],[170,29,170,58,0],[171,4,171,29,0],[171,30,171,68,0],[172,3,172,4,0],[176,3,176,107,0],[176,3,176,107,0],[176,3,176,107,0],[179,8,179,9,0],[179,10,179,26,0],[179,27,179,28,0],[181,4,181,5,0],[183,5,183,27,0],[184,6,184,13,0],[187,5,187,29,0],[188,5,188,22,0],[189,5,189,27,0],[190,4,190,5,0],[194,3,194,4,0],[195,4,195,28,0],[196,4,196,26,0],[197,3,197,4,0],[200,3,200,4,0],[201,4,201,31,0],[201,32,201,67,0],[202,4,202,29,0],[202,30,202,74,0],[203,3,203,4,0],[206,3,206,4,0],[207,4,207,28,0],[208,4,208,25,0],[209,3,209,4,0],[212,3,212,4,0],[213,4,213,61,0],[214,4,214,59,0],[215,4,215,65,0],[216,4,216,65,0],[217,4,217,57,0],[218,4,218,63,0],[219,3,219,4,0],[221,44,221,45,0],[221,46,221,62,0],[221,63,221,64,0],[224,3,224,4,0],[225,4,225,55,0],[226,4,226,54,0],[227,4,227,57,0],[228,4,228,57,0],[229,4,229,53,0],[230,4,230,56,0],[232,4,232,16,0],[233,3,233,4,0],[236,3,236,4,0],[237,4,237,59,0],[238,4,238,42,0],[239,4,239,41,0],[240,4,240,31,0],[241,4,241,58,0],[242,4,242,40,0],[243,4,243,39,0],[244,4,244,30,0],[245,4,245,65,0],[246,4,246,46,0],[247,4,247,45,0],[248,4,248,33,0],[249,4,249,63,0],[250,4,250,46,0],[251,4,251,45,0],[252,4,252,33,0],[253,4,253,57,0],[254,4,254,38,0],[255,4,255,37,0],[256,4,256,29,0],[257,4,257,60,0],[258,4,258,44,0],[259,4,259,43,0],[260,4,260,32,0],[261,3,261,4,0],[264,3,264,4,0],[265,4,265,28,0],[266,4,266,41,0],[268,4,268,37,0],[269,5,269,67,0],[270,4,270,37,0],[271,5,271,66,0],[272,4,272,37,0],[273,5,273,69,0],[274,4,274,37,0],[275,5,275,69,0],[276,4,276,38,0],[277,5,277,65,0],[278,4,278,38,0],[279,5,279,68,0],[282,9,282,18,0],[282,20,282,43,0],[282,45,282,48,0],[283,5,283,25,0],[285,4,285,27,0],[286,3,286,4,0],[289,3,289,4,0],[290,4,290,31,0],[291,5,291,18,0],[293,4,293,96,0],[294,4,294,47,0],[296,4,296,39,0],[297,4,297,5,0],[298,5,298,37,0],[299,5,299,6,0],[300,6,300,77,0],[301,6,301,46,0],[302,5,302,6,0],[304,5,304,6,0],[305,6,305,58,0],[306,6,306,33,0],[307,5,307,6,0],[308,4,308,5,0],[309,4,309,39,0],[310,4,310,5,0],[311,5,311,36,0],[312,5,312,6,0],[313,6,313,76,0],[314,6,314,45,0],[315,5,315,6,0],[317,5,317,6,0],[318,6,318,57,0],[319,6,319,32,0],[320,5,320,6,0],[321,4,321,5,0],[322,4,322,39,0],[323,4,323,5,0],[324,5,324,39,0],[325,5,325,6,0],[326,6,326,83,0],[327,6,327,48,0],[328,5,328,6,0],[330,5,330,6,0],[331,6,331,64,0],[332,6,332,35,0],[333,5,333,6,0],[334,4,334,5,0],[335,4,335,39,0],[336,4,336,5,0],[337,5,337,39,0],[338,5,338,6,0],[339,6,339,81,0],[340,6,340,48,0],[341,5,341,6,0],[343,5,343,6,0],[344,6,344,62,0],[345,6,345,35,0],[346,5,346,6,0],[347,4,347,5,0],[348,4,348,40,0],[349,4,349,5,0],[350,5,350,35,0],[351,5,351,6,0],[352,6,352,75,0],[353,6,353,44,0],[354,5,354,6,0],[356,5,356,6,0],[357,6,357,56,0],[358,6,358,31,0],[359,5,359,6,0],[360,4,360,5,0],[361,4,361,40,0],[362,4,362,5,0],[363,5,363,38,0],[364,5,364,6,0],[365,6,365,78,0],[366,6,366,47,0],[367,5,367,6,0],[369,5,369,6,0],[370,6,370,59,0],[371,6,371,34,0],[372,5,372,6,0],[373,4,373,5,0],[374,3,374,4,0],[377,3,377,4,0],[378,4,378,16,0],[379,5,379,12,0],[381,4,381,115,0],[382,4,382,5,0],[383,5,383,54,0],[385,4,385,5,0],[386,4,386,112,0],[387,4,387,5,0],[388,5,388,52,0],[390,4,390,5,0],[391,4,391,121,0],[392,4,392,5,0],[393,5,393,62,0],[395,4,395,5,0],[396,4,396,121,0],[397,4,397,5,0],[398,5,398,60,0],[400,4,400,5,0],[401,4,401,109,0],[402,4,402,5,0],[403,5,403,50,0],[405,4,405,5,0],[406,4,406,118,0],[407,4,407,5,0],[408,5,408,56,0],[410,4,410,5,0],[411,3,411,4,0],[414,3,414,4,0],[415,4,415,31,0],[416,5,416,34,0],[418,3,418,4,0],[420,42,420,48,0],[420,49,420,50,0],[420,51,420,64,0],[420,65,420,66,0],[421,146,421,200,0],[421,201,421,202,0],[421,203,421,216,0],[421,217,421,218,0],[422,95,422,127,0],[422,128,422,129,0],[422,130,422,143,0],[422,144,422,145,0]]);
+      highlightRanges([[9,5,9,51,0],[10,5,10,47,0],[11,5,11,45,0],[15,64,15,80,0],[15,81,15,82,0],[16,9,16,37,0],[17,5,17,6,0],[19,59,19,60,0],[21,9,21,73,0],[23,9,23,42,0],[25,9,25,21,0],[25,22,25,23,0],[26,13,26,55,0],[28,13,28,74,0],[30,13,30,28,0],[32,13,32,39,0],[32,40,32,41,0],[34,17,34,40,0],[36,17,36,30,0],[36,31,36,32,0],[37,21,37,27,0],[40,17,40,57,0],[40,58,40,59,0],[41,21,41,52,0],[42,21,42,33,0],[45,17,45,35,0],[46,13,46,14,0],[47,9,47,10,0],[50,38,50,39,0],[52,9,55,29,0],[56,5,56,6,0],[58,52,58,53,0],[60,9,60,54,0],[61,9,61,37,0],[62,9,62,46,0],[64,9,64,40,0],[64,41,64,42,0],[65,13,65,53,0],[66,16,66,17,0],[67,13,67,52,0],[69,5,69,6,0],[71,47,71,48,0],[72,9,72,58,0],[73,5,73,6,0]]);
     </script>
   </body>
 </html>

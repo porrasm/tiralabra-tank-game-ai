@@ -2,6 +2,7 @@
 /// Linked priority list. The type <typeparamref name="T"/> with the lowest priority will always be the first one, and the one with the greatest value will be the last one. Functionality is identical to a priority queue.
 /// </summary>
 /// <typeparam name="T"></typeparam>
+[CoverInReport]
 public class LinkedPriorityList<T> {
 
     #region fields
@@ -122,10 +123,29 @@ public class LinkedPriorityList<T> {
     }
 
     /// <summary>
+    /// Returns the i:th element from the list
+    /// </summary>
+    /// <param name="index"></param>
+    public T Get(int i) {
+
+        if (i >= Count) {
+            throw new System.IndexOutOfRangeException();
+        }
+
+        Node<T> node = first;
+
+        for (int index = 0; index < i; index++) {
+            node = node.Next;
+        }
+
+        return node.Value;
+    }
+
+    /// <summary>
     /// Removes the element from the list
     /// </summary>
     /// <param name="nodeVal"></param>
-    public void Remove(T nodeVal) {
+    public bool Remove(T nodeVal) {
 
         Node<T> node = first;
 
@@ -134,18 +154,22 @@ public class LinkedPriorityList<T> {
             first = node.Next;
             node = null;
 
-            return;
+            Count--;
+            return true;
         }
 
         for (int i = 0; i < Count; i++) {    
             
-            if (node.Next.Value.Equals(nodeVal)) {
+            if (nodeVal.Equals(node.Next.Value)) {
                 node.Next = node.Next.Next;
-                return;
+                Count--;
+                return true;
             }
-
+            
             node = node.Next;
         }
+
+        return false;
     }
 
     /// <summary>
@@ -164,7 +188,7 @@ public class LinkedPriorityList<T> {
             node = node.Next;
         }
 
-        return default(T);
+        throw new System.Exception("Element not found");
     }
     #endregion
 

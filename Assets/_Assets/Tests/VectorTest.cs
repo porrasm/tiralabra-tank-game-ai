@@ -38,17 +38,17 @@ namespace Tests {
 
             vector = new Vector(1, 1, 1);
             Assert.AreEqual(new Vector3(1, 1, 1).normalized.magnitude, vector.Normalized.Magnitude(), "(1, 1, 1) Vector3 comparison");
-            Assert.AreEqual(1, vector.Normalized.Magnitude(), "(1, 1, 1)");
+            Assert.AreEqual(1, vector.Normalized.Magnitude(), delta, "(1, 1, 1)");
 
             vector = new Vector(0, 0, 0);
-            Assert.AreEqual(0, vector.Normalized.Magnitude(), "(0, 0, 0)");
+            Assert.AreEqual(0, vector.Normalized.Magnitude(), delta, "(0, 0, 0)");
 
             vector = new Vector(10, 10, 10);
-            Assert.AreEqual(1, vector.Normalized.Magnitude(), "(10, 10, 10)");
+            Assert.AreEqual(1, vector.Normalized.Magnitude(), delta, "(10, 10, 10)");
 
             vector = new Vector(100, 0, 0);
-            Assert.AreEqual(1, vector.Normalized.Magnitude(), "(100, 0, 0)");
-            Assert.AreEqual(1, vector.Normalized.x, "X value should be 1");
+            Assert.AreEqual(1, vector.Normalized.Magnitude(), delta, "(100, 0, 0)");
+            Assert.AreEqual(1, vector.Normalized.x, delta, "X value should be 1");
             Assert.AreEqual(0, vector.Normalized.y, "Y value should be 0");
         }
 

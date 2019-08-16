@@ -1,14 +1,14 @@
 ﻿using System;
-using UnityEngine;
 
 /// <summary>
 /// Class containing various mathematical functions.
 /// </summary>
+[CoverInReport]
 public class Maths {
 
     // Replace
     public static float Sqrt(float f) {
-        return Mathf.Sqrt(f);
+        return (float)Math.Sqrt(f);
     }
 
     public static float Power(float f, int power) {

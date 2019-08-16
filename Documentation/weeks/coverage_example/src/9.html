@@ -2,60 +2,84 @@
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\time.cs</title>
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\components\tankaibulletchecker.cs</title>
     <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
     <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
   </head>
   <body>
     <pre id="content" class="source-code">
-/*-----------------------------+-------------------------------\
-|                                                              |
-|                         !!!NOTICE!!!                         |
-|                                                              |
-|  These libraries are under heavy development so they are     |
-|  subject to make many changes as development continues.      |
-|  For this reason, the libraries may not be well commented.   |
-|  THANK YOU for supporting forge with all your feedback       |
-|  suggestions, bug reports and comments!                      |
-|                                                              |
-|                              - The Forge Team                |
-|                                Bearded Man Studios, Inc.     |
-|                                                              |
-|  This source code, project files, and associated files are   |
-|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
-|  may not be redistributed without written permission.        |
-|                                                              |
-\------------------------------+------------------------------*/
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-using System.Diagnostics;
+/// &lt;summary&gt;
+/// Used to calculate all the future trajectories of bullets
+/// &lt;/summary&gt;
+public class TankAIBulletChecker : TankAIComponent, IBulletCountHolder {
 
-namespace BeardedManStudios.Forge.Networking
-{
-	public class TimeManager
-	{
-		public Stopwatch timer { get; private set; }
+    #region fields
+    private TankBulletTrajectory[] trajectories;
 
-		private ulong timeOffset = 0;
+    public byte[,] CellBulletCounts { get; private set; }
+    public bool BulletWillHit { get; set; }
+    #endregion
 
-		public long Milliseconds { get { return timer.ElapsedMilliseconds; } }
+    public TankAIBulletChecker(TankAI ai) : base(ai) {
+    }
 
-		public ulong Timestep { get { return (ulong)Milliseconds + timeOffset; } }
+    public override void Update() {
+        CheckCollisionStatus();
+    }
 
-		public TimeManager()
-		{
-			timer = new Stopwatch();
-			timer.Start();
-		}
+    /// &lt;summary&gt;
+    /// Calculates the trajectories of all bullets and saves which how many bullets will pass over a certain cell
+    /// &lt;/summary&gt;
+    public void CheckCollisionStatus() {
 
-		public void SetStartTime(ulong timeStep)
-		{
-			timeOffset = timeStep - (ulong)timer.ElapsedMilliseconds;
-		}
-	}
+        BulletWillHit = false;
+
+        ResetCellBulletCounts();
+
+        GameObject[] bullets = GameObject.FindGameObjectsWithTag(&quot;Bullet&quot;);
+
+        trajectories = new TankBulletTrajectory[bullets.Length];
+
+        for (int i = 0; i &lt; bullets.Length; i++) {
+            TankBulletTrajectory t = new TankBulletTrajectory(this, bullets[i].GetComponent&lt;TankBullet&gt;());
+            t.CalculateTrajectory();
+
+            TankPathVisualizer.DrawRoute(t.Trajectory);
+
+            if (t.HitAI) {
+                BulletWillHit = true;
+            }
+        }
+
+        TankLevelCellVisualizer.VisualizeCells(CellBulletCounts);
+    }
+
+    /// &lt;summary&gt;
+    /// Returns a path to safe coordinates which no bullet will pass over
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;current&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;pf&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    public Vector[] GetPathToSafeCoords(IntCoords current, TankAIPathfinding pf) {
+
+        bool FoundCondition(IntCoords c) {
+            return CellBulletCounts[c.x, c.y] == 0;
+        }
+
+        return pf.FindPath(current, new IntCoords(-1, -1), FoundCondition);
+    }
+
+    public void ResetCellBulletCounts() {
+        CellBulletCounts = new byte[TankSettings.LevelWidth, TankSettings.LevelHeight];
+    }
 }
     </pre>
     <script type="text/javascript">
-      highlightRanges([[26,28,26,32,0],[26,33,26,45,0],[28,3,28,32,0],[30,34,30,35,0],[30,36,30,69,0],[30,70,30,71,0],[32,31,32,32,0],[32,33,32,73,0],[32,74,32,75,0],[34,3,34,23,0],[35,3,35,4,0],[36,4,36,28,0],[37,4,37,18,0],[38,3,38,4,0],[41,3,41,4,0],[42,4,42,61,0],[43,3,43,4,0]]);
+      highlightRanges([[17,45,17,53,0],[17,54,17,55,0],[18,5,18,6,0],[20,35,20,36,0],[21,9,21,32,0],[22,5,22,6,0],[27,40,27,41,0],[29,9,29,31,0],[31,9,31,33,0],[33,9,33,76,0],[35,9,35,65,0],[37,14,37,23,0],[37,25,37,43,0],[37,45,37,48,0],[37,50,37,51,0],[38,13,38,108,0],[39,13,39,37,0],[41,13,41,56,0],[43,13,43,25,0],[43,26,43,27,0],[44,17,44,38,0],[45,13,45,14,0],[46,9,46,10,0],[48,9,48,66,0],[49,5,49,6,0],[57,82,57,83,0],[59,42,59,43,0],[60,13,60,52,0],[61,9,61,10,0],[63,9,63,76,0],[64,5,64,6,0],[66,41,66,42,0],[67,9,67,88,0],[68,5,68,6,0]]);
     </script>
   </body>
 </html>

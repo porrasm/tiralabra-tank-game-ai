@@ -2,1629 +2,214 @@
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\bearded man studios\scripts\networking\forge\networking\objects\networkobject.cs</title>
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\components\tankaimovement.cs</title>
     <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
     <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
   </head>
   <body>
     <pre id="content" class="source-code">
-/*-----------------------------+-------------------------------\
-|                                                              |
-|                         !!!NOTICE!!!                         |
-|                                                              |
-|  These libraries are under heavy development so they are     |
-|  subject to make many changes as development continues.      |
-|  For this reason, the libraries may not be well commented.   |
-|  THANK YOU for supporting forge with all your feedback       |
-|  suggestions, bug reports and comments!                      |
-|                                                              |
-|                              - The Forge Team                |
-|                                Bearded Man Studios, Inc.     |
-|                                                              |
-|  This source code, project files, and associated files are   |
-|  copyrighted by Bearded Man Studios, Inc. (2012-2017) and    |
-|  may not be redistributed without written permission.        |
-|                                                              |
-\------------------------------+------------------------------*/
-
-using BeardedManStudios.Forge.Networking.Frame;
-using BeardedManStudios.Source.Forge.Networking;
-using BeardedManStudios.Threading;
-using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using UnityEngine;
 
-namespace BeardedManStudios.Forge.Networking
-{
-	/// &lt;summary&gt;
-	/// The representation of an object on the network, this object can have
-	/// properties that it serializes and RPC (remote procedure calls)
-	/// &lt;/summary&gt;
-	public abstract class NetworkObject
-	{
-		protected const byte DIRTY_FIELD_SUB_ROUTER_ID = 1;
-		protected const byte DESTROY_SUB_ROUTER_ID = 2;
+/// &lt;summary&gt;
+/// Used to move a tank through a path.
+/// &lt;/summary&gt;
+public class TankAIMovement : TankAIComponent {
 
-		private const ulong DEFAULT_UPDATE_INTERVAL = 100;
-		private const byte RPC_BEHAVIOR_OVERWRITE = 0x1;
+    #region fields
+    private Vector[] path;
+    private TankControls controls;
 
-		public const byte RPC_CLEAR_RPC_BUFFER = 0;
-		public const byte RPC_REMOVE_RPC_FROM_BUFFER = 1;
-		public const byte RPC_TAKE_OWNERSHIP = 2;
-		public const byte RPC_ASSIGN_OWNERSHIP = 3;
+    private bool stuck;
+    private float stuckTime;
+    private Vector stuckPos;
 
-		/// &lt;summary&gt;
-		/// A generic delegate for events to fire off while passing a NetworkObject source
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;networkObject&quot;&gt;The object source for this event&lt;/param&gt;
-		public delegate void NetworkObjectEvent(NetworkObject networkObject);
+    private int pathIndex;
 
-		/// &lt;summary&gt;
-		/// A generic delegate for events to fire off while passing a INetworkBehavior and NetworkObject source
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;behavior&quot;&gt;&lt;/param&gt;
-		/// &lt;param name=&quot;networkObject&quot;&gt;The object source for this event&lt;/param&gt;
-		public delegate void NetworkBehaviorEvent(INetworkBehavior behavior, NetworkObject networkObject);
+    private bool urgent;
+    public bool Moving { get; set; }
+    #endregion
 
-		/// &lt;summary&gt;
-		/// Used to create events that require BMSByte data
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;data&quot;&gt;The data that was read&lt;/param&gt;
-		public delegate void BinaryDataEvent(BMSByte data);
+    public TankAIMovement(TankAI ai) : base(ai) {
+        controls = ai.GetComponent&lt;TankControls&gt;();
+    }
 
-		/// &lt;summary&gt;
-		/// Used for when an object is created on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;identity&quot;&gt;The identity used to know what type of network object this is&lt;/param&gt;
-		/// &lt;param name=&quot;hash&quot;&gt;The hash id (if sent) to match up client created objects with the ids that the server will respond with asynchronously&lt;/param&gt;
-		/// &lt;param name=&quot;id&quot;&gt;The id for this network object&lt;/param&gt;
-		/// &lt;param name=&quot;frame&quot;&gt;The frame data for this object&#39;s creation (default values)&lt;/param&gt;
-		public delegate void CreateEvent(int identity, int hash, uint id, FrameStream frame);
+    public override void Update() {
+    }
 
-		/// &lt;summary&gt;
-		/// Used for when any field event occurs, will pass the target field as a param
-		/// &lt;/summary&gt;
-		/// &lt;typeparam name=&quot;T&quot;&gt;The acceptable network serializable data type&lt;/typeparam&gt;
-		/// &lt;param name=&quot;field&quot;&gt;The target field related to this event&lt;/param&gt;
-		/// &lt;param name=&quot;timestep&quot;&gt;The timestep for when this event happens&lt;/param&gt;
-		public delegate void FieldEvent&lt;T&gt;(T field, ulong timestep);
+    #region Traversal
 
-		/// &lt;summary&gt;
-		/// Used for when any specific field change occurs, will pass the name of the field and the value
-		/// You are encouraged to used this event for debugging only and use the explicit events
-		/// during production
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;fieldName&quot;&gt;The name of the field that is being changed&lt;/param&gt;
-		/// &lt;param name=&quot;value&quot;&gt;The value of the changed filed&lt;/param&gt;
-		/// &lt;param name=&quot;timestep&quot;&gt;The timestep for when this event happens&lt;/param&gt;
-		public delegate void FieldChangedEvent(string fieldName, object value, ulong timestep);
+    /// &lt;summary&gt;
+    /// Starts to move the tank towards the end of the path
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;path&quot;&gt;&lt;/param&gt;
+    public void TraversePath(Vector[] path) {
+        TraversePath(path, false);
+    }
+    public void TraversePath(Vector[] path, bool urgent) {
 
-		/// &lt;summary&gt;
-		/// TODO: COMMENT THIS
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;networker&quot;&gt;&lt;/param&gt;
-		/// &lt;param name=&quot;identity&quot;&gt;&lt;/param&gt;
-		/// &lt;param name=&quot;id&quot;&gt;&lt;/param&gt;
-		/// &lt;param name=&quot;frame&quot;&gt;&lt;/param&gt;
-		/// &lt;param name=&quot;callback&quot;&gt;&lt;/param&gt;
-		public delegate void CreateRequestEvent(NetWorker networker, int identity, uint id, FrameStream frame, Action&lt;NetworkObject&gt; callback);
+        Moving = true;
 
-		/// &lt;summary&gt;
-		/// Called whenever this NetworkObject has its owning player changed
-		/// &lt;/summary&gt;
-		public event NetWorker.BaseNetworkEvent ownershipChanged;
+        this.urgent = urgent;
 
-		/// &lt;summary&gt;
-		/// Occurs when a binary message was received on the network for this object and is needed to be read
-		/// &lt;/summary&gt;
-		public event BinaryDataEvent readBinary;
+        pathIndex++;
 
-		/// &lt;summary&gt;
-		/// The factory that is to be used for creating network objects, only 1 factory
-		/// is needed for any network application (shared code base)
-		/// &lt;/summary&gt;
-		public static INetworkObjectFactory Factory { get; set; }
+        TankPathVisualizer.DrawRoute(path);
 
-		/// &lt;summary&gt;
-		/// Occurs when this object is setup and ready on the network
-		/// &lt;/summary&gt;
-		public event NetWorker.BaseNetworkEvent onReady;
-		public event NetWorker.BaseNetworkEvent onDestroy;
+        ai.StopCoroutine(TraversePathCoroutine(pathIndex - 1));
+        ai.StopCoroutine(RemoveStuck());
 
-		/// &lt;summary&gt;
-		/// The unique id for this object on the current networker
-		/// &lt;/summary&gt;
-		public uint NetworkId { get; private set; }
+        this.path = path;
+        ai.StartCoroutine(TraversePathCoroutine(pathIndex));
+    }
 
-		/// &lt;summary&gt;
-		/// A refrerence to the networker that this network object is attached to
-		/// &lt;/summary&gt;
-		public NetWorker Networker { get; private set; }
+    private IEnumerator TraversePathCoroutine(int pi) {
 
-		/// &lt;summary&gt;
-		/// A helper to get the current players&#39;s id (Networker.Me.NetworkId)
-		/// &lt;/summary&gt;
-		public uint MyPlayerId { get { return Networker.Me.NetworkId; } }
+        int index = 0;
 
-		/// &lt;summary&gt;
-		/// Returns &lt;c&gt;true&lt;/c&gt; if the current NetWorker is the owner of this NetworkObject
-		/// &lt;/summary&gt;
-		public bool IsOwner { get; private set; }
+        while (index &lt; path.Length) {
 
-		/// &lt;summary&gt;
-		/// If set to true on the server, the server can change the value of the properties
-		/// of a network object. BEWARE, this can cause race conditions in data transfer, so
-		/// only use as a last resort
-		/// &lt;/summary&gt;
-		public bool AuthorityUpdateMode { get; set; }
+            ResetStuck();
 
-		/// &lt;summary&gt;
-		/// If this is set to true then the fields for this network object will only be sent
-		/// via proximity all; this value can be changed at runtime
-		/// &lt;/summary&gt;
-		public bool ProximityBasedFields { get; set; }
-        public Receivers ProximityBasedFieldsMode { get; set; }
+            Vector targetPos = path[index];
 
-        /// &lt;summary&gt;
-        /// A lookup table for all of the RPC&#39;s that are available to this network object
-        /// &lt;/summary&gt;
-        public Dictionary&lt;byte, Rpc&gt; Rpcs { get; private set; }
+            while (!InCoords(index)) {
 
-		/// &lt;summary&gt;
-		/// This is a mapping from the method name to the id that it is within the Rpcs dictionary
-		/// &lt;/summary&gt;
-		protected Dictionary&lt;string, byte&gt; rpcLookup = new Dictionary&lt;string, byte&gt;();
-
-		/// &lt;summary&gt;
-		/// Used to convert from an RPC id to the string name associated with it
-		/// &lt;/summary&gt;
-		protected Dictionary&lt;byte, string&gt; inverseRpcLookup = new Dictionary&lt;byte, string&gt;();
-
-		/// &lt;summary&gt;
-		/// Is &lt;c&gt;true&lt;/c&gt; if this object has been fully setup on the network
-		/// &lt;/summary&gt;
-		public bool NetworkReady { get; private set; }
-
-		// TODO:  Make sure that these do not collide
-		/// &lt;summary&gt;
-		/// The temporary hash that was sent from a client to this server, or the hash that a client is using
-		/// to identify the attach method to this particular object when a server sends the id
-		/// &lt;/summary&gt;
-		private int hash = 0;
-
-		public int CreateCode = 0;
-
-		public static int GlobalHash { get; private set; }
-
-		/// &lt;summary&gt;
-		/// The object that has already been created and is pending an initialize
-		/// &lt;/summary&gt;
-		private INetworkBehavior pendingBehavior = null;
-
-		/// &lt;summary&gt;
-		/// This is a reference to the attached behavior that is controlling this object
-		/// &lt;/summary&gt;
-		public INetworkBehavior AttachedBehavior { get; set; }
-
-		/// &lt;summary&gt;
-		/// Occurs when the pending behavior supplied has been initialized 
-		/// &lt;/summary&gt;
-		public event NetworkBehaviorEvent pendingInitialized;
-
-		/// &lt;summary&gt;
-		/// Used to determine the last time this object has been updated
-		/// &lt;/summary&gt;
-		private ulong lastUpdateTimestep = 0;
-
-		/// &lt;summary&gt;
-		/// Used to identify what type (subtype) of object this is
-		/// &lt;/summary&gt;
-		public abstract int UniqueIdentity { get; }
-
-		/// &lt;summary&gt;
-		/// The timestep that this object was created in
-		/// &lt;/summary&gt;
-		protected ulong CreateTimestep { get; private set; }
-
-		/// &lt;summary&gt;
-		/// The time in milliseconds between each update for this object
-		/// &lt;/summary&gt;
-		public ulong UpdateInterval { get; set; }
-		protected bool hasDirtyFields = false;
-
-		/// &lt;summary&gt;
-		/// A reference to the player who created this network object
-		/// &lt;/summary&gt;
-		public NetworkingPlayer Owner { get; private set; }
-
-		/// &lt;summary&gt;
-		/// A static list for tracking all of the NetworkObjects that have been created on the network
-		/// &lt;/summary&gt;
-		private static List&lt;NetworkObject&gt; networkObjects = new List&lt;NetworkObject&gt;();
-		public static List&lt;NetworkObject&gt; NetworkObjects { get { return networkObjects; } }
-
-		private static List&lt;NetworkObject&gt; pendingCreates = new List&lt;NetworkObject&gt;();
-		public static readonly object PendingCreatesLock = new object();
-
-		public byte[] Metadata { get; private set; }
-
-		/// &lt;summary&gt;
-		/// The structure to store the buffered rpc data in to be sent on accepted client
-		/// &lt;/summary&gt;
-		protected struct BufferedRpc
-		{
-			public BMSByte data;
-			public Receivers receivers;
-			public byte methodId;
-			public ulong timestep;
-		}
-
-		/// &lt;summary&gt;
-		/// Stores a list of buffered RPC calls for this particular Network Object
-		/// &lt;/summary&gt;
-		protected List&lt;BufferedRpc&gt; rpcBuffer = new List&lt;BufferedRpc&gt;();
-
-		/// &lt;summary&gt;
-		/// This is set to true once the client has completed it&#39;s registration process
-		/// and is ready to start accepting registered RPC calls
-		/// &lt;/summary&gt;
-		public bool ClientRegistered { get; private set; }
-
-		/// &lt;summary&gt;
-		/// Used to write dirty fields across the network without having
-		/// to create a new byte[] every time
-		/// &lt;/summary&gt;
-		protected BMSByte dirtyFieldsData = new BMSByte();
-
-		/// &lt;summary&gt;
-		/// Used to read the flags on the network, this is cached on creation
-		/// so that it doesn&#39;t have to be created over and over
-		/// &lt;/summary&gt;
-		protected byte[] readDirtyFlags = null;
-
-		/// &lt;summary&gt;
-		/// This is the cached binary data byte[] for the SendBinaryData method
-		/// &lt;/summary&gt;
-		private BMSByte sendBinaryData = new BMSByte();
-
-		public bool IsServer { get { return Networker is IServer; } }
-
-		private Dictionary&lt;NetworkingPlayer, int&gt; currentRpcBufferCounts = new Dictionary&lt;NetworkingPlayer, int&gt;();
-
-		/// &lt;summary&gt;
-		/// The struct that the pending Rpc methods will be mapped to
-		/// &lt;/summary&gt;
-		private struct PendingRpc
-		{
-			public BMSByte data;
-			public Receivers receivers;
-			public NetworkingPlayer sender;
-			public ulong timestep;
-		}
-
-		/// &lt;summary&gt;
-		/// This is the struct for local pending rpc&#39;s before ready
-		/// &lt;/summary&gt;
-		private struct PendingLocalRPC
-		{
-			public NetworkingPlayer TargetPlayer;
-			public byte MethodId;
-			public Receivers Receivers;
-            public bool Reliable;
-			public object[] Args;
-
-			public override string ToString()
-			{
-				return string.Format(&quot;P [{0}], M [{1}], R [{2}], A [{3}]&quot;, TargetPlayer, MethodId, Receivers, Args.Length);
-			}
-		}
-
-		public static void ClearNetworkObjects(NetWorker networker)
-		{
-			NetworkObject[] targets = networkObjects.Where(n =&gt; n.Networker == networker).ToArray();
-			NetworkObject[] pendingTargets = pendingCreates.Where(n =&gt; n.Networker == networker).ToArray();
-
-			for (int i = 0; i &lt; targets.Length; i++)
-				networkObjects.Remove(targets[i]);
-
-			for (int i = 0; i &lt; pendingTargets.Length; i++)
-				pendingCreates.Remove(pendingTargets[i]);
-		}
-
-		/// &lt;summary&gt;
-		/// The list of pending Rpc that will need to be executed once the client connects
-		/// &lt;/summary&gt;
-		private List&lt;PendingRpc&gt; pendingClientRegisterRpc = new List&lt;PendingRpc&gt;();
-
-		/// &lt;summary&gt;
-		/// This is a list of pending local rpcs to be send locally by the client
-		/// &lt;/summary&gt;
-		private List&lt;PendingLocalRPC&gt; pendingLocalRpcs = new List&lt;PendingLocalRPC&gt;();
-
-		/// &lt;summary&gt;
-		/// This constructor is used to create a dummy network object that
-		/// doesn&#39;t do anything on the network and is useful to be temporary
-		/// until the actual network object arrives
-		/// &lt;/summary&gt;
-		public NetworkObject() { IsOwner = true; NetworkReady = false; }
-
-		/// &lt;summary&gt;
-		/// This creates an instance of this object and attaches it to the specified networker
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;networker&quot;&gt;The networker that this object is going to be attached to&lt;/param&gt;
-		/// &lt;param name=&quot;forceId&quot;&gt;If 0 then the first open id will be used from the networker&lt;/param&gt;
-		public NetworkObject(NetWorker networker, INetworkBehavior networkBehavior = null, int createCode = 0, byte[] metadata = null)
-		{
-			pendingBehavior = networkBehavior;
-			UpdateInterval = DEFAULT_UPDATE_INTERVAL;
-			CreateCode = createCode;
-
-			Rpcs = new Dictionary&lt;byte, Rpc&gt;();
-			Networker = networker;
-			CreateNativeRpcs();
-
-			// Whatever called this method is the owner
-			Owner = networker.Me;
-			IsOwner = true;
-			Metadata = metadata;
-
-			if (networker is IServer)
-				CreateObjectOnServer(null);
-			else
-			{
-				// This is a client so it needs to request the creation by the server
-				NetworkReady = false;
-
-				// Create a hash for this object so it knows that the response from the server is
-				// for this particular create and not another one
-				hash = GlobalHash == -1 ? (GlobalHash += 2) : ++GlobalHash;
-
-				CreateCode = createCode;
-
-				// Tell this object to listen for the create network object message from the server
-				Networker.objectCreateAttach += CreatedOnNetwork;
-				//TODO: MOVED HERE (#1)
-
-				BMSByte data = ObjectMapper.BMSByte(UniqueIdentity, hash, CreateCode);
-				WritePayload(data);
-
-				// Write if the object has metadata
-				ObjectMapper.Instance.MapBytes(data, Metadata != null);
-				if (Metadata != null)
-					ObjectMapper.Instance.MapBytes(data, Metadata);
-
-				bool useMask = networker is TCPClient;
-				Binary createRequest = new Binary(CreateTimestep, useMask, data, Receivers.Server, MessageGroupIds.CREATE_NETWORK_OBJECT_REQUEST, networker is BaseTCP, RouterIds.NETWORK_OBJECT_ROUTER_ID);
-
-				NetWorker.BaseNetworkEvent request = (NetWorker sender) =&gt;
-				{
-                    // Send the message to the server
-#if STEAMWORKS
-                    if (sender is SteamP2PClient)
-                        ((SteamP2PClient)sender).Send(createRequest, true);
-                    else if (sender is UDPClient)
-#else
-                    if (sender is UDPClient)
-#endif
-                        ((UDPClient)sender).Send(createRequest, true);
-                    else
-                        ((TCPClient)sender).Send(createRequest);
-                };
-
-				if (Networker.Me == null)
-					Networker.serverAccepted += request;
-				else
-					request(networker);
-
-				//TODO: FROM HERE (#1)
-			}
-		}
-
-		/// &lt;summary&gt;
-		/// Create an instance of a network object from the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;networker&quot;&gt;The NetWorker that is managing this network object&lt;/param&gt;
-		/// &lt;param name=&quot;serverId&quot;&gt;The id (if any) given to this object by the server&lt;/param&gt;
-		/// &lt;param name=&quot;frame&quot;&gt;The initialization data for this object that is assigned from the server&lt;/param&gt;
-		public NetworkObject(NetWorker networker, uint serverId, FrameStream frame)
-		{
-			UpdateInterval = DEFAULT_UPDATE_INTERVAL;
-
-			Rpcs = new Dictionary&lt;byte, Rpc&gt;();
-			Networker = networker;
-
-			if (Networker is IServer)
-				Owner = frame.Sender;
-			else
-				Owner = ((IClient)Networker).Server;
-
-			CreateNativeRpcs();
-
-			if (networker is IServer)
-			{
-				// Read the hash code that was created by the client so that it can be relayed back for lookup
-				hash = frame.StreamData.GetBasicType&lt;int&gt;();
-				CreateCode = frame.StreamData.GetBasicType&lt;int&gt;();
-
-				ReadPayload(frame.StreamData, frame.TimeStep);
-
-				if (frame.StreamData.GetBasicType&lt;bool&gt;())
-					Metadata = ObjectMapper.Instance.Map&lt;byte[]&gt;(frame.StreamData);
-
-				// Let all the clients know that a new object is being created
-				CreateObjectOnServer(frame.Sender);
-				Binary createObject = CreateObjectOnServer(frame.Sender, hash);
-
-                // Send the message back to the sending client so that it can finish setting up the network object
-#if STEAMWORKS
-                if (networker is SteamP2PServer)
-                    ((SteamP2PServer)networker).Send(frame.Sender, createObject, true);
-                else if (networker is UDPServer)
-#else
-                if (networker is UDPServer)
-#endif
-                    ((UDPServer)networker).Send(frame.Sender, createObject, true);
-                else
-                    ((TCPServer)networker).Send(frame.Sender.TcpClientHandle, createObject);
-            }
-			else
-			{
-				CreateCode = frame.StreamData.GetBasicType&lt;int&gt;();
-
-				Initialize(serverId, frame.TimeStep);
-				ReadPayload(frame.StreamData, frame.TimeStep);
-
-				if (frame.StreamData.GetBasicType&lt;bool&gt;())
-					Metadata = ObjectMapper.Instance.Map&lt;byte[]&gt;(frame.StreamData);
-
-				BMSByte createdByteData = ObjectMapper.BMSByte(serverId);
-
-				Binary createdFrame = new Binary(Networker.Time.Timestep, Networker is TCPClient, createdByteData, Receivers.Server, MessageGroupIds.GetId(&quot;NO_CREATED_&quot; + NetworkId), Networker is BaseTCP, RouterIds.CREATED_OBJECT_ROUTER_ID);
-
-				if (networker is UDPClient)
-					((UDPClient)networker).Send(createdFrame, true);
-				else
-					((TCPClient)networker).Send(createdFrame);
-			}
-		}
-
-		/// &lt;summary&gt;
-		/// Go through and setup all of the RPCs that are a base part
-		/// of all network objects
-		/// &lt;/summary&gt;
-		private void CreateNativeRpcs()
-		{
-			RegisterRpc(&quot;ClearRpcBuffer&quot;, ClearRpcBuffer);
-			RegisterRpc(&quot;RemoveRpcFromBuffer&quot;, RemoveRpcFromBuffer);
-			RegisterRpc(&quot;TakeOwnership&quot;, TakeOwnership);
-			RegisterRpc(&quot;AssignOwnership&quot;, AssignOwnership, typeof(bool));
-		}
-
-		/// &lt;summary&gt;
-		/// Clear all of the buffered rpcs for this network object
-		/// &lt;/summary&gt;
-		public void ClearRpcBuffer()
-		{
-			SendRpc(RPC_CLEAR_RPC_BUFFER, Receivers.Server);
-		}
-
-		/// &lt;summary&gt;
-		/// Allows you to remove all buffered rpcs with the given method name or
-		/// just the first occurance (oldest one)
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;methodName&quot;&gt;The name to match and remove from the buffer&lt;/param&gt;
-		/// &lt;param name=&quot;first&quot;&gt;If &lt;c&gt;True&lt;/c&gt; then only the first buffered rpc with the specified name will be removed&lt;/param&gt;
-		private void RemoveRpcFromBuffer(string methodName, bool first = false)
-		{
-			SendRpc(RPC_REMOVE_RPC_FROM_BUFFER, Receivers.Server, methodName, first);
-		}
-
-		public void TakeOwnership()
-		{
-			SendRpc(RPC_TAKE_OWNERSHIP, Receivers.Server);
-		}
-
-		public void AssignOwnership(NetworkingPlayer targetPlayer)
-		{
-			// Only the server is allowed to assign ownership
-			if (!IsServer)
-				return;
-
-			if (Owner == targetPlayer)
-				return;
-
-			if (targetPlayer == Networker.Me)
-				AssignOwnership(new RpcArgs { Args = new object[] { true } });
-			else
-				SendRpc(targetPlayer, RPC_ASSIGN_OWNERSHIP, true);
-
-			if (Owner == Networker.Me)
-				AssignOwnership(new RpcArgs { Args = new object[] { false } });
-			else
-				SendRpc(Owner, RPC_ASSIGN_OWNERSHIP, false);
-
-			Owner = targetPlayer;
-		}
-
-		private void TakeOwnership(RpcArgs args)
-		{
-			if (!IsServer)
-				return;
-
-			if (!AllowOwnershipChange(args.Info.SendingPlayer))
-				return;
-
-			AssignOwnership(args.Info.SendingPlayer);
-		}
-
-		private void AssignOwnership(RpcArgs args)
-		{
-		    IsOwner = args.GetNext&lt;bool&gt;();
-		    OwnershipChanged();
-		}
-
-		protected virtual void OwnershipChanged()
-		{
-			if (ownershipChanged != null)
-				ownershipChanged(Networker);
-		}
-
-		/// &lt;summary&gt;
-		/// Clear all of the buffered rpcs for this network object
-		/// &lt;/summary&gt;
-		private void ClearRpcBuffer(RpcArgs args)
-		{
-			// Only allow the server or owner of the object to clear the buffer
-			if (!IsServer &amp;&amp; args.Info.SendingPlayer != Owner)
-				return;
-
-			lock (rpcBuffer)
-			{
-				rpcBuffer.Clear();
-			}
-		}
-
-		/// &lt;summary&gt;
-		/// Allows you to remove all buffered rpcs with the given method name or
-		/// just the first occurance (oldest one)
-		/// &lt;/summary&gt;
-		private void RemoveRpcFromBuffer(RpcArgs args)
-		{
-			// Only allow the server or owner of the object to remove from the buffer
-			if (!IsServer &amp;&amp; args.Info.SendingPlayer != Owner)
-				return;
-
-			string methodName = args.GetNext&lt;string&gt;();
-			bool first = args.GetNext&lt;bool&gt;();
-
-			// TODO:  If this is the server it should warn about invalid id
-			byte rpcId;
-			if (!rpcLookup.TryGetValue(methodName, out rpcId))
-				return;
-
-			lock (rpcBuffer)
-			{
-				for (int i = 0; i &lt; rpcBuffer.Count; i++)
-				{
-					if (rpcBuffer[i].methodId == rpcId)
-					{
-						rpcBuffer.RemoveAt(i--);
-
-						if (first)
-							break;
-						else
-							continue;
-					}
-				}
-			}
-		}
-
-		/// &lt;summary&gt;
-		/// A method for creating the network object on the server only and skipping any particular player
-		/// which is often the player that is requesting that this object is created
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;skipPlayer&quot;&gt;The player to be skipped&lt;/param&gt;
-		/// &lt;returns&gt;The Binary frame data with all of the initialization data&lt;/returns&gt;
-		private Binary CreateObjectOnServer(NetworkingPlayer skipPlayer, int targetHash = 0)
-		{
-			UpdateInterval = DEFAULT_UPDATE_INTERVAL;
-
-			// If there is a target hash, this object has already been initialized
-			if (targetHash == 0)
-			{
-				// Register the network object
-				Initialize();
-			}
-
-			// The data that is to be sent to all the clients who did not request this object to be created
-			BMSByte data = ObjectMapper.BMSByte(UniqueIdentity, targetHash, NetworkId, CreateCode);
-
-			// Write all of the most up to date data for this object
-			WritePayload(data);
-
-			// Write if the object has metadata
-			ObjectMapper.Instance.MapBytes(data, Metadata != null);
-			if (Metadata != null)
-				ObjectMapper.Instance.MapBytes(data, Metadata);
-
-			Binary createObject = new Binary(CreateTimestep, false, data, Receivers.All, MessageGroupIds.CREATE_NETWORK_OBJECT_REQUEST, Networker is BaseTCP, RouterIds.NETWORK_OBJECT_ROUTER_ID);
-
-			if (targetHash != 0)
-				return createObject;
-
-            // If there is a target hash, we are just generating the create object frame
-#if STEAMWORKS
-            if (Networker is SteamP2PServer)
-                ((SteamP2PServer)Networker).Send(createObject, true, skipPlayer);
-            else if (Networker is UDPServer)
-#else
-            if (Networker is UDPServer)
-#endif
-                ((UDPServer)Networker).Send(createObject, true, skipPlayer);
-            else
-                ((TCPServer)Networker).SendAll(createObject, skipPlayer);
-
-            return createObject;
-		}
-
-		public static void PlayerAccepted(NetworkingPlayer player, NetworkObject[] networkObjects)
-		{
-			foreach (NetworkObject obj in networkObjects)
-				obj.currentRpcBufferCounts.Add(player, obj.rpcBuffer.Count);
-
-			Task.Queue(() =&gt;
-			{
-				lock (player)
-				{
-					BMSByte targetData = new BMSByte();
-					ulong timestep = 0;
-					NetWorker networker = null;
-					List&lt;int&gt; indexes = new List&lt;int&gt;();
-
-					foreach (NetworkObject obj in networkObjects)
-					{
-						if (obj.Owner == player)
-							continue;
-
-						indexes.Add(targetData.Size);
-
-						ObjectMapper.Instance.MapBytes(targetData, obj.UniqueIdentity, 0, obj.NetworkId, obj.CreateCode);
-
-						// Write all of the most up to date data for this object
-						obj.WritePayload(targetData);
-
-						// Write if the object has metadata
-						ObjectMapper.Instance.MapBytes(targetData, obj.Metadata != null);
-						if (obj.Metadata != null)
-							ObjectMapper.Instance.MapBytes(targetData, obj.Metadata);
-
-						timestep = obj.CreateTimestep;
-						networker = obj.Networker;
-					}
-
-					BMSByte indexBytes = ObjectMapper.BMSByte(indexes.Count);
-					for (int i = 0; i &lt; indexes.Count; i++)
-						ObjectMapper.Instance.MapBytes(indexBytes, indexes[i]);
-
-					targetData.InsertRange(0, indexBytes);
-
-					if (targetData.Size &gt; 0 &amp;&amp; networker != null)
-					{
-						Binary targetCreateObject = new Binary(timestep, false, targetData, Receivers.Target, MessageGroupIds.CREATE_NETWORK_OBJECT_REQUEST, networker is BaseTCP, RouterIds.ACCEPT_MULTI_ROUTER_ID);
-
-#if STEAMWORKS
-                        if (networker is SteamP2PServer)
-                            ((SteamP2PServer)networker).Send(player, targetCreateObject, true);
-                        else if (networker is UDPServer)
-#else
-                        if (networker is UDPServer)
-#endif
-                            ((UDPServer)networker).Send(player, targetCreateObject, true);
-						else
-							((TCPServer)networker).Send(player.TcpClientHandle, targetCreateObject);
-					}
-				}
-			});
-		}
-
-		public void CreateConfirmed(NetworkingPlayer player)
-		{
-			SendBuffer(player);
-		}
-
-		/// &lt;summary&gt;
-		/// Finish setting up this network object on the network and fire off any complete events
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;id&quot;&gt;The id that was assigned from the network (if client)&lt;/param&gt;
-		/// &lt;param name=&quot;skipCreated&quot;&gt;The objectCreated event will be fired if &lt;c&gt;true&lt;/c&gt;&lt;/param&gt;
-		private void Initialize(uint id = 0, ulong timestep = 0)
-		{
-			// This is a server so it can create the object as normal
-			NetworkReady = true;
-
-			CreateTimestep = timestep == 0 ? Networker.Time.Timestep : timestep;
-
-			// Register this object with the networker and obtain it&#39;s unique id
-			Networker.RegisterNetworkObject(this, id);
-
-			if (Networker.PendCreates)
-			{
-				lock (PendingCreatesLock)
-				{
-                    if (Networker.PendCreates) // Check a second time in case Networker.PendCreates was changed while waiting for the lock
-                    {
-                        pendingCreates.Add(this);
-                        return;
-                    }
-				}
-			}
-
-			if (onReady != null)
-				onReady(Networker);
-
-            if (pendingBehavior != null)
-            {
-                pendingBehavior.Initialize(this);
-
-                if (pendingInitialized != null)
-                    pendingInitialized(pendingBehavior, this);
-            } else
-                lock (PendingCreatesLock)
-                {
-                    Networker.OnObjectCreated(this);
-                }
-		}
-
-		public static void Flush(NetWorker target, List&lt;int&gt; remainingScenesToLoad = null, NetworkObjectEvent objectCreatedHandler = null)
-		{
-			lock (PendingCreatesLock)
-			{
-                // Ensure the callback is enabled
-                if (objectCreatedHandler != null)
-                    target.objectCreated += objectCreatedHandler;
-
-                pendingCreates = pendingCreates.OrderBy(obj =&gt; obj.NetworkId).ToList();
-
-				for (int i = 0; i &lt; pendingCreates.Count; i++)
-				{
-					if (!target.ObjectCreatedRegistered)
-						continue;
-
-					if (pendingCreates[i].onReady != null)
-						pendingCreates[i].onReady(target);
-
-					target.OnObjectCreated(pendingCreates[i]);
-					pendingCreates.RemoveAt(i--);
-				}
-                if (remainingScenesToLoad == null || remainingScenesToLoad.Count == 0)
-                    target.PendCreates = false;
-            }
-		}
-
-		/// &lt;summary&gt;
-		/// A method callback for the client to listen for when the object has been asynchronously created
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;identity&quot;&gt;The identity to describe what type / subtype of network object this is&lt;/param&gt;
-		/// &lt;param name=&quot;hash&quot;&gt;The hash id that was sent to match up with this hash id&lt;/param&gt;
-		/// &lt;param name=&quot;id&quot;&gt;The id that the server has given to this network object&lt;/param&gt;
-		/// &lt;param name=&quot;frame&quot;&gt;The initialization data for this network object&lt;/param&gt;
-		private void CreatedOnNetwork(int identity, int hash, uint id, FrameStream frame)
-		{
-			// Check to see if the identity from the network belongs to this type
-			if (identity != UniqueIdentity)
-				return;
-
-			// If the hash does not belong to this object then ignore it
-			if (hash != this.hash)
-				return;
-
-			Owner = Networker.Me;
-
-			// This object has been found, remove it from listening to any more create messages
-			Networker.objectCreateAttach -= CreatedOnNetwork;
-
-			// Move the start index passed the identity bytes and the hash bytes
-			frame.StreamData.MoveStartIndex(sizeof(int) * 2);
-
-			Initialize(id);
-
-			if (onReady != null)
-				onReady(Networker);
-		}
-
-		/// &lt;summary&gt;
-		/// This is called from the networker when the this object is created, it
-		/// will contain the id for this object on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;id&quot;&gt;&lt;/param&gt;
-		/// &lt;returns&gt;&lt;c&gt;true&lt;/c&gt; if the id has not already been assigned&lt;/returns&gt;
-		public bool RegisterOnce(uint id)
-		{
-			// If there already is an id for this object, ignore this request
-			if (NetworkId != 0)
-				return false;
-
-			NetworkId = id;
-
-			if (ClientRegistered)
-				ClearClientPendingRPC();
-
-			return true;
-		}
-
-		/// &lt;summary&gt;
-		/// This will register a method to this network object as an Rpc
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;methodName&quot;&gt;The name of the method that is to be registered&lt;/param&gt;
-		/// &lt;param name=&quot;callback&quot;&gt;The callback to fire for this RPC when received a signal for it&lt;/param&gt;
-		/// &lt;param name=&quot;argumentTypes&quot;&gt;The types argument types for validation&lt;/param&gt;
-		public void RegisterRpc(string methodName, Action&lt;RpcArgs&gt; callback, params Type[] argumentTypes)
-		{
-			// Make sure that the method name string is unique and not already assigned
-			if (rpcLookup.ContainsKey(methodName))
-				throw new BaseNetworkException(&quot;The rpc &quot; + methodName + &quot; has already been registered&quot;);
-
-			// Each network object is only allowed 255 registered RPC methods as the id is a byte
-			if (Rpcs.Count &gt;= byte.MaxValue)
-				throw new BaseNetworkException(&quot;You are only allowed to register &quot; + byte.MaxValue + &quot; Rpc methods per network object&quot;);
-
-
-			// The id for this RPC is goign to be the next index in the dictionary
-			byte id = (byte)Rpcs.Count;
-			Rpcs.Add(id, new Rpc(callback, argumentTypes));
-			rpcLookup.Add(methodName, id);
-			inverseRpcLookup.Add(id, methodName);
-		}
-
-		/// &lt;summary&gt;
-		/// Called once all of the RPC methods have been registered
-		/// &lt;/summary&gt;
-		public void RegistrationComplete()
-		{
-			ClientRegistered = true;
-
-			if (NetworkId == 0)
-				return;
-
-			Networker.CompleteInitialization(this);
-		}
-
-		public void ReleaseCreateBuffer()
-		{
-			RegistrationComplete();
-
-			lock (pendingClientRegisterRpc)
-			{
-				ClearClientPendingRPC();
-			}
-		}
-
-		private void ClearClientPendingRPC()
-		{
-			foreach (PendingRpc rpc in pendingClientRegisterRpc)
-				InvokeRpc(rpc.sender, rpc.timestep, rpc.data, rpc.receivers);
-
-            foreach (PendingLocalRPC rpc in pendingLocalRpcs)
-                if (rpc.Reliable)
-                    SendRpc(rpc.TargetPlayer, rpc.MethodId, rpc.Args);
-                else
-                    SendRpcUnreliable(rpc.TargetPlayer, rpc.MethodId, rpc.Args);
-
-			pendingClientRegisterRpc.Clear();
-			pendingLocalRpcs.Clear();
-		}
-
-		/// &lt;summary&gt;
-		/// Used to call a RPC on the local process
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;data&quot;&gt;The data sent from the network to be mapped to the RPC input arguments&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The receivers that were supplied on by the sender&lt;/param&gt;
-		public void InvokeRpc(NetworkingPlayer sender, ulong timestep, BMSByte data, Receivers receivers)
-		{
-			lock (pendingClientRegisterRpc)
-			{
-				if (!ClientRegistered)
-				{
-					pendingClientRegisterRpc.Add(new PendingRpc()
-					{
-						data = data,
-						receivers = receivers,
-						sender = sender,
-						timestep = timestep
-					});
-
-					return;
-				}
-			}
-
-			byte methodId = data.GetBasicType&lt;byte&gt;();
-
-			if (!Rpcs.ContainsKey(methodId))
-				throw new BaseNetworkException(&quot;The rpc &quot; + methodId + &quot; was not found on this network object&quot;);
-
-			byte behaviorFlags = data.GetBasicType&lt;byte&gt;();
-
-			bool overwriteExisting = (RPC_BEHAVIOR_OVERWRITE &amp; behaviorFlags) != 0;
-
-			object[] args = Rpcs[methodId].ReadArgs(data);
-
-			RpcArgs rpcArgs = new RpcArgs(args, new RPCInfo { SendingPlayer = sender, TimeStep = timestep });
-
-			// If we are the server we need to determine if this RPC is okay to replicate
-			if (Networker is IServer &amp;&amp; receivers != Receivers.Target)
-			{
-				string methodName = inverseRpcLookup[methodId];
-
-				// Validate the RPC call using the method name and the supplied arguments from the client
-				// then replicate to the correct receivers
-				// Do not read or replicate if the server denies replication
-				if (ServerAllowRpc(methodId, receivers, rpcArgs))
-					SendRpc(null, methodId, overwriteExisting, true, receivers, sender, args);
-
-				return;
-			}
-
-			// Call the method on the client without validation
-			Rpcs[methodId].Invoke(rpcArgs);
-		}
-
-		/// &lt;summary&gt;
-		/// Called only on the server and will determine if an RPC call should be replicated
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;methodId&quot;&gt;The id of the RPC to be executed (this will match the generated constant)&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The receivers that are being requested&lt;/param&gt;
-		/// &lt;param name=&quot;args&quot;&gt;The arguments that were supplied by the client when invoked&lt;/param&gt;
-		/// &lt;returns&gt;If &lt;c&gt;true&lt;/c&gt; the RPC will be replicated to other clients&lt;/returns&gt;
-		protected virtual bool ServerAllowRpc(byte methodId, Receivers receivers, RpcArgs args)
-		{
-			return true;
-		}
-
-		/// &lt;summary&gt;
-		/// Called only on the server and will determine if binary data should be replicated
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;data&quot;&gt;The data to be read and replicated&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The receivers for the data to be replicated&lt;/param&gt;
-		/// &lt;returns&gt;If &lt;c&gt;true&lt;/c&gt; the binary data will be replicated to other clients&lt;/returns&gt;
-		protected virtual bool ServerAllowBinaryData(BMSByte data, Receivers receivers)
-		{
-			return true;
-		}
-
-		/// &lt;summary&gt;
-		/// Called only on the server and will determine if the ownership change request is allowed
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;newOwner&quot;&gt;The new player that is requesting ownership&lt;/param&gt;
-		/// &lt;returns&gt;If &lt;c&gt;true&lt;/c&gt; then the ownership change will be allowed&lt;/returns&gt;
-		protected virtual bool AllowOwnershipChange(NetworkingPlayer newOwner)
-		{
-			return true;
-		}
-
-		/// &lt;summary&gt;
-		/// This will send the current buffer to the connecting player after they have created the object
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;player&quot;&gt;The player that will be receiving the RPC calls&lt;/param&gt;
-		private void SendBuffer(NetworkingPlayer player)
-		{
-			int count;
-
-			if (!currentRpcBufferCounts.TryGetValue(player, out count))
-				return;
-
-			currentRpcBufferCounts.Remove(player);
-
-			lock (rpcBuffer)
-			{
-				for (int i = 0; i &lt; count; i++)
-					FinalizeSendRpc(rpcBuffer[i].data, rpcBuffer[i].receivers, rpcBuffer[i].methodId, rpcBuffer[i].timestep, true, player);
-			}
-		}
-
-		/// &lt;summary&gt;
-		/// Build the network frame (message) data for this RPC call so that it is properly
-		/// delegated on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;methodName&quot;&gt;The name of the RPC to be called&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The clients / server to receive the message&lt;/param&gt;
-		/// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-		[Obsolete(&quot;Please use the SendRpc that takes the byte id argument instead for better performance&quot;)]
-		public void SendRpc(string methodName, Receivers receivers, params object[] args)
-		{
-			byte methodId;
-
-			if (!rpcLookup.TryGetValue(methodName, out methodId))
-				throw new Exception(&quot;Invalid method name supplied, this method is also obsolete so maybe this is a good time to update to the new non-string based methods&quot;);
-
-			SendRpc(null, methodId, false, true, receivers, Networker.Me, args);
-		}
-
-		/// &lt;summary&gt;
-		/// Build the network frame (message) data for this RPC call so that it is properly
-		/// delegated on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;methodId&quot;&gt;The id of the RPC to be called&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The clients / server to receive the message&lt;/param&gt;
-		/// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-		public void SendRpc(byte methodId, Receivers receivers, params object[] args)
-		{
-			SendRpc(null, methodId, false, true, receivers, Networker.Me, args);
-		}
-
-        /// &lt;summary&gt;
-        /// Build the network frame (message) data for this RPC call so that it is properly
-        /// delegated on the network
-        /// &lt;/summary&gt;
-        /// &lt;param name=&quot;methodId&quot;&gt;The id of the RPC to be called&lt;/param&gt;
-        /// &lt;param name=&quot;receivers&quot;&gt;The clients / server to receive the message&lt;/param&gt;
-        /// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-        public void SendRpcUnreliable(byte methodId, Receivers receivers, params object[] args)
-        {
-            SendRpc(null, methodId, false, false, receivers, Networker.Me, args);
-        }
-
-        /// &lt;summary&gt;
-        /// Build the network frame (message) data for this RPC call so that it is properly
-        /// delegated on the network
-        /// &lt;/summary&gt;
-        /// &lt;param name=&quot;methodName&quot;&gt;The name of the RPC to be called&lt;/param&gt;
-        /// &lt;param name=&quot;receivers&quot;&gt;The clients / server to receive the message&lt;/param&gt;
-        /// &lt;param name=&quot;replacePrevious&quot;&gt;If &lt;c&gt;True&lt;/c&gt; then the previous call to this method will be replaced with this one&lt;/param&gt;
-        /// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-        [Obsolete(&quot;Please use the SendRpc that takes the byte id argument instead for better performance&quot;)]
-		public void SendRpc(string methodName, bool replacePrevious, Receivers receivers, params object[] args)
-		{
-			byte methodId;
-
-			if (!rpcLookup.TryGetValue(methodName, out methodId))
-				throw new Exception(&quot;Invalid method name supplied, this method is also obsolete so maybe this is a good time to update to the new non-string based methods&quot;);
-
-			SendRpc(null, methodId, replacePrevious, true, receivers, Networker.Me, args);
-		}
-
-		/// &lt;summary&gt;
-		/// Build the network frame (message) data for this RPC call so that it is properly
-		/// delegated on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;methodId&quot;&gt;The id of the RPC to be called&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The clients / server to receive the message&lt;/param&gt;
-		/// &lt;param name=&quot;replacePrevious&quot;&gt;If &lt;c&gt;True&lt;/c&gt; then the previous call to this method will be replaced with this one&lt;/param&gt;
-		/// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-		public void SendRpc(byte methodId, bool replacePrevious, Receivers receivers, params object[] args)
-		{
-			SendRpc(null, methodId, replacePrevious, true, receivers, Networker.Me, args);
-		}
-
-		/// &lt;summary&gt;
-		/// Build the network frame (message) data for this RPC call so that it is properly
-		/// delegated on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;targetPlayer&quot;&gt;The player that is being sent this RPC from the server&lt;/param&gt;
-		/// &lt;param name=&quot;methodName&quot;&gt;The name of the RPC to be called&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The clients / server to receive the message&lt;/param&gt;
-		/// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-		[Obsolete(&quot;Use the target player SendRpc that doesn&#39;t require the receivers parameter&quot;)]
-		public void SendRpc(NetworkingPlayer targetPlayer, string methodName, Receivers receivers, params object[] args)
-		{
-			byte methodId;
-
-			if (!rpcLookup.TryGetValue(methodName, out methodId))
-				throw new Exception(&quot;Invalid method name supplied, this method is also obsolete so maybe this is a good time to update to the new non-string based methods&quot;);
-
-			SendRpc(targetPlayer, methodId, false, true, receivers, Networker.Me, args);
-		}
-
-		/// &lt;summary&gt;
-		/// Build the network frame (message) data for this RPC call so that it is properly
-		/// delegated on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;targetPlayer&quot;&gt;The player that is being sent this RPC from the server&lt;/param&gt;
-		/// &lt;param name=&quot;methodName&quot;&gt;The name of the RPC to be called&lt;/param&gt;
-		/// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-		[Obsolete(&quot;Please use the SendRpc that takes the byte id argument instead for better performance&quot;)]
-		public void SendRpc(NetworkingPlayer targetPlayer, string methodName, params object[] args)
-		{
-			byte methodId;
-
-			if (!rpcLookup.TryGetValue(methodName, out methodId))
-				throw new Exception(&quot;Invalid method name supplied, this method is also obsolete so maybe this is a good time to update to the new non-string based methods&quot;);
-
-			SendRpc(targetPlayer, methodId, false, true, Receivers.Target, Networker.Me, args);
-		}
-
-		/// &lt;summary&gt;
-		/// Build the network frame (message) data for this RPC call so that it is properly
-		/// delegated on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;targetPlayer&quot;&gt;The player that is being sent this RPC from the server&lt;/param&gt;
-		/// &lt;param name=&quot;methodId&quot;&gt;The id of the RPC to be called&lt;/param&gt;
-		/// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-		public void SendRpc(NetworkingPlayer targetPlayer, byte methodId, params object[] args)
-		{
-			SendRpc(targetPlayer, methodId, false, true, Receivers.Target, Networker.Me, args);
-		}
-
-        /// &lt;summary&gt;
-        /// Build the network frame (message) data for this RPC call so that it is properly
-        /// delegated on the network
-        /// &lt;/summary&gt;
-        /// &lt;param name=&quot;targetPlayer&quot;&gt;The player that is being sent this RPC from the server&lt;/param&gt;
-        /// &lt;param name=&quot;methodId&quot;&gt;The id of the RPC to be called&lt;/param&gt;
-        /// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-        public void SendRpcUnreliable(NetworkingPlayer targetPlayer, byte methodId, params object[] args)
-        {
-            SendRpc(targetPlayer, methodId, false, false, Receivers.Target, Networker.Me, args);
-        }
-
-        /// &lt;summary&gt;
-        /// Build the network frame (message) data for this RPC call so that it is properly
-        /// delegated on the network
-        /// &lt;/summary&gt;
-        /// &lt;param name=&quot;targetPlayer&quot;&gt;The player that is being sent this RPC from the server&lt;/param&gt;
-        /// &lt;param name=&quot;methodName&quot;&gt;The name of the RPC to be called&lt;/param&gt;
-        /// &lt;param name=&quot;receivers&quot;&gt;The clients / server to receive the message&lt;/param&gt;
-        /// &lt;param name=&quot;replacePrevious&quot;&gt;If &lt;c&gt;True&lt;/c&gt; then the previous call to this method will be replaced with this one&lt;/param&gt;
-        /// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-        [Obsolete(&quot;Please use the SendRpc that takes the byte id argument instead for better performance&quot;)]
-		public void SendRpc(NetworkingPlayer targetPlayer, string methodName, bool replacePrevious, Receivers receivers, params object[] args)
-		{
-			byte methodId;
-
-			if (!rpcLookup.TryGetValue(methodName, out methodId))
-				throw new Exception(&quot;Invalid method name supplied, this method is also obsolete so maybe this is a good time to update to the new non-string based methods&quot;);
-
-			SendRpc(targetPlayer, methodId, replacePrevious, true, receivers, Networker.Me, args);
-		}
-
-		/// &lt;summary&gt;
-		/// Build the network frame (message) data for this RPC call so that it is properly
-		/// delegated on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;targetPlayer&quot;&gt;The player that is being sent this RPC from the server&lt;/param&gt;
-		/// &lt;param name=&quot;methodId&quot;&gt;The id of the RPC to be called&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The clients / server to receive the message&lt;/param&gt;
-		/// &lt;param name=&quot;replacePrevious&quot;&gt;If &lt;c&gt;True&lt;/c&gt; then the previous call to this method will be replaced with this one&lt;/param&gt;
-		/// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-		public void SendRpc(NetworkingPlayer targetPlayer, bool replacePrevious, byte methodId, params object[] args)
-		{
-			SendRpc(targetPlayer, methodId, replacePrevious, true, Receivers.Target, Networker.Me, args);
-		}
-
-		/// &lt;summary&gt;
-		/// Build the network frame (message) data for this RPC call so that it is properly
-		/// delegated on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;targetPlayer&quot;&gt;The target player that should receive the RPC&lt;/param&gt;
-		/// &lt;param name=&quot;methodId&quot;&gt;The id of the RPC that is to be called&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The clients / server to receive the message&lt;/param&gt;
-		/// &lt;param name=&quot;args&quot;&gt;The input arguments for the method call&lt;/param&gt;
-		/// &lt;returns&gt;&lt;/returns&gt;
-		public void SendRpc(NetworkingPlayer targetPlayer, byte methodId, bool replacePrevious, bool reliable, Receivers receivers, NetworkingPlayer sender, object[] args)
-		{
-			if (receivers == Receivers.Target &amp;&amp; !(Networker is IServer))
-				receivers = Receivers.Server;
-
-			if (!ClientRegistered)
-			{
-				pendingLocalRpcs.Add(new PendingLocalRPC()
-				{
-					TargetPlayer = targetPlayer,
-					MethodId = methodId,
-					Receivers = receivers,
-                    Reliable = reliable,
-					Args = args
-				});
-
-				return;
-			}
-
-			// Make sure that the parameters that were passed match the desired arguments
-			Rpcs[methodId].ValidateParameters(args);
-
-			ulong timestep = Networker.Time.Timestep;
-
-			// The server should execute the RPC before it is sent out to the clients
-			if (Networker is IServer)
-			{
-				// If we are only sending the message to the owner, we need to specify that
-				if (receivers == Receivers.Owner || receivers == Receivers.ServerAndOwner)
-					targetPlayer = Owner;
-
-				// We don&#39;t need to do any extra work if the target player is the server
-				if (targetPlayer == Networker.Me)
-				{
-					InvokeRpcOnSelfServer(methodId, sender, timestep, args);
-					return;
-				}
-			}
-			
-			// Map the behavior flags to the rpc
-			byte behaviorFlags = 0;
-			behaviorFlags |= replacePrevious ? RPC_BEHAVIOR_OVERWRITE : (byte)0;
-
-			// Map the id of the object into the data so that the program knows what fire from
-			// Map the id of the Rpc as the second data into the byte array
-			// Map all of the data to bytes
-			BMSByte data = ObjectMapper.BMSByte(NetworkId, methodId, behaviorFlags);
-			ObjectMapper.Instance.MapBytes(data, args);
-
-			if (Networker is IServer)
-			{
-				// Buffered RPC messages are stored on the NetworkObject level and not on the NetWorker level
-				if (receivers == Receivers.AllBuffered || receivers == Receivers.OthersBuffered)
-				{
-					if (receivers == Receivers.AllBuffered)
-						receivers = Receivers.All;
-
-					if (receivers == Receivers.OthersBuffered)
-						receivers = Receivers.Others;
-
-					lock (rpcBuffer)
-					{
-						BufferedRpc rpc = new BufferedRpc()
-						{
-							data = new BMSByte().Clone(data),
-							receivers = receivers,
-							methodId = methodId,
-							timestep = timestep
-						};
-
-						bool replaced = false;
-						if (replacePrevious)
-						{
-							for (int i = 0; i &lt; rpcBuffer.Count; i++)
-							{
-								if (rpcBuffer[i].methodId == methodId)
-								{
-									rpcBuffer[i] = rpc;
-									replaced = true;
-									break;
-								}
-							}
-						}
-
-						if (!replaced)
-						{
-							// Add the RPC to the buffer to be sent on accept
-							rpcBuffer.Add(rpc);
-						}
-					}
-				}
-			}
-
-			if (!Networker.IsServer || receivers != Receivers.Server)
-				FinalizeSendRpc(data, receivers, methodId, timestep, reliable, targetPlayer, sender);
-
-			if (Networker is IServer)
-			{
-				// Invoke if the the target player is the server itself or is an explicit receiver
-				if (targetPlayer == Networker.Me || receivers == Receivers.Server || receivers == Receivers.ServerAndOwner)
-					InvokeRpcOnSelfServer(methodId, sender, timestep, args);
-				// Don&#39;t execute the RPC if the server is sending it to receivers
-				// that don&#39;t include itself
-				else if (receivers != Receivers.Owner &amp;&amp; ((sender != Networker.Me &amp;&amp; sender != null) ||
-					(receivers != Receivers.Others &amp;&amp; receivers != Receivers.OthersBuffered &amp;&amp;
-					receivers != Receivers.OthersProximity &amp;&amp; receivers != Receivers.Target &amp;&amp; receivers != Receivers.OthersProximityGrid)))
-				{
-					InvokeRpcOnSelfServer(methodId, sender, timestep, args);
-				}
-			}
-		}
-
-		private void InvokeRpcOnSelfServer(byte methodId, NetworkingPlayer sender, ulong timestep, object[] args)
-		{
-			Rpcs[methodId].Invoke(new RpcArgs(args, new RPCInfo { SendingPlayer = sender, TimeStep = timestep }), sender == Networker.Me);
-		}
-
-		private void FinalizeSendRpc(BMSByte data, Receivers receivers, byte methodId, ulong timestep, bool reliable, NetworkingPlayer targetPlayer = null, NetworkingPlayer sender = null)
-		{
-			// Generate a binary frame with a router
-			Binary rpcFrame = new Binary(timestep, Networker is TCPClient, data, receivers, MessageGroupIds.GetId(&quot;NO_RPC_&quot; + NetworkId + &quot;_&quot; + methodId), Networker is BaseTCP, RouterIds.RPC_ROUTER_ID);
-			rpcFrame.SetSender(sender);
-
-			if (targetPlayer != null &amp;&amp; Networker is IServer)
-			{
-#if STEAMWORKS
-                if (Networker is SteamP2PServer)
-                    ((SteamP2PServer)Networker).Send(targetPlayer, rpcFrame, reliable);
-                else if (Networker is TCPServer)
-#else
-                if (Networker is TCPServer)
-#endif
-                    ((TCPServer)Networker).Send(targetPlayer.TcpClientHandle, rpcFrame);
-                else
-                    ((UDPServer)Networker).Send(targetPlayer, rpcFrame, reliable);
-            }
-			else
-            {
-#if STEAMWORKS
-                if (Networker is BaseSteamP2P)
-                    ((BaseSteamP2P)Networker).Send(rpcFrame, reliable);
-                else if (Networker is TCPServer)
-#else
-                if (Networker is TCPServer)
-#endif
-                    ((TCPServer)Networker).SendAll(rpcFrame);
-                else if (Networker is TCPClient)
-                    ((TCPClient)Networker).Send(rpcFrame);
-                else if (Networker is BaseUDP)
-                    ((BaseUDP)Networker).Send(rpcFrame, reliable);
-            }
-		}
-
-		/// &lt;summary&gt;
-		/// Send raw binary data across the network to the associated NetworkObject
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;data&quot;&gt;The raw data to be sent&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The receivers for this raw data&lt;/param&gt;
-		/// &lt;param name=&quot;subRouter&quot;&gt;Used to determine if this is a special type of binary data&lt;/param&gt;
-		public void SendBinaryData(BMSByte data, Receivers receivers, byte subRouter = 0, bool reliable = true, bool skipOwner = false)
-		{
-			NetworkingPlayer skipPlayer = null;
-			if (skipOwner &amp;&amp; IsServer)
-			{
-				if (Owner == Networker.Me || !AuthorityUpdateMode)
-					skipPlayer = Owner;
-			}
-
-
-			lock (sendBinaryData)
-			{
-				sendBinaryData.Clear();
-
-				// Map the id of the object into the data so that the program knows what fire from
-				ObjectMapper.Instance.MapBytes(sendBinaryData, NetworkId, subRouter);
-
-				// Map all of the data to bytes
-				sendBinaryData.Append(data);
-
-				// Generate a binary frame with a router
-				Binary frame = new Binary(Networker.Time.Timestep, Networker is TCPClient, sendBinaryData, receivers, MessageGroupIds.GetId(&quot;NO_BIN_DATA_&quot; + NetworkId), Networker is BaseTCP, RouterIds.BINARY_DATA_ROUTER_ID);
-
-#if STEAMWORKS
-                if (Networker is SteamP2PServer)
-                    ((SteamP2PServer)Networker).Send(frame, reliable, skipPlayer);
-                else if (Networker is SteamP2PClient)
-                    ((SteamP2PClient)Networker).Send(frame, reliable);
-                else if (Networker is TCPServer)
-#else
-                if (Networker is TCPServer)
-#endif
-                    ((TCPServer)Networker).SendAll(frame, Owner, skipPlayer);
-                else if (Networker is TCPClient)
-                    ((TCPClient)Networker).Send(frame);
-                else if (Networker is UDPServer)
-                    ((UDPServer)Networker).Send(frame, Owner, reliable, skipPlayer);
-                else if (Networker is UDPClient)
-                    ((UDPClient)Networker).Send(frame, reliable);
-            }
-		}
-
-		/// &lt;summary&gt;
-		/// There has been binary data sent across the network to this NetworkObject
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;data&quot;&gt;The data that has been sent&lt;/param&gt;
-		/// &lt;param name=&quot;receivers&quot;&gt;The receivers for this data&lt;/param&gt;
-		public void ReadBinaryData(FrameStream frame)
-		{
-			// Get the subrouter from the binary data
-			byte subRouter = frame.StreamData.GetBasicType&lt;byte&gt;();
-
-			switch (subRouter)
-			{
-				// If the subRouter is set to be field serializations then read the new field values
-				case DIRTY_FIELD_SUB_ROUTER_ID:
-					// Should only read if the sending player is the owner
-					if (Networker is IClient || frame.Sender == Owner)
-					{
-						// TODO:  Allow server to replicate as in the other example below
-						// Replicate the data to the other clients
-						if (Networker is IServer)
-						{
-							BMSByte data = new BMSByte().Clone(frame.StreamData);
-
-							if (data != null)
-								SendBinaryData(data, ProximityBasedFields ? ProximityBasedFieldsMode : Receivers.All, DIRTY_FIELD_SUB_ROUTER_ID, false, true);
-						}
-
-						ReadDirtyFields(frame.StreamData, frame.TimeStep);
-					}
-					return;
-				case DESTROY_SUB_ROUTER_ID:
-					Destroy(true);
-					return;
-			}
-
-			if (Networker is IServer)
-			{
-				// Do not read or replicate if the server denies replication
-				if (ServerAllowBinaryData(frame.StreamData, frame.Receivers))
-				{
-					if (readBinary != null)
-						readBinary(frame.StreamData);
-
-					SendBinaryData(frame.StreamData, frame.Receivers);
-				}
-
-				return;
-			}
-
-			// Call the event on the client without validation
-			if (readBinary != null)
-				readBinary(frame.StreamData);
-		}
-
-		/// &lt;summary&gt;
-		/// Used to check if there are any updates to this object, it is called in 10ms intervals
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;timeStep&quot;&gt;The current timestep for the server&lt;/param&gt;
-		public void HeartBeat(ulong timeStep)
-		{
-			if (!hasDirtyFields)
-				return;
-
-			if (timeStep - lastUpdateTimestep &gt; UpdateInterval)
-			{
-				BMSByte data = SerializeDirtyFields();
-
-                if (data != null)
-                {
-                    SendBinaryData(data, ProximityBasedFields ? ProximityBasedFieldsMode : Receivers.All, DIRTY_FIELD_SUB_ROUTER_ID, false, true);
+                if (pi != pathIndex) {
+                    yield break;
                 }
 
-				hasDirtyFields = false;
-				lastUpdateTimestep = timeStep;
-			}
-		}
-        
+                StuckCheck();
 
-        public void setProximityFields(bool useProximity, Receivers mode = Receivers.AllProximity)
-        {
-            ProximityBasedFields = useProximity;
-            ProximityBasedFieldsMode = mode;
+                if (stuck) {
+                    controls.ProcessControl(TankControls.Control.Movement, -1);
+                } else {
+                    MoveTowards(targetPos);
+                }
+                
+                yield return null;
+            }
+
+            index++;
         }
 
-        /// &lt;summary&gt;
-        /// Called when data comes in for this network object that is needed to be read
-        /// in order to update any values contained within it
-        /// &lt;/summary&gt;
-        /// &lt;param name=&quot;payload&quot;&gt;The data from the network for this object&lt;/param&gt;
-        /// &lt;param name=&quot;timestep&quot;&gt;The timestep for this particular change&lt;/param&gt;
-        protected abstract void ReadPayload(BMSByte payload, ulong timestep);
+        Debug.Log(&quot;Finished path: &quot; + path[path.Length - 1]);
 
-		/// &lt;summary&gt;
-		/// Used to write any data on the network for this object to keep it up to date
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;data&quot;&gt;The data that is going to be sent across the network&lt;/param&gt;
-		/// &lt;returns&gt;The same input data for method chaining&lt;/returns&gt;
-		protected abstract BMSByte WritePayload(BMSByte data);
+        Moving = false;
+    }
 
-		/// &lt;summary&gt;
-		/// Used to write any data on the network for the various fields that have been modified on this object
-		/// &lt;/summary&gt;
-		protected abstract BMSByte SerializeDirtyFields();
+    /// &lt;summary&gt;
+    /// Checks if the tank is stuck against a wall
+    /// &lt;/summary&gt;
+    private void StuckCheck() {
 
-		/// &lt;summary&gt;
-		/// Used to read the data from the network for changes to this object
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;data&quot;&gt;The data that was received for this object&lt;/param&gt;
-		/// &lt;param name=&quot;timestep&quot;&gt;The timestep for this particular update&lt;/param&gt;
-		protected abstract void ReadDirtyFields(BMSByte data, ulong timestep);
+        if (stuck) {
+            return;
+        }
 
-		/// &lt;summary&gt;
-		/// Is called by the NetWorker when a message is received to create a NetworkObject
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;networker&quot;&gt;The networker that received the message to create a network object&lt;/param&gt;
-		/// &lt;param name=&quot;player&quot;&gt;The player that requested this object be created&lt;/param&gt;
-		/// &lt;param name=&quot;frame&quot;&gt;The data to initialize the object&lt;/param&gt;
-		public static void CreateNetworkObject(NetWorker networker, NetworkingPlayer player, Binary frame)
-		{
-			// Get the identity so that the proper type / subtype can be selected
-			int identity = frame.StreamData.GetBasicType&lt;int&gt;();
+        if (Vector.Distance(stuckPos, Vector.FromVector3(ai.transform.position)) &lt; TankAISettings.StuckTresholdDistance) {
+            stuckTime += Time.deltaTime;
 
-			if (networker is IServer)
-			{
-				// The client is requesting to create a new networked object
-				if (Factory != null)
-				{
-					Factory.NetworkCreateObject(networker, identity, 0, frame, (obj) =&gt;
-					{
-						networkObjects.Add(obj);
-					});
-				}
-			}
-			else if (networker is IClient)
-			{
-				int hash = frame.StreamData.GetBasicType&lt;int&gt;();
+            if (stuckTime &gt; TankAISettings.StuckTresholdTime) {
+                stuck = true;
+                ai.StartCoroutine(RemoveStuck());
+            }
+        } else {
+            ResetStuck();
+        }
+    }
+    private IEnumerator RemoveStuck() {
 
-				// Get the server assigned id for this network object
-				uint id = frame.StreamData.GetBasicType&lt;uint&gt;();
+        float time = TankAISettings.StuckCooldown;
 
-				if (hash != 0)
-				{
-					// The server is responding to the create request
-					networker.OnObjectCreateAttach(identity, hash, id, frame);
-					return;
-				}
+        while (time &gt; 0) {
+            time -= Time.deltaTime;
+            yield return null;
+        }
 
-				networker.OnObjectCreateRequested(identity, id, frame, (obj) =&gt;
-				{
-					if (obj != null)
-						networkObjects.Add(obj);
-				});
+        ResetStuck();
+    }
+    private void ResetStuck() {
+        stuck = false;
+        stuckTime = 0;
+        stuckPos = Vector.FromVector3(ai.transform.position);
+    }
 
-				// The server is dictating to create a new networked object
-				if (Factory != null)
-				{
-					Factory.NetworkCreateObject(networker, identity, id, frame, (obj) =&gt;
-					{
-						networkObjects.Add(obj);
-						networker.OnFactoryObjectCreated(obj);
-					});
-				}
-			}
-		}
+    /// &lt;summary&gt;
+    /// Checks if the tank has reached certain coordinates
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;i&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    private bool InCoords(int i) {
 
-		public static void CreateMultiNetworkObject(NetWorker networker, NetworkingPlayer player, Binary frame)
-		{
-			int index, count = frame.StreamData.GetBasicType&lt;int&gt;();
-			int head = frame.StreamData.StartIndex();
+        Vector target = path[i];
+        Vector current = Vector.FromVector3(ai.transform.position);
 
-			for (int i = 0; i &lt; count; i++)
-			{
-				// Return to the head and then move forward to the next index
-				frame.StreamData.MoveStartIndex(-frame.StreamData.StartIndex() + i * sizeof(int) + head);
-				index = frame.StreamData.GetBasicType&lt;int&gt;(false);
+        return Vector.Distance(target, current) &lt; TankAISettings.DistanceLimit;
+    }
 
-				// Move to the end of the count where the main payload starts
-				frame.StreamData.MoveStartIndex((count - i) * sizeof(int));
+    /// &lt;summary&gt;
+    /// Moves the tank towards a position
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;position&quot;&gt;&lt;/param&gt;
+    private void MoveTowards(Vector position) {
 
-				// Move to the index specified by the payload
-				frame.StreamData.MoveStartIndex(index);
+        TurnToPosition(position);
 
-				// Create an isolated frame for this object
-				Binary subFrame = (Binary)frame.Clone();
-				CreateNetworkObject(networker, player, subFrame);
-			}
-		}
+        Vector3 currentRotation = ai.transform.eulerAngles;
+        Vector3 targetRotation = Quaternion.LookRotation(Vector.ToVector3(position) - ai.transform.position, Vector3.up).eulerAngles;
 
-		/// &lt;summary&gt;
-		/// This is used to destroy this object on the network
-		/// &lt;/summary&gt;
-		public void Destroy(int timeInMilliseconds = 0)
-		{
-			if (timeInMilliseconds &gt; 0)
-			{
-				Task.Queue(() =&gt;
-				{
-					Destroy(false);
-				}, timeInMilliseconds);
-			}
-			else
-				Destroy(false);
-		}
+        if (Vector3.Angle(currentRotation, targetRotation) &lt; TankAISettings.MovementAngle) {
+            controls.ProcessControl(TankControls.Control.Movement, 1);
+        }
+    }
 
-		/// &lt;summary&gt;
-		/// This is used to destroy this object on the network
-		/// &lt;/summary&gt;
-		/// &lt;param name=&quot;remoteCall&quot;&gt;Used to know if this call was made over the network&lt;/param&gt;
-		private void Destroy(bool remoteCall)
-		{
-			if ((IsOwner &amp;&amp; !remoteCall) || Networker is IServer)
-				SendBinaryData(null, Receivers.Others, DESTROY_SUB_ROUTER_ID, skipOwner: Networker is IServer &amp;&amp; remoteCall);
+    /// &lt;summary&gt;
+    /// Turns the tank towards a position
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;position&quot;&gt;&lt;/param&gt;
+    private void TurnToPosition(Vector position) {
 
-			if (onDestroy != null)
-				onDestroy(Networker);
-		}
+        // Replace Quaternion.LookRotation
+        Vector currentRotation = Vector.FromVector3(ai.transform.eulerAngles);
+        Vector targetRotation = Vector.FromVector3(Quaternion.LookRotation(Vector.ToVector3(position) - ai.transform.position, Vector3.up).eulerAngles);
 
-		public virtual void InterpolateUpdate() { }
-	}
+        float rotation = TurnDirection(currentRotation, targetRotation);
+        controls.ProcessControl(TankControls.Control.Rotation, rotation);
+    }
+
+    /// &lt;summary&gt;
+    /// Returns left (negative) or right (positive) based on how big an angle the tank will have to turn towards a certain position.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;current&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;target&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    private float TurnDirection(Vector current, Vector target) {
+
+
+        // wtf does this do, found from internet
+        int rotateDirection = (((target.y - current.y) + 360f) % 360f) &gt; 180.0f ? -1 : 1;
+
+        float angleDif = ((target.y - current.y) + 360f) % 360f;
+
+        float min = Maths.Min(Maths.Abs(angleDif), Maths.Abs(angleDif - 360));
+
+        if (min &lt; TankAISettings.TurnAngleLimit) {
+
+            float factor = min / TankAISettings.TurnAngleLimit;
+            return factor * rotateDirection;
+        } else {
+            return rotateDirection;
+        }
+    }
+    #endregion
 }
 
     </pre>
     <script type="text/javascript">
-      highlightRanges([[117,49,117,53,0],[117,54,117,58,0],[128,27,128,31,0],[128,32,128,44,0],[133,32,133,36,0],[133,37,133,49,0],[138,32,138,33,0],[138,34,138,64,0],[138,65,138,66,0],[143,25,143,29,0],[143,30,143,42,0],[150,37,150,41,0],[150,42,150,46,0],[156,38,156,42,0],[156,43,156,47,0],[157,53,157,57,0],[157,58,157,62,0],[162,45,162,49,0],[162,50,162,62,0],[167,3,167,81,0],[167,3,167,81,0],[167,3,167,81,0],[172,3,172,88,0],[172,3,172,88,0],[172,3,172,88,0],[177,30,177,34,0],[177,35,177,47,0],[184,3,184,24,0],[184,3,184,24,0],[184,3,184,24,0],[186,3,186,29,0],[186,3,186,29,0],[186,3,186,29,0],[188,34,188,38,0],[188,39,188,51,0],[193,3,193,51,0],[193,3,193,51,0],[193,3,193,51,0],[198,46,198,50,0],[198,51,198,55,0],[208,3,208,40,0],[208,3,208,40,0],[208,3,208,40,0],[218,36,218,40,0],[218,41,218,53,0],[223,33,223,37,0],[223,38,223,42,0],[224,3,224,41,0],[224,3,224,41,0],[224,3,224,41,0],[229,35,229,39,0],[229,40,229,52,0],[234,3,234,81,0],[235,58,235,59,0],[235,60,235,82,0],[235,83,235,84,0],[237,3,237,81,0],[238,3,238,67,0],[240,28,240,32,0],[240,33,240,45,0],[256,3,256,67,0],[256,3,256,67,0],[256,3,256,67,0],[262,34,262,38,0],[262,39,262,51,0],[268,3,268,53,0],[268,3,268,53,0],[268,3,268,53,0],[274,3,274,42,0],[274,3,274,42,0],[274,3,274,42,0],[279,3,279,50,0],[279,3,279,50,0],[279,3,279,50,0],[281,30,281,31,0],[281,32,281,60,0],[281,61,281,62,0],[283,3,283,110,0],[283,3,283,110,0],[283,3,283,110,0],[308,4,308,5,0],[309,5,309,112,0],[310,4,310,5,0],[314,3,314,4,0],[315,4,315,56,0],[315,56,315,80,0],[315,80,315,92,0],[315,4,315,92,0],[316,4,316,63,0],[316,63,316,87,0],[316,87,316,99,0],[316,4,316,99,0],[318,9,318,18,0],[318,20,318,38,0],[318,40,318,43,0],[319,5,319,39,0],[321,9,321,18,0],[321,20,321,45,0],[321,47,321,50,0],[322,5,322,46,0],[323,3,323,4,0],[328,3,328,78,0],[328,3,328,78,0],[328,3,328,78,0],[333,3,333,80,0],[333,3,333,80,0],[333,3,333,80,0],[340,3,340,25,0],[340,26,340,27,0],[340,28,340,43,0],[340,44,340,65,0],[340,66,340,67,0],[347,3,347,129,0],[348,3,348,4,0],[349,4,349,38,0],[350,4,350,45,0],[351,4,351,28,0],[353,4,353,39,0],[354,4,354,26,0],[355,4,355,23,0],[358,4,358,25,0],[359,4,359,19,0],[360,4,360,24,0],[362,4,362,29,0],[363,5,363,32,0],[365,4,365,5,0],[367,5,367,26,0],[371,5,371,64,0],[373,5,373,29,0],[376,5,376,54,0],[379,5,379,75,0],[380,5,380,24,0],[383,5,383,60,0],[384,5,384,26,0],[385,6,385,53,0],[387,5,387,43,0],[388,5,388,193,0],[390,5,391,5,0],[391,5,391,6,0],[391,6,398,21,0],[398,21,398,45,0],[398,45,400,25,0],[400,25,400,71,0],[400,71,402,25,0],[402,25,402,65,0],[402,65,403,17,0],[403,17,403,18,0],[403,18,403,19,0],[390,5,403,19,0],[405,5,405,30,0],[406,6,406,42,0],[408,6,408,25,0],[411,4,411,5,0],[412,3,412,4,0],[420,3,420,78,0],[421,3,421,4,0],[422,4,422,45,0],[424,4,424,39,0],[425,4,425,26,0],[427,4,427,29,0],[428,5,428,26,0],[430,5,430,41,0],[432,4,432,23,0],[434,4,434,29,0],[435,4,435,5,0],[437,5,437,49,0],[438,5,438,55,0],[440,5,440,51,0],[442,5,442,47,0],[443,6,443,69,0],[446,5,446,40,0],[447,5,447,68,0],[455,17,455,44,0],[457,21,457,83,0],[459,21,459,93,0],[460,13,460,14,0],[462,4,462,5,0],[463,5,463,55,0],[465,5,465,42,0],[466,5,466,51,0],[468,5,468,47,0],[469,6,469,69,0],[471,5,471,62,0],[473,5,473,230,0],[475,5,475,32,0],[476,6,476,54,0],[478,6,478,48,0],[479,4,479,5,0],[480,3,480,4,0],[487,3,487,4,0],[488,4,488,50,0],[489,4,489,60,0],[490,4,490,48,0],[491,4,491,66,0],[492,3,492,4,0],[498,3,498,4,0],[499,4,499,52,0],[500,3,500,4,0],[509,3,509,4,0],[510,4,510,77,0],[511,3,511,4,0],[514,3,514,4,0],[515,4,515,50,0],[516,3,516,4,0],[519,3,519,4,0],[521,4,521,18,0],[522,5,522,12,0],[524,4,524,30,0],[525,5,525,12,0],[527,4,527,37,0],[528,5,528,67,0],[530,5,530,55,0],[532,4,532,30,0],[533,5,533,68,0],[535,5,535,49,0],[537,4,537,25,0],[538,3,538,4,0],[541,3,541,4,0],[542,4,542,18,0],[543,5,543,12,0],[545,4,545,55,0],[546,5,546,12,0],[548,4,548,45,0],[549,3,549,4,0],[552,3,552,4,0],[553,7,553,38,0],[554,7,554,26,0],[555,3,555,4,0],[558,3,558,4,0],[559,4,559,33,0],[560,5,560,33,0],[561,3,561,4,0],[567,3,567,4,0],[569,4,569,54,0],[570,5,570,12,0],[572,4,572,20,0],[573,4,573,5,0],[574,5,574,23,0],[575,4,575,5,0],[576,3,576,4,0],[583,3,583,4,0],[585,4,585,54,0],[586,5,586,12,0],[588,4,588,47,0],[589,4,589,38,0],[593,4,593,54,0],[594,5,594,12,0],[596,4,596,20,0],[597,4,597,5,0],[598,10,598,19,0],[598,21,598,40,0],[598,42,598,45,0],[599,5,599,6,0],[600,6,600,41,0],[601,6,601,7,0],[602,7,602,31,0],[604,7,604,17,0],[605,8,605,14,0],[607,8,607,17,0],[609,5,609,6,0],[610,4,610,5,0],[611,3,611,4,0],[620,3,620,4,0],[621,4,621,45,0],[624,4,624,24,0],[625,4,625,5,0],[627,5,627,18,0],[628,4,628,5,0],[631,4,631,91,0],[634,4,634,23,0],[637,4,637,59,0],[638,4,638,25,0],[639,5,639,52,0],[641,4,641,186,0],[643,4,643,24,0],[644,5,644,25,0],[652,13,652,40,0],[654,17,654,77,0],[656,17,656,74,0],[658,13,658,33,0],[659,3,659,4,0],[662,3,662,4,0],[663,4,663,11,0],[663,13,663,30,0],[663,31,663,33,0],[663,34,663,48,0],[664,5,664,65,0],[666,4,667,4,0],[667,4,667,5,0],[667,5,668,5,0],[668,5,668,18,0],[668,18,669,5,0],[669,5,669,6,0],[669,6,670,6,0],[670,6,670,41,0],[670,41,671,6,0],[671,6,671,25,0],[671,25,672,6,0],[672,6,672,33,0],[672,33,673,6,0],[673,6,673,42,0],[673,42,675,6,0],[675,6,675,13,0],[675,13,675,15,0],[675,15,675,32,0],[675,32,675,33,0],[675,33,675,35,0],[675,35,675,36,0],[675,36,675,50,0],[675,50,676,6,0],[676,6,676,7,0],[676,7,677,7,0],[677,7,677,31,0],[677,31,678,8,0],[678,8,678,17,0],[678,17,680,7,0],[680,7,680,36,0],[680,36,682,7,0],[682,7,682,104,0],[682,104,685,7,0],[685,7,685,36,0],[685,36,688,7,0],[688,7,688,72,0],[688,72,689,7,0],[689,7,689,32,0],[689,32,690,8,0],[690,8,690,65,0],[690,65,692,7,0],[692,7,692,37,0],[692,37,693,7,0],[693,7,693,33,0],[693,33,694,6,0],[694,6,694,7,0],[694,7,696,6,0],[696,6,696,63,0],[696,63,697,11,0],[697,11,697,20,0],[697,20,697,22,0],[697,22,697,39,0],[697,39,697,41,0],[697,41,697,44,0],[697,44,698,7,0],[698,7,698,62,0],[698,62,700,6,0],[700,6,700,44,0],[700,44,702,6,0],[702,6,702,51,0],[702,51,703,6,0],[703,6,703,7,0],[703,7,704,7,0],[704,7,704,196,0],[704,196,711,25,0],[711,25,711,52,0],[711,52,713,29,0],[713,29,713,91,0],[713,91,715,8,0],[715,8,715,80,0],[715,80,716,6,0],[716,6,716,7,0],[716,7,717,5,0],[717,5,717,6,0],[717,6,718,4,0],[718,4,718,5,0],[718,5,718,7,0],[666,4,718,7,0],[719,3,719,4,0],[722,3,722,4,0],[723,4,723,23,0],[724,3,724,4,0],[732,3,732,4,0],[734,4,734,24,0],[736,4,736,72,0],[739,4,739,46,0],[741,4,741,30,0],[742,4,742,5,0],[743,5,743,30,0],[744,5,744,6,0],[745,21,745,47,0],[746,21,746,22,0],[747,25,747,50,0],[748,25,748,32,0],[750,5,750,6,0],[751,4,751,5,0],[753,4,753,24,0],[754,5,754,24,0],[756,13,756,41,0],[757,13,757,14,0],[758,17,758,50,0],[760,17,760,48,0],[761,21,761,63,0],[762,13,762,14,0],[763,17,763,42,0],[764,17,764,18,0],[765,21,765,53,0],[766,17,766,18,0],[767,3,767,4,0],[770,3,770,4,0],[771,4,771,29,0],[772,4,772,5,0],[774,17,774,50,0],[775,21,775,66,0],[777,17,777,64,0],[777,64,777,77,0],[777,77,777,88,0],[777,17,777,88,0],[779,10,779,19,0],[779,21,779,45,0],[779,47,779,50,0],[780,5,780,6,0],[781,6,781,42,0],[782,7,782,16,0],[784,6,784,44,0],[785,7,785,41,0],[787,6,787,48,0],[788,6,788,35,0],[789,5,789,6,0],[790,17,790,87,0],[791,21,791,48,0],[792,13,792,14,0],[793,3,793,4,0],[803,3,803,4,0],[805,4,805,35,0],[806,5,806,12,0],[809,4,809,26,0],[810,5,810,12,0],[812,4,812,25,0],[815,4,815,53,0],[818,4,818,53,0],[820,4,820,19,0],[822,4,822,24,0],[823,5,823,24,0],[824,3,824,4,0],[833,3,833,4,0],[835,4,835,23,0],[836,5,836,18,0],[838,4,838,19,0],[840,4,840,25,0],[841,5,841,29,0],[843,4,843,16,0],[844,3,844,4,0],[853,3,853,4,0],[855,4,855,42,0],[856,5,856,94,0],[859,4,859,36,0],[860,5,860,125,0],[864,4,864,31,0],[865,4,865,51,0],[866,4,866,34,0],[867,4,867,41,0],[868,3,868,4,0],[874,3,874,4,0],[875,4,875,28,0],[877,4,877,23,0],[878,5,878,12,0],[880,4,880,43,0],[881,3,881,4,0],[884,3,884,4,0],[885,4,885,27,0],[887,4,887,35,0],[888,4,888,5,0],[889,5,889,29,0],[890,4,890,5,0],[891,3,891,4,0],[894,3,894,4,0],[895,4,895,11,0],[895,13,895,27,0],[895,28,895,30,0],[895,31,895,55,0],[896,5,896,66,0],[898,13,898,20,0],[898,22,898,41,0],[898,42,898,44,0],[898,45,898,61,0],[899,17,899,34,0],[900,21,900,71,0],[902,21,902,81,0],[904,4,904,37,0],[905,4,905,29,0],[906,3,906,4,0],[914,3,914,4,0],[915,4,915,35,0],[916,4,916,5,0],[917,5,917,27,0],[918,5,918,6,0],[919,6,925,9,0],[927,6,927,13,0],[929,4,929,5,0],[931,4,931,46,0],[933,4,933,36,0],[934,5,934,101,0],[936,4,936,51,0],[938,4,938,75,0],[940,4,940,50,0],[942,4,942,101,0],[945,4,945,62,0],[946,4,946,5,0],[947,5,947,52,0],[952,5,952,54,0],[953,6,953,80,0],[955,5,955,12,0],[959,4,959,35,0],[960,3,960,4,0],[970,3,970,4,0],[971,4,971,16,0],[972,3,972,4,0],[981,3,981,4,0],[982,4,982,16,0],[983,3,983,4,0],[991,3,991,4,0],[992,4,992,16,0],[993,3,993,4,0],[1000,3,1000,4,0],[1003,4,1003,63,0],[1004,5,1004,12,0],[1006,4,1006,42,0],[1008,4,1008,20,0],[1009,4,1009,5,0],[1010,10,1010,19,0],[1010,21,1010,30,0],[1010,32,1010,35,0],[1011,6,1011,125,0],[1012,4,1012,5,0],[1013,3,1013,4,0],[1024,3,1024,4,0],[1027,4,1027,57,0],[1028,5,1028,162,0],[1030,4,1030,72,0],[1031,3,1031,4,0],[1041,3,1041,4,0],[1042,4,1042,72,0],[1043,3,1043,4,0],[1053,9,1053,10,0],[1054,13,1054,82,0],[1055,9,1055,10,0],[1067,3,1067,4,0],[1070,4,1070,57,0],[1071,5,1071,162,0],[1073,4,1073,82,0],[1074,3,1074,4,0],[1085,3,1085,4,0],[1086,4,1086,82,0],[1087,3,1087,4,0],[1099,3,1099,4,0],[1102,4,1102,57,0],[1103,5,1103,162,0],[1105,4,1105,80,0],[1106,3,1106,4,0],[1117,3,1117,4,0],[1120,4,1120,57,0],[1121,5,1121,162,0],[1123,4,1123,87,0],[1124,3,1124,4,0],[1134,3,1134,4,0],[1135,4,1135,87,0],[1136,3,1136,4,0],[1146,9,1146,10,0],[1147,13,1147,97,0],[1148,9,1148,10,0],[1161,3,1161,4,0],[1164,4,1164,57,0],[1165,5,1165,162,0],[1167,4,1167,90,0],[1168,3,1168,4,0],[1180,3,1180,4,0],[1181,4,1181,97,0],[1182,3,1182,4,0],[1194,3,1194,4,0],[1195,4,1195,65,0],[1196,5,1196,34,0],[1198,4,1198,26,0],[1199,4,1199,5,0],[1200,5,1207,8,0],[1209,5,1209,12,0],[1213,4,1213,44,0],[1215,4,1215,45,0],[1218,4,1218,29,0],[1219,4,1219,5,0],[1221,5,1221,79,0],[1222,6,1222,27,0],[1225,5,1225,38,0],[1226,5,1226,6,0],[1227,6,1227,62,0],[1228,6,1228,13,0],[1230,4,1230,5,0],[1233,4,1233,27,0],[1234,4,1234,72,0],[1239,4,1239,76,0],[1240,4,1240,47,0],[1242,4,1242,29,0],[1243,4,1243,5,0],[1245,5,1245,85,0],[1246,5,1246,6,0],[1247,6,1247,45,0],[1248,7,1248,33,0],[1250,6,1250,48,0],[1251,7,1251,36,0],[1253,6,1253,22,0],[1254,6,1254,7,0],[1255,7,1261,9,0],[1263,7,1263,29,0],[1264,7,1264,27,0],[1265,7,1265,8,0],[1266,13,1266,22,0],[1266,24,1266,43,0],[1266,45,1266,48,0],[1267,8,1267,9,0],[1268,9,1268,47,0],[1269,9,1269,10,0],[1270,10,1270,29,0],[1271,10,1271,26,0],[1272,10,1272,16,0],[1274,8,1274,9,0],[1275,7,1275,8,0],[1277,7,1277,21,0],[1278,7,1278,8,0],[1280,8,1280,27,0],[1281,7,1281,8,0],[1282,6,1282,7,0],[1283,5,1283,6,0],[1284,4,1284,5,0],[1286,4,1286,61,0],[1287,5,1287,90,0],[1289,4,1289,29,0],[1290,4,1290,5,0],[1292,5,1292,112,0],[1293,6,1293,62,0],[1296,10,1298,126,0],[1299,5,1299,6,0],[1300,6,1300,62,0],[1301,5,1301,6,0],[1302,4,1302,5,0],[1303,3,1303,4,0],[1306,3,1306,4,0],[1307,4,1307,130,0],[1308,3,1308,4,0],[1311,3,1311,4,0],[1313,4,1313,194,0],[1314,4,1314,31,0],[1316,4,1316,53,0],[1317,4,1317,5,0],[1323,17,1323,44,0],[1325,21,1325,89,0],[1327,21,1327,83,0],[1328,13,1328,14,0],[1330,13,1330,14,0],[1336,17,1336,44,0],[1338,21,1338,62,0],[1339,22,1339,49,0],[1340,21,1340,59,0],[1341,22,1341,47,0],[1342,21,1342,67,0],[1343,13,1343,14,0],[1344,3,1344,4,0],[1353,3,1353,4,0],[1354,4,1354,39,0],[1355,4,1355,30,0],[1356,4,1356,5,0],[1357,5,1357,55,0],[1358,6,1358,25,0],[1359,4,1359,5,0],[1362,4,1362,25,0],[1363,4,1363,5,0],[1364,5,1364,28,0],[1367,5,1367,74,0],[1370,5,1370,33,0],[1373,5,1373,213,0],[1382,17,1382,44,0],[1384,21,1384,78,0],[1385,22,1385,49,0],[1386,21,1386,56,0],[1387,22,1387,49,0],[1388,21,1388,85,0],[1389,22,1389,49,0],[1390,21,1390,66,0],[1391,13,1391,14,0],[1392,3,1392,4,0],[1400,3,1400,4,0],[1402,4,1402,59,0],[1404,4,1404,22,0],[1409,6,1409,56,0],[1410,6,1410,7,0],[1413,7,1413,32,0],[1414,7,1414,8,0],[1415,8,1415,61,0],[1417,8,1417,25,0],[1418,9,1418,135,0],[1419,7,1419,8,0],[1421,7,1421,57,0],[1422,6,1422,7,0],[1423,6,1423,13,0],[1425,6,1425,20,0],[1426,6,1426,13,0],[1429,4,1429,29,0],[1430,4,1430,5,0],[1432,5,1432,66,0],[1433,5,1433,6,0],[1434,6,1434,29,0],[1435,7,1435,36,0],[1437,6,1437,56,0],[1438,5,1438,6,0],[1440,5,1440,12,0],[1444,4,1444,27,0],[1445,5,1445,34,0],[1446,3,1446,4,0],[1453,3,1453,4,0],[1454,4,1454,24,0],[1455,5,1455,12,0],[1457,4,1457,55,0],[1458,4,1458,5,0],[1459,5,1459,43,0],[1461,17,1461,34,0],[1462,17,1462,18,0],[1463,21,1463,147,0],[1464,17,1464,18,0],[1466,5,1466,28,0],[1467,5,1467,35,0],[1468,4,1468,5,0],[1469,3,1469,4,0],[1473,9,1473,10,0],[1474,13,1474,49,0],[1475,13,1475,45,0],[1476,9,1476,10,0],[1512,3,1512,4,0],[1514,4,1514,56,0],[1516,4,1516,29,0],[1517,4,1517,5,0],[1519,5,1519,25,0],[1520,5,1520,6,0],[1521,6,1522,6,0],[1522,6,1522,7,0],[1522,7,1523,7,0],[1523,7,1523,31,0],[1523,31,1524,6,0],[1524,6,1524,7,0],[1524,7,1524,9,0],[1521,6,1524,9,0],[1525,5,1525,6,0],[1526,4,1526,5,0],[1527,9,1527,34,0],[1528,4,1528,5,0],[1529,5,1529,53,0],[1532,5,1532,53,0],[1534,5,1534,19,0],[1535,5,1535,6,0],[1537,6,1537,64,0],[1538,6,1538,13,0],[1541,5,1542,5,0],[1542,5,1542,6,0],[1542,6,1543,6,0],[1543,6,1543,22,0],[1543,22,1544,7,0],[1544,7,1544,31,0],[1544,31,1545,5,0],[1545,5,1545,6,0],[1545,6,1545,8,0],[1541,5,1545,8,0],[1548,5,1548,25,0],[1549,5,1549,6,0],[1550,6,1551,6,0],[1551,6,1551,7,0],[1551,7,1552,7,0],[1552,7,1552,31,0],[1552,31,1553,7,0],[1553,7,1553,45,0],[1553,45,1554,6,0],[1554,6,1554,7,0],[1554,7,1554,9,0],[1550,6,1554,9,0],[1555,5,1555,6,0],[1556,4,1556,5,0],[1557,3,1557,4,0],[1560,3,1560,4,0],[1561,15,1561,59,0],[1562,4,1562,45,0],[1564,9,1564,18,0],[1564,20,1564,29,0],[1564,31,1564,34,0],[1565,4,1565,5,0],[1567,5,1567,94,0],[1568,5,1568,55,0],[1571,5,1571,64,0],[1574,5,1574,44,0],[1577,5,1577,45,0],[1578,5,1578,54,0],[1579,4,1579,5,0],[1580,3,1580,4,0],[1586,3,1586,4,0],[1587,4,1587,31,0],[1588,4,1588,5,0],[1589,5,1590,5,0],[1590,5,1590,6,0],[1590,6,1591,6,0],[1591,6,1591,21,0],[1591,21,1592,5,0],[1592,5,1592,6,0],[1592,6,1592,28,0],[1589,5,1592,28,0],[1593,4,1593,5,0],[1595,5,1595,20,0],[1596,3,1596,4,0],[1603,3,1603,4,0],[1604,4,1604,57,0],[1605,5,1605,114,0],[1607,4,1607,26,0],[1608,5,1608,26,0],[1609,3,1609,4,0],[1611,43,1611,44,0],[1611,45,1611,46,0]]);
+      highlightRanges([[25,40,25,48,0],[25,49,25,50,0],[26,9,26,52,0],[27,5,27,6,0],[29,35,29,36,0],[30,5,30,6,0],[38,45,38,46,0],[39,9,39,35,0],[40,5,40,6,0],[41,58,41,59,0],[43,9,43,23,0],[45,9,45,30,0],[47,9,47,21,0],[49,9,49,44,0],[51,9,51,64,0],[52,9,52,41,0],[54,9,54,26,0],[55,9,55,61,0],[56,5,56,6,0],[58,55,58,56,0],[60,9,60,23,0],[62,9,62,36,0],[62,37,62,38,0],[64,13,64,26,0],[66,13,66,44,0],[68,13,68,37,0],[68,38,68,39,0],[70,17,70,37,0],[70,38,70,39,0],[71,21,71,33,0],[74,17,74,30,0],[76,17,76,27,0],[76,28,76,29,0],[77,21,77,80,0],[78,17,78,18,0],[78,24,78,25,0],[79,21,79,44,0],[80,17,80,18,0],[82,17,82,35,0],[83,13,83,14,0],[85,13,85,21,0],[86,9,86,10,0],[88,9,88,62,0],[90,9,90,24,0],[91,5,91,6,0],[96,31,96,32,0],[98,9,98,19,0],[98,20,98,21,0],[99,13,99,20,0],[102,9,102,121,0],[102,122,102,123,0],[103,13,103,41,0],[105,13,105,62,0],[105,63,105,64,0],[106,17,106,30,0],[107,17,107,50,0],[108,13,108,14,0],[109,9,109,10,0],[109,16,109,17,0],[110,13,110,26,0],[111,9,111,10,0],[112,5,112,6,0],[113,39,113,40,0],[115,9,115,51,0],[117,9,117,25,0],[117,26,117,27,0],[118,13,118,36,0],[119,13,119,31,0],[120,9,120,10,0],[122,9,122,22,0],[123,5,123,6,0],[124,31,124,32,0],[125,9,125,23,0],[126,9,126,23,0],[127,9,127,62,0],[128,5,128,6,0],[135,34,135,35,0],[137,9,137,33,0],[138,9,138,68,0],[140,9,140,80,0],[141,5,141,6,0],[147,47,147,48,0],[149,9,149,34,0],[151,9,151,60,0],[152,9,152,134,0],[154,9,154,91,0],[154,92,154,93,0],[155,13,155,71,0],[156,9,156,10,0],[157,5,157,6,0],[163,50,163,51,0],[166,9,166,79,0],[167,9,167,153,0],[169,9,169,73,0],[170,9,170,74,0],[171,5,171,6,0],[179,64,179,65,0],[183,9,183,90,0],[185,9,185,65,0],[187,9,187,79,0],[189,9,189,49,0],[189,50,189,51,0],[191,13,191,64,0],[192,13,192,45,0],[193,16,193,17,0],[194,13,194,36,0],[196,5,196,6,0]]);
     </script>
   </body>
 </html>

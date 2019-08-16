@@ -2,132 +2,182 @@
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\powerups\tankpowerup.cs</title>
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\datastructures\tankbullettrajectory.cs</title>
     <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
     <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
   </head>
   <body>
     <pre id="content" class="source-code">
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 
-
-public class TankPowerup : MonoBehaviour {
-
-    public enum Type { Charge, Regenerate, SpeedBoost, Missile, MultiBall, Shield }
-    public enum Behaviour { Passive, OverrideFire, BlockFire }
-
-    protected GameObject tankObject;
-
-    protected Type powerupType;
-    protected Behaviour behaviourType = Behaviour.Passive;
-
-    public Behaviour BehaviourType { get =&gt; behaviourType; set =&gt; behaviourType = value; }
-    public Type PowerupType { get =&gt; powerupType; set =&gt; powerupType = value; }
-
-    public virtual void Use() {
-        print(&quot;Using powerup: &quot; + powerupType);
-    }
-    public virtual void Remove() {
-        Destroy(this);
-    }
-    public virtual bool BlockFire() {
-        return false;
-    }
-    public virtual bool CustomFire() {
-        return false;
-    }
-
-    public void SetTankObject(GameObject tank) {
-        tankObject = tank;
-    }
-
-    #region Set Powerups
-    public static TankPowerup GivePowerup(Type type, GameObject tank) {
-
-        RemovePowerup(tank);
-
-        switch (type) {
-            case Type.Charge:
-                return GiveCharge(tank);
-            case Type.Regenerate:
-                return GiveRegenerate(tank);
-            case Type.SpeedBoost:
-                return GiveSpeedBoost(tank);
-            case Type.Missile:
-                return GiveMissile(tank);
-            case Type.MultiBall:
-                return GiveMultiBall(tank);
-            case Type.Shield:
-                return GiveShield(tank);
-        }
-
-        return null;
-    }
-    public static void RemovePowerup(GameObject tank) {
-
-        TankPowerup p = tank.GetComponent&lt;TankPowerup&gt;();
-
-        if (p != null) {
-            p.Remove();
-        }
-    }
-
-    private static TankPowerup GiveCharge(GameObject tank) {
-
-        TankPowerup_Charge powerup = tank.AddComponent&lt;TankPowerup_Charge&gt;();
-        powerup.powerupType = Type.Charge;
-        powerup.tankObject = tank;
-
-        return powerup;
-    }
-    private static TankPowerup GiveRegenerate(GameObject tank) {
-
-        TankPowerup_Regenerate powerup = tank.AddComponent&lt;TankPowerup_Regenerate&gt;();
-        powerup.powerupType = Type.Regenerate;
-        powerup.tankObject = tank;
-
-        return powerup;
-    }
-    private static TankPowerup GiveSpeedBoost(GameObject tank) {
-
-        TankPowerup_Speedboost powerup = tank.AddComponent&lt;TankPowerup_Speedboost&gt;();
-        powerup.powerupType = Type.SpeedBoost;
-        powerup.tankObject = tank;
-
-        return powerup;
-    }
-    private static TankPowerup GiveMissile(GameObject tank) {
-
-        TankPowerup_Missile powerup = tank.AddComponent&lt;TankPowerup_Missile&gt;();
-        powerup.powerupType = Type.Missile;
-        powerup.tankObject = tank;
-
-        return powerup;
-    }
-    private static TankPowerup GiveMultiBall(GameObject tank) {
-
-        TankPowerup_MultiBall powerup = tank.AddComponent&lt;TankPowerup_MultiBall&gt;();
-        powerup.powerupType = Type.MultiBall;
-        powerup.tankObject = tank;
-
-        return powerup;
-    }
-    private static TankPowerup GiveShield(GameObject tank) {
-
-        TankPowerup_Shield powerup = tank.AddComponent&lt;TankPowerup_Shield&gt;();
-        powerup.powerupType = Type.Shield;
-        powerup.tankObject = tank;
-
-        return powerup;
-    }
-    #endregion
+public interface IBulletCountHolder {
+    TankAI AI { get; }
+    byte[,] CellBulletCounts { get; }
+    void ResetCellBulletCounts();
 }
 
+/// &lt;summary&gt;
+/// Class used to determine where a bullet will go
+/// &lt;/summary&gt;
+public class TankBulletTrajectory {
+
+    #region fields;
+    private float defaultHeight = 0f;
+    private float envHeight = 0.3f;
+
+    private IBulletCountHolder checker;
+    private TankAI ai;
+    private bool fail;
+    private BulletInfo bullet;
+
+    public bool HitAI { get; private set; }
+    public bool HitPlayer { get; private set; }
+
+    private Vector[] trajectory;
+    public Vector[] Trajectory { get =&gt; trajectory; private set =&gt; trajectory = value; }
+
+    private struct BulletInfo {
+        public BulletInfo(TankBullet bullet, int bounces, Vector startPos, Vector direction) {
+            Bullet = bullet;
+            Bounces = bounces;
+            StartPos = startPos;
+            Direction = direction.Normalized;
+        }
+
+        public TankBullet Bullet;
+        public int Bounces;
+        public Vector StartPos;
+        public Vector Direction;
+    }
+    #endregion
+
+    public TankBulletTrajectory(IBulletCountHolder checker, int bounces, Vector position, Vector direction) {
+        this.checker = checker;
+        ai = checker.AI;
+        this.bullet = new BulletInfo(null, bounces, position, direction);
+    }
+    public TankBulletTrajectory(IBulletCountHolder checker, TankBullet bullet) {
+        this.checker = checker;
+        ai = checker.AI;
+        this.bullet = new BulletInfo(bullet, bullet.Bounces, new Vector(bullet.transform.position), new Vector(bullet.Velocity));
+    }
+
+    /// &lt;summary&gt;
+    /// Approximates the future trajectory of a bullet
+    /// &lt;/summary&gt;
+    public void CalculateTrajectory() {
+
+        HitAI = false;
+        HitPlayer = false;
+
+        Trajectory = new Vector[bullet.Bounces + 2];
+        Trajectory[0] = bullet.StartPos;
+
+        SetTrajectory();
+    }
+
+    private void SetTrajectory() {
+
+        for (int i = 1; i &lt; Trajectory.Length; i++) {
+
+            float height = HitAI ? envHeight : defaultHeight;
+
+            // if (HitAI) {
+            //    Array.Resize(ref trajectory, i + 1);
+            //    break;
+            // }
+            if (!CalculateNextHit(ref bullet.Direction, Trajectory[i - 1], i, height)) {
+                Array.Resize(ref trajectory, i + 2);
+                break;
+            }
+        }
+    }
+
+    /// &lt;summary&gt;
+    /// Calculates the bullets next collision position and approximates the bounce of the bullet
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;direction&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;currentPos&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;index&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    private bool CalculateNextHit(ref Vector direction, Vector currentPos, int index, float rayHeight) {
+
+
+        RaycastHit hit;
+        if (!Physics.Raycast(RayCastStartPosition(currentPos, rayHeight), direction.Vector3, out hit, Mathf.Infinity, 1, QueryTriggerInteraction.Ignore)) {
+            return false;
+        }
+
+        if (hit.collider.gameObject.transform.parent.GetComponent&lt;TankPlayer&gt;() != null) {
+            HitPlayer = true;
+        }
+        if (hit.collider.gameObject.transform.parent == ai.transform) {
+            HitAI = true;
+
+            if (rayHeight != envHeight) {
+                return CalculateNextHit(ref direction, currentPos, index, envHeight);
+            }
+        }
+
+        Vector hitPos = new Vector(hit.point);
+
+        Trajectory[index] = hitPos;
+
+        direction = Vector.Reflect(direction, new Vector(hit.normal));
+
+        IncrementValues(currentPos, hitPos, direction);
+
+        return true;
+    }
+    private Vector3 RayCastStartPosition(Vector pos, float rayHeight) {
+        pos.y = rayHeight;
+        return pos.Vector3;
+    }
+
+    /// &lt;summary&gt;
+    /// Increments the values in the TankAIBulletChecker.CellBulletCounts based on whether or not the bullet will pass over certain coordinates.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;position&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;endPos&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;direction&quot;&gt;&lt;/param&gt;
+    private void IncrementValues(Vector position, Vector endPos, Vector direction) {
+
+        bool xTest = position.x &gt; endPos.x;
+        bool zTest = position.z &gt; endPos.z;
+
+        for (int i = 0; ; i++) {
+
+            IntCoords coords = Vector.PositionToCoords(position);
+
+            if (coords.x &gt;= TankSettings.LevelWidth || coords.y &gt;= TankSettings.LevelHeight
+                || coords.x &lt; 0 || coords.y &lt; 0) {
+                break;
+            }
+
+            if (position.x &gt; endPos.x != xTest || position.z &gt; endPos.z != zTest) {
+                break;
+            }
+
+            checker.CellBulletCounts[coords.x, coords.y]++;
+
+            // Replace Vector3.MoveTowards
+            Vector newPosition = new Vector(Vector3.MoveTowards(position.Vector3, endPos.Vector3, 1));
+            if (position == newPosition) {
+                break;
+            }
+
+            position = newPosition;
+        }
+    }
+}
     </pre>
     <script type="text/javascript">
-      highlightRanges([[14,5,14,59,0],[16,45,16,58,0],[16,67,16,88,0],[17,38,17,49,0],[17,58,17,77,0],[19,31,19,32,0],[20,9,20,48,0],[21,5,21,6,0],[22,34,22,35,0],[23,9,23,23,0],[24,5,24,6,0],[25,37,25,38,0],[26,9,26,22,0],[27,5,27,6,0],[28,38,28,39,0],[29,9,29,22,0],[30,5,30,6,0],[32,48,32,49,0],[33,9,33,27,0],[34,5,34,6,0],[37,71,37,72,0],[39,9,39,29,0],[41,9,41,22,0],[43,17,43,41,0],[45,17,45,45,0],[47,17,47,45,0],[49,17,49,42,0],[51,17,51,44,0],[53,17,53,41,0],[56,9,56,21,0],[57,5,57,6,0],[58,55,58,56,0],[60,9,60,58,0],[62,9,62,23,0],[62,24,62,25,0],[63,13,63,24,0],[64,9,64,10,0],[65,5,65,6,0],[67,60,67,61,0],[69,9,69,78,0],[70,9,70,43,0],[71,9,71,35,0],[73,9,73,24,0],[74,5,74,6,0],[75,64,75,65,0],[77,9,77,86,0],[78,9,78,47,0],[79,9,79,35,0],[81,9,81,24,0],[82,5,82,6,0],[83,64,83,65,0],[85,9,85,86,0],[86,9,86,47,0],[87,9,87,35,0],[89,9,89,24,0],[90,5,90,6,0],[91,61,91,62,0],[93,9,93,80,0],[94,9,94,44,0],[95,9,95,35,0],[97,9,97,24,0],[98,5,98,6,0],[99,63,99,64,0],[101,9,101,84,0],[102,9,102,46,0],[103,9,103,35,0],[105,9,105,24,0],[106,5,106,6,0],[107,60,107,61,0],[109,9,109,78,0],[110,9,110,43,0],[111,9,111,35,0],[113,9,113,24,0],[114,5,114,6,0]]);
+      highlightRanges([[20,5,20,38,0],[20,5,20,38,0],[21,5,21,36,0],[21,5,21,36,0],[32,41,32,51,0],[32,68,32,86,0],[35,94,35,95,0],[36,13,36,29,0],[37,13,37,31,0],[38,13,38,33,0],[39,13,39,46,0],[40,9,40,10,0],[49,5,49,108,0],[49,109,49,110,0],[50,9,50,32,0],[51,9,51,25,0],[52,9,52,74,0],[53,5,53,6,0],[54,5,54,79,0],[54,80,54,81,0],[55,9,55,32,0],[56,9,56,25,0],[57,9,57,130,0],[58,5,58,6,0],[63,39,63,40,0],[65,9,65,23,0],[66,9,66,27,0],[68,9,68,53,0],[69,9,69,41,0],[71,9,71,25,0],[72,5,72,6,0],[74,34,74,35,0],[76,14,76,23,0],[76,25,76,46,0],[76,48,76,51,0],[76,53,76,54,0],[78,13,78,62,0],[84,13,84,87,0],[84,88,84,89,0],[85,17,85,53,0],[86,17,86,23,0],[88,9,88,10,0],[89,5,89,6,0],[98,104,98,105,0],[102,9,102,154,0],[102,155,102,156,0],[103,13,103,26,0],[106,9,106,89,0],[106,90,106,91,0],[107,13,107,30,0],[108,9,108,10,0],[109,9,109,70,0],[109,71,109,72,0],[110,13,110,26,0],[112,13,112,40,0],[112,41,112,42,0],[113,17,113,86,0],[115,9,115,10,0],[117,9,117,47,0],[119,9,119,36,0],[121,9,121,71,0],[123,9,123,56,0],[125,9,125,21,0],[126,5,126,6,0],[127,71,127,72,0],[128,9,128,27,0],[129,9,129,28,0],[130,5,130,6,0],[138,84,138,85,0],[140,9,140,44,0],[141,9,141,44,0],[143,14,143,23,0],[143,27,143,30,0],[143,32,143,33,0],[145,13,145,66,0],[147,13,148,49,0],[148,50,148,51,0],[149,17,149,23,0],[152,13,152,82,0],[152,83,152,84,0],[153,17,153,23,0],[156,13,156,60,0],[159,13,159,103,0],[160,13,160,41,0],[160,42,160,43,0],[161,17,161,23,0],[164,13,164,36,0],[165,9,165,10,0],[166,5,166,6,0]]);
     </script>
   </body>
 </html>

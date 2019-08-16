@@ -2,76 +2,82 @@
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\scripts.cs</title>
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\components\tankaiplaybehaviour.cs</title>
     <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
     <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
   </head>
   <body>
     <pre id="content" class="source-code">
-using BeardedManStudios.Forge.Networking;
-using BeardedManStudios.Forge.Networking.Unity;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Scripts : MonoBehaviour {
+public class TankAIPlayBehaviour : TankAIComponent {
 
-    private const float CoroutineTimeout = 10;
+    #region fields
+    private const int evadePriority = 3;
+    private const int targetPriority = 2;
 
-    private void Start() {
-        DontDestroyOnLoad(gameObject);
-        DontDestroyOnLoad(GameObject.FindGameObjectWithTag(&quot;Players&quot;));
-        Server.Initialize();
+    private LinkedPriorityList&lt;TankAIBehaviourJob&gt; jobs;
+
+    private TankNetworking[] players;
+
+    public int ExecuteIndex { get; private set; }
+    public bool Executing { get; internal set; }
+    #endregion
+
+    public TankAIPlayBehaviour(TankAI ai) : base(ai) {
+        jobs = new LinkedPriorityList&lt;TankAIBehaviourJob&gt;();
+        players = TankNetworking.Tanks();
     }
 
-    public static GameObject GetGameObject() {
-        return GameObject.FindGameObjectWithTag(&quot;Scripts&quot;);
+    public override void Update() {
+
+        if (jobs.Count == 0) {
+            ResetJobs();
+        }
+
+        if (!ai.Behaviour.Executing) {
+            ExecuteIndex++;
+            Debug.Log(&quot;Execute count: &quot; + jobs.Count);
+            Debug.Log(&quot;First type: &quot; + jobs.First.JobType);
+            Executing = true;
+
+            ai.StartCoroutine(jobs.First.Execute(ExecuteIndex));
+        }
     }
 
-    public static T GetScriptComponent&lt;T&gt;() {
+    private void ResetJobs() {
 
-        GameObject obj = GetGameObject();
+        jobs.Clear();
 
-        if (obj == null) {
-            Debug.LogError(&quot;Scripts object was null&quot;);
-            return default;
-        }
+        AddTargetJobs();
+        AddEvadeJobs();
+    }
+    private void AddTargetJobs() {
 
-        T component = obj.GetComponent&lt;T&gt;();
+        TankNetworking owner = ai.GetComponent&lt;TankNetworking&gt;();
 
-        if (component != null) {
-            return component;
-        }
+        foreach (TankNetworking p in players) {
 
-        foreach (Transform child in obj.transform) {
-            component = child.GetComponent&lt;T&gt;();
-            if (component != null) {
-                return component;
+            if (owner.Equals(p)) {
+                continue;
             }
-        }
 
-        return default;
-    }
+            double priority = owner.Health &gt; p.Health ? 1 - (p.Health / owner.Health) : 0;
+            priority += targetPriority;
 
-    public static void RunCoroutine(IEnumerator coroutine) {
-        Scripts scr = GetScriptComponent&lt;Scripts&gt;();
-        if (scr != null) {
-            scr.InstanceRunCoroutine(coroutine);
+            jobs.Add(new TankAITargetJob(ai, p), priority);
         }
     }
+    private void AddEvadeJobs() {
 
-    private void InstanceRunCoroutine(IEnumerator coroutine) {
-        print(&quot;Starting coroutine: &quot; + coroutine);
-        StartCoroutine(coroutine);
-    }
-
-    public static void Print(object obj) {
-        print(obj);
     }
 }
 
     </pre>
     <script type="text/javascript">
-      highlightRanges([[10,26,10,27,0],[11,9,11,39,0],[12,9,12,72,0],[13,9,13,29,0],[14,5,14,6,0],[16,46,16,47,0],[17,9,17,60,0],[18,5,18,6,0],[20,45,20,46,0],[22,9,22,42,0],[24,9,24,25,0],[24,26,24,27,0],[25,13,25,55,0],[26,13,26,28,0],[29,9,29,45,0],[31,9,31,31,0],[31,32,31,33,0],[32,13,32,30,0],[35,9,35,16,0],[35,18,35,33,0],[35,34,35,36,0],[35,37,35,50,0],[35,52,35,53,0],[36,13,36,49,0],[37,13,37,35,0],[37,36,37,37,0],[38,17,38,34,0],[40,9,40,10,0],[42,9,42,24,0],[43,5,43,6,0],[45,60,45,61,0],[46,9,46,53,0],[47,9,47,25,0],[47,26,47,27,0],[48,13,48,49,0],[49,9,49,10,0],[50,5,50,6,0],[52,62,52,63,0],[53,9,53,51,0],[54,9,54,35,0],[55,5,55,6,0],[57,42,57,43,0],[58,9,58,20,0],[59,5,59,6,0]]);
+      highlightRanges([[19,45,19,53,0],[19,54,19,55,0],[20,9,20,61,0],[21,9,21,42,0],[22,5,22,6,0],[24,35,24,36,0],[26,9,26,29,0],[26,30,26,31,0],[27,13,27,25,0],[28,9,28,10,0],[30,9,30,37,0],[30,38,30,39,0],[31,13,31,28,0],[32,13,32,55,0],[33,13,33,60,0],[34,13,34,30,0],[36,13,36,65,0],[37,9,37,10,0],[38,5,38,6,0],[40,30,40,31,0],[42,9,42,22,0],[44,9,44,25,0],[45,9,45,24,0],[46,5,46,6,0],[47,34,47,35,0],[49,9,49,66,0],[51,9,51,16,0],[51,18,51,34,0],[51,35,51,37,0],[51,38,51,45,0],[51,47,51,48,0],[53,13,53,33,0],[53,34,53,35,0],[54,17,54,26,0],[57,13,57,91,0],[58,13,58,40,0],[60,13,60,60,0],[61,9,61,10,0],[62,5,62,6,0],[63,33,63,34,0],[65,5,65,6,0]]);
     </script>
   </body>
 </html>
