@@ -20,6 +20,8 @@ This is a Tank Game AI.
 
 [Documentation](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation)
 
+[Test coverage report](https://porrasm.github.io/tiralabra-tank-game-ai/)
+
 [Week Reports](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/weeks)
 
 [Hours](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/hours.md)
