@@ -21,7 +21,7 @@ public class Maths {
                 result *= d;
             }
         } else if (power < 0) {
-            for (int i = 0; i < power; i++) {
+            for (int i = 0; i < -power; i++) {
                 result /= d;
             }
         }
@@ -31,15 +31,15 @@ public class Maths {
 
     public static int Power(int n, int power) {
 
+        if (power < 0) {
+            throw new Exception("Power cannot be negative for integer power function");
+        }
+
         int result = 1;
 
         if (power > 0) {
             for (int i = 0; i < power; i++) {
                 result *= n;
-            }
-        } else if (power < 0) {
-            for (int i = 0; i < power; i++) {
-                result /= n;
             }
         }
 

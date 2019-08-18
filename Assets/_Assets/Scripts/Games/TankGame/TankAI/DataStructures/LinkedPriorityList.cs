@@ -1,4 +1,5 @@
-﻿/// <summary>
+﻿using System;
+/// <summary>
 /// Linked priority list. The type <typeparamref name="T"/> with the lowest priority will always be the first one, and the one with the greatest value will be the last one. Functionality is identical to a priority queue.
 /// </summary>
 /// <typeparam name="T"></typeparam>
@@ -158,8 +159,8 @@ public class LinkedPriorityList<T> {
             return true;
         }
 
-        for (int i = 0; i < Count; i++) {    
-            
+        for (int i = 0; i < Count - 1; i++) {
+
             if (nodeVal.Equals(node.Next.Value)) {
                 node.Next = node.Next.Next;
                 Count--;
@@ -177,18 +178,20 @@ public class LinkedPriorityList<T> {
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public T Find(T value) {
+    public bool Find(T value, out T param) {
 
         Node<T> node = first;
 
         for (int i = 0; i < Count; i++) {
             if (node.Value.Equals(value)) {
-                return node.Value;
+                param = node.Value;
+                return true;
             }
             node = node.Next;
         }
 
-        throw new System.Exception("Element not found");
+        param = default(T);
+        return false;
     }
     #endregion
 

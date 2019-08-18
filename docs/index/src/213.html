@@ -1,4 +1,14 @@
-﻿using System.Collections;
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\tankastarpath.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,10 +22,10 @@ public class TankAStarPath : TankAIPathfinding {
     private IntCoords start;
     private IntCoords end;
 
-    private LinkedPriorityList<Node> open;
+    private LinkedPriorityList&lt;Node&gt; open;
 
     // Replace
-    private HashSet<IntCoords> closed;
+    private HashSet&lt;IntCoords&gt; closed;
 
     private class Node {
 
@@ -47,27 +57,27 @@ public class TankAStarPath : TankAIPathfinding {
         costDiag = Maths.Sqrt(2);
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Finds a path from start towards the end with an independent route found condition. The FoundCondition(IntCoords current) function is called on every cell and if it returns true the current route is returned.
-    /// </summary>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <param name="foundCondition"></param>
-    /// <returns>Path as Vector array</returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;start&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;end&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;foundCondition&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;Path as Vector array&lt;/returns&gt;
     public override Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
 
         this.start = start;
         this.end = end;
 
-        open = new LinkedPriorityList<Node>();
+        open = new LinkedPriorityList&lt;Node&gt;();
 
         // Replace
-        closed = new HashSet<IntCoords>();
+        closed = new HashSet&lt;IntCoords&gt;();
 
         Node n = new Node(start, 0);
         open.Add(n, n.EstimatedCost(end));
 
-        while (open.Count > 0) {
+        while (open.Count &gt; 0) {
 
             n = open.Remove();
 
@@ -78,7 +88,7 @@ public class TankAStarPath : TankAIPathfinding {
             closed.Add(n.Coords);
 
             byte allowed = level[n.Coords.x, n.Coords.y];
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i &lt; 8; i++) {
 
                 Node neighbour = GetChild(n, allowed, i);
 
@@ -88,7 +98,7 @@ public class TankAStarPath : TankAIPathfinding {
 
                 double tentative_gScore = n.Cost + DirCost(i);
 
-                if (tentative_gScore < neighbour.Cost) {
+                if (tentative_gScore &lt; neighbour.Cost) {
                     neighbour.prev = n;
                     neighbour.Cost = tentative_gScore;
                 }
@@ -98,13 +108,13 @@ public class TankAStarPath : TankAIPathfinding {
         return new Vector[] { start };
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Returns a linked node with index i. If the child is not found the function returns null.
-    /// </summary>
-    /// <param name="n"></param>
-    /// <param name="allowed"></param>
-    /// <param name="i"></param>
-    /// <returns>Node or null</returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;n&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;allowed&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;i&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;Node or null&lt;/returns&gt;
     private Node GetChild(Node n, byte allowed, int i) {
 
         TankDirection d = (TankDirection)i;
@@ -135,13 +145,13 @@ public class TankAStarPath : TankAIPathfinding {
         return newNode;
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Cost of a direction.
-    /// </summary>
-    /// <param name="i"></param>
-    /// <returns>1 for straight, Sqrt(2) for diagonal</returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;i&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;1 for straight, Sqrt(2) for diagonal&lt;/returns&gt;
     private double DirCost(int i) {
-        if (i > 3) {
+        if (i &gt; 3) {
             return costDiag;
         }
         return cost;
@@ -149,11 +159,11 @@ public class TankAStarPath : TankAIPathfinding {
 
     // Improve
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Returns the path from the start leading to the given node.
-    /// </summary>
-    /// <param name="node"></param>
-    /// <returns></returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;node&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
     private Vector[] NodeToPath(Node node) {
 
         int count = 0;
@@ -167,7 +177,7 @@ public class TankAStarPath : TankAIPathfinding {
 
         Vector[] route = new Vector[count + 1];
 
-        for (int i = count; i > 0; i--) {
+        for (int i = count; i &gt; 0; i--) {
             route[i] = Vector.CoordsToPosition(node.Coords);
             node = node.prev;
         }
@@ -176,3 +186,10 @@ public class TankAStarPath : TankAIPathfinding {
         return route;
     }
 }
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[22,9,22,51,1],[22,52,22,53,1],[23,13,23,34,1],[24,13,24,30,1],[25,9,25,10,1],[32,52,32,53,1],[33,13,33,106,1],[34,9,34,10,1],[36,49,36,50,1],[37,13,37,44,1],[37,45,37,46,1],[38,17,38,53,1],[40,13,40,26,0],[41,9,41,10,1],[45,43,45,54,1],[45,55,45,56,1],[46,9,46,18,1],[47,9,47,34,1],[48,5,48,6,1],[57,102,57,103,1],[59,9,59,28,1],[60,9,60,24,1],[62,9,62,47,1],[65,9,65,43,1],[67,9,67,37,1],[68,9,68,43,1],[70,9,70,31,1],[70,32,70,33,1],[72,13,72,31,1],[74,13,74,42,1],[74,43,74,44,1],[75,17,75,38,1],[78,13,78,34,1],[80,13,80,58,1],[81,18,81,27,1],[81,29,81,34,1],[81,36,81,39,1],[81,41,81,42,1],[83,17,83,58,1],[85,17,85,39,1],[85,40,85,41,1],[86,21,86,30,1],[89,17,89,63,1],[91,17,91,55,1],[91,56,91,57,1],[92,21,92,40,1],[93,21,93,55,1],[94,17,94,18,1],[95,13,95,14,1],[96,9,96,10,1],[98,9,98,39,0],[99,5,99,6,1],[108,56,108,57,1],[110,9,110,44,1],[112,9,112,62,1],[112,63,112,64,1],[113,13,113,25,1],[116,9,116,34,1],[118,9,118,59,1],[120,9,120,40,1],[120,41,120,42,1],[121,13,121,25,1],[125,9,125,56,1],[127,9,127,29,1],[127,30,127,31,1],[128,13,128,28,1],[131,9,131,64,1],[132,9,132,26,1],[133,9,133,55,1],[135,9,135,24,1],[136,5,136,6,1],[143,35,143,36,1],[144,9,144,19,1],[144,20,144,21,1],[145,13,145,29,1],[147,9,147,21,1],[148,5,148,6,1],[157,44,157,45,1],[159,9,159,23,1],[161,9,161,23,1],[163,9,163,31,1],[163,32,163,33,1],[164,13,164,21,1],[165,13,165,24,1],[166,9,166,10,1],[168,9,168,48,1],[170,14,170,27,1],[170,29,170,34,1],[170,36,170,39,1],[170,41,170,42,1],[171,13,171,61,1],[172,13,172,30,1],[173,9,173,10,1],[174,9,174,51,1],[176,9,176,22,1],[177,5,177,6,1]]);
+    </script>
+  </body>
+</html>

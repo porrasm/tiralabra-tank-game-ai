@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\tankaipathfinding.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Collections;
+using System.Collections.Generic;
+
+public class TankAIPathfinding {
+
+    protected byte[,] level;
+
+    public TankAIPathfinding(byte[,] level) {
+        this.level = level;
+    }
+
+    public delegate bool FoundCondition(IntCoords current);
+
+    /// &lt;summary&gt;
+    /// Finds a path from start coordinates to the end coordinates.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;start&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;end&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;Path as Vector array&lt;/returns&gt;
+    public Vector[] FindPath(IntCoords start, IntCoords end) {
+
+        if (end.x &gt;= level.Length || end.y &gt;= level.GetLength(1)) {
+            return new Vector[] { Vector.CoordsToPosition(start) };
+        }
+
+        bool FoundCondition(IntCoords current) {
+            return current == end;
+        }
+
+        return FindPath(start, end, FoundCondition);
+    }
+
+    /// &lt;summary&gt;
+    /// Finds a path from start towards the end with an independent route found condition. The FoundCondition(IntCoords current) function is called on every cell and if it returns true the current route is returned.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;start&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;end&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;foundCondition&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;Path as Vector array&lt;/returns&gt;
+    public virtual Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
+        return null;
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[8,5,8,44,1],[8,45,8,46,1],[9,9,9,28,1],[10,5,10,6,1]]);
+    </script>
+  </body>
+</html>

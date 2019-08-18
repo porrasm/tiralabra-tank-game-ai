@@ -25,6 +25,24 @@ namespace Tests {
             list.Add(1, 1);
         }
 
+
+        [Test]
+        public void ToArrayTest() {
+
+            int[] array = list.ToArray();
+
+            for (int i = 0; i < array.Length; i++) {
+                Assert.AreEqual(i, array[i]);
+            }
+
+            list.Add(10, 10);
+            array = list.ToArray();
+
+            for (int i = 0; i < array.Length; i++) {
+                Assert.AreEqual(i, array[i]);
+            }
+        }
+
         [Test]
         public void AddTest() {
 
@@ -112,6 +130,19 @@ namespace Tests {
         }
 
         [Test]
+        public void UpdateTest() {
+
+            list.Update(0, 10);
+
+            Assert.AreEqual(1, list.First);
+            Assert.AreEqual(0, list.Get(9));
+
+            list.Update(9, 0);
+
+            Assert.AreEqual(9, list.First);
+        }
+
+        [Test]
         public void RemoveElementOfTypeTest() {
 
             Assert.IsTrue(list.Remove(0));
@@ -129,29 +160,39 @@ namespace Tests {
             Assert.AreEqual(0, list.First);
             Assert.AreEqual(2, list.Get(1));
 
-            Assert.IsFalse(list.Remove(0));
+            Assert.IsFalse(list.Remove(1));
+
+            SetUp();
+
+            Assert.IsTrue(list.Remove(9));
+
+            Assert.IsTrue(list.Remove(8));
+
+            Assert.IsFalse(list.Remove(8));
         }
 
         [Test]
         public void FindTest() {
 
-            Assert.AreEqual(0, list.Find(0));
-            Assert.AreNotEqual(0, list.Find(1));
+            int param = -1;
 
-            try {
-                list.Find(10);
-                Assert.Fail("Nonexistant item should not be found");
-            } catch (System.Exception) {
-            }
+            Assert.IsTrue(list.Find(0, out param));
+
+            Assert.AreEqual(0, param);
+
+            Assert.IsTrue(list.Find(1, out param));
+
+            Assert.AreNotEqual(0, param);
+
+            Assert.IsFalse(list.Find(10, out param));
+            Assert.AreEqual(0, param);
 
             list.Clear();
 
+            param = 10;
 
-            try {
-                list.Find(0);
-                Assert.Fail("Item from empty list should not be found");
-            } catch (System.Exception) {
-            }
+            Assert.IsFalse(list.Find(0, out param));
+            Assert.AreEqual(0, param);
         }
 
         [Test]

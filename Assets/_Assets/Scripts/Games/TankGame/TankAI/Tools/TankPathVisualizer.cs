@@ -63,7 +63,7 @@ public class TankPathVisualizer : MonoBehaviour {
 
         if (Input.GetKeyDown(KeyCode.Space)) {
             Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            start = Vector.PositionToCoords(Vector.FromVector3(world));
+            start = Vector.PositionToCoords(world);
         }
         if (Input.GetKeyDown(KeyCode.Mouse0)) {
             UpdateRouteAStar();
@@ -100,7 +100,7 @@ public class TankPathVisualizer : MonoBehaviour {
         }
     }
     private void DrawLine(IntCoords a, IntCoords b) {
-        UnityEngine.Debug.DrawLine(Vector.ToVector3(Vector.CoordsToPosition(a)), Vector.ToVector3(Vector.CoordsToPosition(b)));
+        UnityEngine.Debug.DrawLine(Vector.CoordsToPosition(a).Vector3, Vector.CoordsToPosition(b).Vector3);
     }
 
     private void Comparison() {
@@ -168,7 +168,7 @@ public class TankPathVisualizer : MonoBehaviour {
 
         UnityEngine.Debug.DrawLine(Vector3.zero, world);
 
-        return Vector.PositionToCoords(Vector.FromVector3(world));
+        return Vector.PositionToCoords(world);
     }
 
     private Vector3[] RouteToPos(Stack<IntCoords> route) {
@@ -176,7 +176,7 @@ public class TankPathVisualizer : MonoBehaviour {
         Vector3[] pos = new Vector3[route.Count];
 
         for (int i = 0; i < pos.Length; i++) {
-            pos[pos.Length - 1 - i] = Vector.ToVector3(Vector.CoordsToPosition(route.Pop()));
+            pos[pos.Length - 1 - i] = Vector.CoordsToPosition(route.Pop()).Vector3;
         }
 
         return pos;

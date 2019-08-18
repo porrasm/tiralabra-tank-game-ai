@@ -99,7 +99,7 @@ public class TankAIMovement : TankAIComponent {
             return;
         }
 
-        if (Vector.Distance(stuckPos, Vector.FromVector3(ai.transform.position)) < TankAISettings.StuckTresholdDistance) {
+        if (Vector.Distance(stuckPos, ai.transform.position) < TankAISettings.StuckTresholdDistance) {
             stuckTime += Time.deltaTime;
 
             if (stuckTime > TankAISettings.StuckTresholdTime) {
@@ -124,7 +124,7 @@ public class TankAIMovement : TankAIComponent {
     private void ResetStuck() {
         stuck = false;
         stuckTime = 0;
-        stuckPos = Vector.FromVector3(ai.transform.position);
+        stuckPos = ai.transform.position;
     }
 
     /// <summary>
@@ -135,7 +135,7 @@ public class TankAIMovement : TankAIComponent {
     private bool InCoords(int i) {
 
         Vector target = path[i];
-        Vector current = Vector.FromVector3(ai.transform.position);
+        Vector current = ai.transform.position;
 
         return Vector.Distance(target, current) < TankAISettings.DistanceLimit;
     }
@@ -149,7 +149,7 @@ public class TankAIMovement : TankAIComponent {
         TurnToPosition(position);
 
         Vector3 currentRotation = ai.transform.eulerAngles;
-        Vector3 targetRotation = Quaternion.LookRotation(Vector.ToVector3(position) - ai.transform.position, Vector3.up).eulerAngles;
+        Vector3 targetRotation = Quaternion.LookRotation(position.Vector3 - ai.transform.position, Vector3.up).eulerAngles;
 
         if (Vector3.Angle(currentRotation, targetRotation) < TankAISettings.MovementAngle) {
             controls.ProcessControl(TankControls.Control.Movement, 1);
@@ -163,8 +163,8 @@ public class TankAIMovement : TankAIComponent {
     private void TurnToPosition(Vector position) {
 
         // Replace Quaternion.LookRotation
-        Vector currentRotation = Vector.FromVector3(ai.transform.eulerAngles);
-        Vector targetRotation = Vector.FromVector3(Quaternion.LookRotation(Vector.ToVector3(position) - ai.transform.position, Vector3.up).eulerAngles);
+        Vector currentRotation = ai.transform.eulerAngles;
+        Vector targetRotation = Quaternion.LookRotation(position.Vector3 - ai.transform.position, Vector3.up).eulerAngles;
 
         float rotation = TurnDirection(currentRotation, targetRotation);
         controls.ProcessControl(TankControls.Control.Rotation, rotation);

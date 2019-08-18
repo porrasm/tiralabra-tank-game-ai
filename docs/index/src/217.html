@@ -1,13 +1,23 @@
-﻿using System;
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\datastructures\vector.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-/// <summary>
+/// &lt;summary&gt;
 /// Vector struct containing multiple vector related mathematical functions.
-/// </summary>
+/// &lt;/summary&gt;
 [CoverInReport]
 public struct Vector {
 
@@ -29,19 +39,19 @@ public struct Vector {
         this.z = (float)z;
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Returns the length of the vector
-    /// </summary>
-    /// <returns></returns>
+    /// &lt;/summary&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
     public float Magnitude() {
 
         float value = Maths.Power(x, 2) + Maths.Power(y, 2) + Maths.Power(z, 2);
         return Maths.Sqrt(value);
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Returns a vector with the same direction with magnitude 1
-    /// </summary>
+    /// &lt;/summary&gt;
     public Vector Normalized {
         get {
             double magnitude = Magnitude();
@@ -52,9 +62,9 @@ public struct Vector {
         }
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Transform the vector into a Unity Vector3
-    /// </summary>
+    /// &lt;/summary&gt;
     public Vector3 Vector3 {
         get {
             return new Vector3(x, y, z);
@@ -68,12 +78,12 @@ public struct Vector {
         }
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// This is used to get the position of a cell.
-    /// </summary>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
-    /// <returns>Cells position in the game.</returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;x&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;y&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;Cells position in the game.&lt;/returns&gt;
     public static Vector CoordsToPosition(IntCoords coords) {
 
         Vector vector = Zero;
@@ -84,21 +94,21 @@ public struct Vector {
         return vector;
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Returns the corresponding integer coordinates of a position vector.
-    /// </summary>
-    /// <param name="position"></param>
-    /// <returns>Coordinates as IntCoords</returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;position&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;Coordinates as IntCoords&lt;/returns&gt;
     public static IntCoords PositionToCoords(Vector position) {
         return new IntCoords((int)position.x, (int)position.z);
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Returns the distance between to vectors.
-    /// </summary>
-    /// <param name="vector1"></param>
-    /// <param name="vector2"></param>
-    /// <returns></returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;vector1&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;vector2&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
     public static float Distance(Vector vector1, Vector vector2) {
         Vector distance = vector2 - vector1;
         return Maths.Abs(distance.Magnitude());
@@ -108,12 +118,12 @@ public struct Vector {
     #endregion
 
     #region Math
-    /// <summary>
+    /// &lt;summary&gt;
     /// Vector dot product as float.
-    /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <returns></returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;a&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;b&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
     public static float Dot(Vector a, Vector b) {
 
         double xA = a.x;
@@ -126,12 +136,12 @@ public struct Vector {
         return (float)(xA * xB + yA * yB + zA * zB);
     }
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Vector dot product as double.
-    /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <returns></returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;a&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;b&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
     public static double DotAccurate(Vector a, Vector b) {
 
         double xA = a.x;
@@ -146,12 +156,12 @@ public struct Vector {
 
     // Replace this
 
-    /// <summary>
+    /// &lt;summary&gt;
     /// Reflects a vector off a normal.
-    /// </summary>
-    /// <param name="d"></param>
-    /// <param name="n"></param>
-    /// <returns></returns>
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;d&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;n&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
     public static Vector Reflect(Vector d, Vector n) {
 
         return new Vector(Vector3.Reflect(d.Vector3, n.Vector3));
@@ -193,7 +203,7 @@ public struct Vector {
     }
 
     public static bool operator ==(Vector a, Vector b) {
-        return a.x == b.x && a.y == b.y && a.z == b.z;
+        return a.x == b.x &amp;&amp; a.y == b.y &amp;&amp; a.z == b.z;
     }
     public static bool operator !=(Vector a, Vector b) {
         return a.x != b.x || a.y != b.y || a.z != b.z;
@@ -208,7 +218,7 @@ public struct Vector {
     #endregion
 
     public override string ToString() {
-        return "(" + x + ", " + y + ", " + z + ")";
+        return &quot;(&quot; + x + &quot;, &quot; + y + &quot;, &quot; + z + &quot;)&quot;;
     }
 
     public override bool Equals(object obj) {
@@ -217,8 +227,8 @@ public struct Vector {
         }
 
         var vector = (Vector)obj;
-        return x == vector.x &&
-               y == vector.y &&
+        return x == vector.x &amp;&amp;
+               y == vector.y &amp;&amp;
                z == vector.z;
     }
 
@@ -231,3 +241,9 @@ public struct Vector {
         return hashCode;
     }
 }
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[16,36,16,37,1],[17,9,17,23,1],[18,9,18,23,1],[19,9,19,23,1],[20,5,20,6,1],[21,46,21,47,1],[22,9,22,20,1],[23,9,23,20,1],[24,9,24,20,1],[25,5,25,6,1],[26,49,26,50,1],[27,9,27,27,1],[28,9,28,27,1],[29,9,29,27,1],[30,5,30,6,1],[36,30,36,31,1],[38,9,38,81,1],[39,9,39,34,1],[40,5,40,6,1],[46,13,46,14,1],[47,13,47,44,1],[48,13,48,32,1],[48,33,48,34,1],[49,17,49,29,1],[51,13,51,37,1],[52,9,52,10,1],[59,13,59,14,1],[60,13,60,41,1],[61,9,61,10,1],[66,13,66,14,1],[67,13,67,40,1],[68,9,68,10,1],[77,61,77,62,1],[79,9,79,30,1],[81,9,81,36,1],[82,9,82,36,1],[84,9,84,23,1],[85,5,85,6,1],[92,63,92,64,1],[93,9,93,64,1],[94,5,94,6,1],[102,66,102,67,1],[103,9,103,45,1],[104,9,104,48,1],[105,5,105,6,1],[117,49,117,50,1],[119,9,119,25,1],[120,9,120,25,1],[121,9,121,25,1],[122,9,122,25,1],[123,9,123,25,1],[124,9,124,25,1],[126,9,126,53,1],[127,5,127,6,1],[135,58,135,59,1],[137,9,137,25,1],[138,9,138,25,1],[139,9,139,25,1],[140,9,140,25,1],[141,9,141,25,1],[142,9,142,25,1],[144,9,144,44,1],[145,5,145,6,1],[155,54,155,55,1],[157,9,157,66,1],[164,5,164,6,1],[168,57,168,58,1],[169,9,169,60,1],[170,5,170,6,1],[171,57,171,58,1],[172,9,172,60,1],[173,5,173,6,1],[175,57,175,58,1],[176,9,176,60,1],[177,5,177,6,1],[178,57,178,58,1],[179,9,179,60,1],[180,5,180,6,1],[182,56,182,57,1],[183,9,183,54,1],[184,5,184,6,1],[185,57,185,58,1],[186,9,186,54,1],[187,5,187,6,1],[188,56,188,57,1],[189,9,189,54,1],[190,5,190,6,1],[191,57,191,58,1],[192,9,192,54,1],[193,5,193,6,1],[195,56,195,57,1],[196,9,196,55,1],[197,5,197,6,1],[198,56,198,57,1],[199,9,199,55,1],[200,5,200,6,1],[202,55,202,56,1],[203,9,203,30,1],[204,5,204,6,1],[205,57,205,58,1],[206,9,206,36,1],[207,5,207,6,1],[210,39,210,40,1],[211,9,211,52,1],[212,5,212,6,1],[214,45,214,46,1],[215,9,215,30,1],[215,31,215,32,1],[216,13,216,26,1],[219,9,219,34,1],[220,9,222,30,1],[223,5,223,6,1],[226,39,226,40,0],[227,9,227,35,0],[228,9,228,61,0],[229,9,229,61,0],[230,9,230,61,0],[231,9,231,25,0],[232,5,232,6,0]]);
+    </script>
+  </body>
+</html>

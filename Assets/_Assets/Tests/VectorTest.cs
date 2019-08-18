@@ -53,7 +53,7 @@ namespace Tests {
         }
 
         [Test]
-        public void OperatorsTest() {
+        public void OperatorsAndEqualsTest() {
 
             Vector a = new Vector(1, 1, 1);
             Vector b = new Vector(1, 1, 1);
@@ -71,11 +71,14 @@ namespace Tests {
 
             Assert.AreEqual(c, c * a, "c == c * a");
             Assert.AreEqual(d, 2 * a, "d == a * 2");
+            Assert.AreEqual(d, 2.0 * a, "d == a * 2");
             Assert.AreEqual(d, a * d, "d == a * d");
 
             Assert.AreEqual(d, d / a, "d == d / a");
             Assert.AreEqual(a, d / 2, "a == d / 2");
             Assert.AreEqual(c, c / d, "c == c / d");
+
+            Assert.IsFalse(a.Equals(1));
         }
 
         [Test]
@@ -84,10 +87,70 @@ namespace Tests {
             Vector a = new Vector(1, 1, 1);
             Vector3 b = new Vector3(1, 1, 1);
 
-            Assert.IsTrue(a == Vector.FromVector3(b));
-            Assert.IsTrue(b == Vector.ToVector3(a));
-            Assert.IsTrue(a == Vector.FromVector3(Vector.ToVector3(a)));
-            Assert.IsTrue(b == Vector.ToVector3(Vector.FromVector3(b)));
+            Assert.IsTrue(a == b);
+            Assert.IsTrue(b == a);
+            Assert.IsTrue(a == new Vector(a.Vector3));
+            Assert.IsTrue(b == new Vector(b).Vector3);
+
+            Assert.IsFalse(a != b);
+            Assert.IsFalse(b != a);
+            Assert.IsFalse(a != new Vector(a.Vector3));
+            Assert.IsFalse(b != new Vector(b).Vector3);
+        }
+
+        [Test]
+        public void ConversionsTest2() {
+
+            Vector a = new Vector(1, 1, 1);
+            Vector b = new Vector(0.5f, 0, 0.5f);
+            Vector3 c = new Vector3(1, 1, 1);
+            IntCoords d = new IntCoords();
+
+            Vector aV = c;
+            Vector bV = d;
+
+            Assert.AreEqual(a, aV);
+            Assert.AreEqual(b, bV);
+        }
+
+        [Test]
+        public void DotProductTest() {
+
+            Vector a = new Vector(1, 1, 1);
+            Vector b = new Vector(2, 2, 2);
+            Vector c = new Vector(2, 3, 4);
+
+            Assert.AreEqual(3, Vector.Dot(a, a));
+            Assert.AreEqual(6, Vector.Dot(a, b));
+            Assert.AreEqual(9, Vector.Dot(a, c));
+            Assert.AreEqual(18, Vector.Dot(c, b));
+
+            Assert.AreEqual(3, Vector.DotAccurate(a, a));
+            Assert.AreEqual(6, Vector.DotAccurate(a, b));
+            Assert.AreEqual(9, Vector.DotAccurate(a, c));
+            Assert.AreEqual(18, Vector.DotAccurate(c, b));
+        }
+
+        [Test]
+        public void ReflectTest() {
+
+            Vector v = new Vector(1, 0, 0);
+
+            Vector n = new Vector(-1, 0, 0);
+
+            Assert.AreEqual(n.Normalized, Vector.Reflect(v, n).Normalized);
+
+            v = new Vector(1, -1, 0);
+
+            n = new Vector(0, 1, 0);
+
+            Assert.AreEqual(new Vector(1, 1, 0).Normalized, Vector.Reflect(v, n).Normalized);
+
+            v = new Vector(1, 1, 1);
+
+            n = new Vector(-1, -1, -1);
+
+            Assert.AreEqual(n.Normalized, Vector.Reflect(v, n).Normalized);
         }
 
         [Test]

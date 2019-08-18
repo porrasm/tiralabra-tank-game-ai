@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\tools\maths.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+
+/// &lt;summary&gt;
+/// Class containing various mathematical functions.
+/// &lt;/summary&gt;
+[CoverInReport]
+public class Maths {
+
+    // Replace
+    public static float Sqrt(float f) {
+        return (float)Math.Sqrt(f);
+    }
+
+    public static float Power(float f, int power) {
+
+        double d = f;
+        double result = 1;
+
+        if (power &gt; 0) {
+            for (int i = 0; i &lt; power; i++) {
+                result *= d;
+            }
+        } else if (power &lt; 0) {
+            for (int i = 0; i &lt; -power; i++) {
+                result /= d;
+            }
+        }
+
+        return (float)result;
+    }
+
+    public static int Power(int n, int power) {
+
+        if (power &lt; 0) {
+            throw new Exception(&quot;Power cannot be negative for integer power function&quot;);
+        }
+
+        int result = 1;
+
+        if (power &gt; 0) {
+            for (int i = 0; i &lt; power; i++) {
+                result *= n;
+            }
+        }
+
+        return result;
+    }
+
+    public static float Abs(float f) {
+        if (f &lt; 0) {
+            f *= -1;
+        }
+        return f;
+    }
+
+    /// &lt;summary&gt;
+    /// Ceiling function which rounds a float value up to the nearest integer.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;f&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    public static int Ceil(float f) {
+
+        int i = (int)f;
+
+        if (f &gt; i) {
+            i++;
+        }
+
+        return i;
+    }
+
+    public static float Min(float a, float b) {
+        if (a &lt; b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[10,39,10,40,1],[11,9,11,36,1],[12,5,12,6,1],[14,51,14,52,1],[16,9,16,22,1],[17,9,17,27,1],[19,9,19,23,1],[19,24,19,25,1],[20,18,20,27,1],[20,29,20,38,1],[20,40,20,43,1],[20,45,20,46,1],[21,17,21,29,1],[22,13,22,14,1],[23,9,23,10,1],[23,16,23,30,1],[23,31,23,32,1],[24,18,24,27,1],[24,29,24,39,1],[24,41,24,44,1],[24,46,24,47,1],[25,17,25,29,1],[26,13,26,14,1],[27,9,27,10,1],[29,9,29,30,1],[30,5,30,6,1],[32,47,32,48,1],[34,9,34,23,1],[34,24,34,25,1],[35,13,35,88,1],[38,9,38,24,1],[40,9,40,23,1],[40,24,40,25,1],[41,18,41,27,1],[41,29,41,38,1],[41,40,41,43,1],[41,45,41,46,1],[42,17,42,29,1],[43,13,43,14,1],[44,9,44,10,1],[46,9,46,23,1],[47,5,47,6,1],[49,38,49,39,1],[50,9,50,19,1],[50,20,50,21,1],[51,13,51,21,1],[52,9,52,10,1],[53,9,53,18,1],[54,5,54,6,1],[61,37,61,38,1],[63,9,63,24,1],[65,9,65,19,1],[65,20,65,21,1],[66,13,66,17,1],[67,9,67,10,1],[69,9,69,18,1],[70,5,70,6,1],[72,47,72,48,1],[73,9,73,19,1],[73,20,73,21,1],[74,13,74,22,1],[75,16,75,17,1],[76,13,76,22,1],[78,5,78,6,1]]);
+    </script>
+  </body>
+</html>

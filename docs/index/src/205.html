@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\datastructures\linkedprioritylist.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+/// &lt;summary&gt;
+/// Linked priority list. The type &lt;typeparamref name=&quot;T&quot;/&gt; with the lowest priority will always be the first one, and the one with the greatest value will be the last one. Functionality is identical to a priority queue.
+/// &lt;/summary&gt;
+/// &lt;typeparam name=&quot;T&quot;&gt;&lt;/typeparam&gt;
+[CoverInReport]
+public class LinkedPriorityList&lt;T&gt; {
+
+    #region fields
+    public int Count { get; private set; }
+
+    private class Node&lt;Tn&gt; {
+
+        public Node(Tn value, double priority, Node&lt;Tn&gt; next) {
+            this.Value = value;
+            this.Priority = priority;
+            this.Next = next;
+        }
+
+        private Tn value;
+        private double priority;
+        private Node&lt;Tn&gt; next;
+
+        public Tn Value { get =&gt; value; set =&gt; this.value = value; }
+        public double Priority { get =&gt; priority; set =&gt; priority = value; }
+        public Node&lt;Tn&gt; Next { get =&gt; next; set =&gt; next = value; }
+    }
+
+    private Node&lt;T&gt; first;
+    #endregion
+
+    public LinkedPriorityList() {
+        Count = 0;
+    }
+
+    #region Adding
+    /// &lt;summary&gt;
+    /// Adds a new value of type &lt;typeparamref name=&quot;T&quot;/&gt; to the queue based on it&#39;s priority
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;nodeVal&quot;&gt;Value of type &lt;typeparamref name=&quot;T&quot;/&gt; to add&lt;/param&gt;
+    /// &lt;param name=&quot;priority&quot;&gt;Priority of the value&lt;/param&gt;
+    public void Add(T nodeVal, double priority) {
+
+        if (Count == 0) {
+            AddFirst(nodeVal, priority);
+        } else if (priority &lt; first.Priority) {
+            ReplaceFirst(nodeVal, priority);
+        } else {
+            AddNew(nodeVal, priority);
+        }
+
+        Count++;
+    }
+
+    private void AddFirst(T nodeVal, double priority) {
+        first = new Node&lt;T&gt;(nodeVal, priority, null);
+    }
+    private void ReplaceFirst(T nodeVal, double priority) {
+
+        Node&lt;T&gt; next = first;
+        AddFirst(nodeVal, priority);
+
+        first.Next = next;
+    }
+    private void AddAfter(Node&lt;T&gt; node, Node&lt;T&gt; newNode) {
+        newNode.Next = node.Next;
+        node.Next = newNode;
+    }
+
+    private void AddNew(T nodeVal, double priority) {
+
+        Node&lt;T&gt; node = first;
+        Node&lt;T&gt; newNode = new Node&lt;T&gt;(nodeVal, priority, null);
+
+        while (node.Next != null) {
+
+            if (priority &lt; node.Next.Priority) {
+                AddAfter(node, newNode);
+                return;
+            }
+            node = node.Next;
+        }
+
+        node.Next = newNode;
+    }
+
+    // Replace this
+    /// &lt;summary&gt;
+    /// Updates the priority of an element
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;nodeVal&quot;&gt;&lt;/param&gt;
+    /// &lt;param name=&quot;newPriority&quot;&gt;&lt;/param&gt;
+    public void Update(T nodeVal, double newPriority) {
+        Remove(nodeVal);
+        Add(nodeVal, newPriority);
+    }
+    #endregion
+
+    #region Getting
+    /// &lt;summary&gt;
+    /// Returns the first value
+    /// &lt;/summary&gt;
+    public T First {
+        get {
+            return first.Value;
+        }
+    }
+
+    /// &lt;summary&gt;
+    /// Returns and removes the first value
+    /// &lt;/summary&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    public T Remove() {
+
+        if (Count == 0) {
+            throw new System.Exception(&quot;Queue is empty.&quot;);
+        }
+
+        T value = first.Value;
+        first = first.Next;
+        Count--;
+
+        return value;
+    }
+
+    /// &lt;summary&gt;
+    /// Returns the i:th element from the list
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;index&quot;&gt;&lt;/param&gt;
+    public T Get(int i) {
+
+        if (i &gt;= Count) {
+            throw new System.IndexOutOfRangeException();
+        }
+
+        Node&lt;T&gt; node = first;
+
+        for (int index = 0; index &lt; i; index++) {
+            node = node.Next;
+        }
+
+        return node.Value;
+    }
+
+    /// &lt;summary&gt;
+    /// Removes the element from the list
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;nodeVal&quot;&gt;&lt;/param&gt;
+    public bool Remove(T nodeVal) {
+
+        Node&lt;T&gt; node = first;
+
+        if (node.Value.Equals(nodeVal)) {
+
+            first = node.Next;
+            node = null;
+
+            Count--;
+            return true;
+        }
+
+        for (int i = 0; i &lt; Count - 1; i++) {
+
+            if (nodeVal.Equals(node.Next.Value)) {
+                node.Next = node.Next.Next;
+                Count--;
+                return true;
+            }
+            
+            node = node.Next;
+        }
+
+        return false;
+    }
+
+    /// &lt;summary&gt;
+    /// Returns an equal object from the list.
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;value&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    public bool Find(T value, out T param) {
+
+        Node&lt;T&gt; node = first;
+
+        for (int i = 0; i &lt; Count; i++) {
+            if (node.Value.Equals(value)) {
+                param = node.Value;
+                return true;
+            }
+            node = node.Next;
+        }
+
+        param = default(T);
+        return false;
+    }
+    #endregion
+
+    /// &lt;summary&gt;
+    /// Clears the list
+    /// &lt;/summary&gt;
+    public void Clear() {
+        first = null;
+        Count = 0;
+    }
+
+    public bool Contains(T value) {
+
+        Node&lt;T&gt; node = first;
+
+        for (int i = 0; i &lt; Count; i++) {
+            if (node.Value.Equals(value)) {
+                return true;
+            }
+            node = node.Next;
+        }
+
+        return false;
+    }
+
+    /// &lt;summary&gt;
+    /// Returns an array with all the type &lt;typeparamref name=&quot;T&quot;/&gt; values in the correct order.
+    /// &lt;/summary&gt;
+    /// &lt;returns&gt;Ordered array of type &lt;typeparamref name=&quot;T&quot;/&gt;&lt;/returns&gt;
+    public T[] ToArray() {
+
+        T[] array = new T[Count];
+
+        Node&lt;T&gt; node = first;
+
+        for (int i = 0; i &lt; Count; i++) {
+            array[i] = node.Value;
+            node = node.Next;
+        }
+
+        return array;
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[14,9,14,62,1],[14,63,14,64,1],[15,13,15,32,1],[16,13,16,38,1],[17,13,17,30,1],[18,9,18,10,1],[24,34,24,39,1],[24,48,24,66,1],[25,41,25,49,1],[25,58,25,74,1],[26,39,26,43,1],[26,52,26,64,1],[32,5,32,32,1],[32,33,32,34,1],[33,9,33,19,1],[34,5,34,6,1],[42,49,42,50,1],[44,9,44,24,1],[44,25,44,26,1],[45,13,45,41,1],[46,9,46,10,1],[46,16,46,46,1],[46,47,46,48,1],[47,13,47,45,1],[48,9,48,10,1],[48,16,48,17,1],[49,13,49,39,1],[50,9,50,10,1],[52,9,52,17,1],[53,5,53,6,1],[55,55,55,56,1],[56,9,56,54,1],[57,5,57,6,1],[58,59,58,60,1],[60,9,60,30,1],[61,9,61,37,1],[63,9,63,27,1],[64,5,64,6,1],[65,58,65,59,1],[66,9,66,34,1],[67,9,67,29,1],[68,5,68,6,1],[70,53,70,54,1],[72,9,72,30,1],[73,9,73,64,1],[75,9,75,34,1],[75,35,75,36,1],[77,13,77,47,1],[77,48,77,49,1],[78,17,78,41,1],[79,17,79,24,1],[81,13,81,30,1],[82,9,82,10,1],[84,9,84,29,1],[85,5,85,6,1],[93,55,93,56,1],[94,9,94,25,1],[95,9,95,35,1],[96,5,96,6,1],[104,13,104,14,1],[105,13,105,32,1],[106,9,106,10,1],[113,23,113,24,1],[115,9,115,24,1],[115,25,115,26,1],[116,13,116,59,1],[119,9,119,31,1],[120,9,120,28,1],[121,9,121,17,1],[123,9,123,22,1],[124,5,124,6,1],[130,25,130,26,1],[132,9,132,24,1],[132,25,132,26,1],[133,13,133,57,1],[136,9,136,30,1],[138,14,138,27,1],[138,29,138,38,1],[138,40,138,47,1],[138,49,138,50,1],[139,13,139,30,1],[140,9,140,10,1],[142,9,142,27,1],[143,5,143,6,1],[149,35,149,36,1],[151,9,151,30,1],[153,9,153,40,1],[153,41,153,42,1],[155,13,155,31,1],[156,13,156,25,1],[158,13,158,21,1],[159,13,159,25,1],[162,14,162,23,1],[162,25,162,38,1],[162,40,162,43,1],[162,45,162,46,1],[164,13,164,49,1],[164,50,164,51,1],[165,17,165,44,1],[166,17,166,25,1],[167,17,167,29,1],[170,13,170,30,1],[171,9,171,10,1],[173,9,173,22,1],[174,5,174,6,1],[181,44,181,45,1],[183,9,183,30,1],[185,14,185,23,1],[185,25,185,34,1],[185,36,185,39,1],[185,41,185,42,1],[186,13,186,42,1],[186,43,186,44,1],[187,17,187,36,1],[188,17,188,29,1],[190,13,190,30,1],[191,9,191,10,1],[193,9,193,28,1],[194,9,194,22,1],[195,5,195,6,1],[201,25,201,26,1],[202,9,202,22,1],[203,9,203,19,1],[204,5,204,6,1],[206,35,206,36,1],[208,9,208,30,1],[210,14,210,23,1],[210,25,210,34,1],[210,36,210,39,1],[210,41,210,42,1],[211,13,211,42,1],[211,43,211,44,1],[212,17,212,29,1],[214,13,214,30,1],[215,9,215,10,1],[217,9,217,22,1],[218,5,218,6,1],[224,26,224,27,1],[226,9,226,34,1],[228,9,228,30,1],[230,14,230,23,1],[230,25,230,34,1],[230,36,230,39,1],[230,41,230,42,1],[231,13,231,35,1],[232,13,232,30,1],[233,9,233,10,1],[235,9,235,22,1],[236,5,236,6,1]]);
+    </script>
+  </body>
+</html>

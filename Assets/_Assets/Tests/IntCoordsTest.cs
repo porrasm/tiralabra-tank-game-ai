@@ -15,6 +15,7 @@ namespace Tests {
 
             Assert.IsTrue(a.Equals(b));
             Assert.IsFalse(a.Equals(c));
+            Assert.IsFalse(a.Equals(1));
         }
 
         [Test]
