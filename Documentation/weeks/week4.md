@@ -44,8 +44,7 @@ In order to view the test report, you need to clone the repository. The coverage
 
 At the moment I don't know how I should start testing these classes since most of the require the game to be running. This would require the use of 'Play mode tests' which run in the background of the game and I currently don't have an idea how these work.
 
-[Test test coverage report](https://github.com/porrasm/tiralabra-tank-game-ai/blob/master/Documentation/weeks/coverage_example.html)
-
+[Test coverage report](https://porrasm.github.io/tiralabra-tank-game-ai/)
 #### Documentation
 
 Added documentation and method descriptions to most classes.
