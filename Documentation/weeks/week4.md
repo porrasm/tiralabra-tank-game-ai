@@ -8,6 +8,10 @@
 
 ## Week 4 Report
 
+### Release
+
+[Week 4 Release](https://github.com/porrasm/tiralabra-tank-game-ai/releases/tag/week4)
+
 ### Mo 12.8.2019
 
 Today I split my level generator into 2 scripts (1 which generates the map & 1 which builds it in the game). This allows me to test the pathfinding algorithms.
