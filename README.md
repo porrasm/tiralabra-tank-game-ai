@@ -6,6 +6,11 @@ This is a project for the tiralabra2019 course.
 
 [Code Directory](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Assets/_Assets/Scripts/Games/TankGame/TankAI/)
 
+[Tests directory](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Assets/_Assets/Tests)
+
+## Reviews
+
+If you are reviewing this project, click [here](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/reviews.md)
 
 ## About
 

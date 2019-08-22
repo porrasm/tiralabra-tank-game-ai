@@ -78,7 +78,7 @@ public class TankAIMovement : TankAIComponent {
                 } else {
                     MoveTowards(targetPos);
                 }
-                
+
                 yield return null;
             }
 
@@ -133,6 +133,10 @@ public class TankAIMovement : TankAIComponent {
     /// <param name="i"></param>
     /// <returns></returns>
     private bool InCoords(int i) {
+
+        if (i >= path.Length) {
+            return false;
+        }
 
         Vector target = path[i];
         Vector current = ai.transform.position;

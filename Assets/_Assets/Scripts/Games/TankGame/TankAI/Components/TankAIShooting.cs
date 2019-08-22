@@ -30,7 +30,6 @@ public class TankAIShooting : TankAIComponent {
     }
 
     public override void Update() {
-        return;
         CheckCurrentShot();
     }
 
