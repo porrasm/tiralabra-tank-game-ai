@@ -56,6 +56,8 @@ public class TankAStarPath : TankAIPathfinding {
     /// <returns>Path as Vector array</returns>
     public override Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
 
+        base.FindPath(start, end, foundCondition);
+
         this.start = start;
         this.end = end;
 
@@ -72,6 +74,7 @@ public class TankAStarPath : TankAIPathfinding {
             n = open.Remove();
 
             if (foundCondition(n.Coords)) {
+                ProcessedCount = closed.Count + 1;
                 return NodeToPath(n);
             }
 

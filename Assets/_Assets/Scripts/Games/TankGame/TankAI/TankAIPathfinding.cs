@@ -5,6 +5,8 @@ public class TankAIPathfinding {
 
     protected byte[,] level;
 
+    public int ProcessedCount { get; protected set; }
+
     public TankAIPathfinding(byte[,] level) {
         this.level = level;
     }
@@ -38,6 +40,7 @@ public class TankAIPathfinding {
     /// <param name="foundCondition"></param>
     /// <returns>Path as Vector array</returns>
     public virtual Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
+        ProcessedCount = 0;
         return null;
     }
 }

@@ -121,12 +121,20 @@ public class TankPathVisualizer : MonoBehaviour {
 
         print("For DFS it took " + elapsedDFS + " millisecond to complete");
 
+        long closed = 0;
+        long routes = 0;
+
         watch = System.Diagnostics.Stopwatch.StartNew();
         for (int x = 1; x < TankSettings.LevelWidth; x++) {
             for (int y = 1; y < TankSettings.LevelHeight; y++) {
-                aStar.FindPath(start, new IntCoords(x, y));
+                routes += aStar.FindPath(start, new IntCoords(x, y)).Length;
             }
         }
+
+        double ratio = (1.0 * closed) /( 1.0 * routes);
+        print("Closed: " + closed);
+        print("Routes: " + routes);
+        print("ratio: " + ratio);
 
         watch.Stop();
 

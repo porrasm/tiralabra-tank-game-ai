@@ -36,6 +36,9 @@ public class TankDFSPath : TankAIPathfinding {
     /// <param name="foundCondition"></param>
     /// <returns>Path as Vector array</returns>
     public override Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
+
+        base.FindPath(start, end, foundCondition);
+
         this.start = start;
         this.end = end;
 
@@ -64,6 +67,8 @@ public class TankDFSPath : TankAIPathfinding {
     /// <param name="coords"></param>
     /// <param name="direction"></param>
     private void DFSRecursiveSearch(IntCoords coords) {
+
+        ProcessedCount++;
 
         if (found) {
             return;
