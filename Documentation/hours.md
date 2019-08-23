@@ -38,3 +38,12 @@
 | ------------- |-------------| -----|
 | 12.8     | Pathfinding tests & attempted bug fix | 3 |
 | 13.8     | Test coverage setup & code documentation & fix DFS & fix pathfinding tests & fix stylecop violations| 5 |
+| 16.8     | Bugfixes & documentation & tests & add initial AI game behaviour system| 9 |
+
+### Week 5
+
+| Date        | Description           | Hours  |
+| ------------- |-------------| -----|
+| 19.8     | Add release for week 4 | 0.5 |
+| 22.8     | Add review Unity instructions | 0.5 |
+| 23.8     | Add design document & performance testing for pathfinding| 3 |

@@ -59,7 +59,7 @@ Results
 | Ratio | 5.76888048048927    |
 | Total processing time | 316.186s  |
 
-From these results the approximate time requried for the algorithm is around 6 times the optimal O(n) time complexity. This is by no means a scientific method to solve this problem, but just a calculated estimation.
+From these results the approximate time required for the algorithm is around 6 times the optimal O(n) time complexity. This is by no means a scientific method to solve this problem, but just a calculated estimation.
 
 #### DFS
 
@@ -89,7 +89,7 @@ Results
 | Ratio | 3.09634906180738    |
 | Total processing time | 316.186s  |
 
-From these results the approximate time requried for the algorithm is around 3 times the optimal O(n) time complexity. Again, this is just an approximation.
+From these results the approximate time required for the algorithm is around 3 times the optimal O(n) time complexity. Again, this is just an approximation.
 
 #### A* vs DFS
 
@@ -98,12 +98,12 @@ Comparion table:
 | Result        | A*            | DFS   |
 | ------------- |:-------------| -----|
 | Processed nodes     | 50453198| 27079901 |
-| AVG Processed nodes     | 50.453198| 27.079901 |
 | Path lengths     | 8745752      |   12025690 |
+| AVG Processed nodes     | 50.453198| 27.079901 |
 | AVG path lengths     | 8.745752      |   12.02569 |
 
 
-AStar processedmore nodes than DFS, on average 1.8631234287 times more nodes than DFS.
+AStar processed more nodes than DFS, on average 1.8631234287 times more nodes than DFS.
 
 DFS paths lengths were longer than the optimal lengths by A*, on average DFS routes were 1.37503212988 times longer.
 
@@ -111,7 +111,7 @@ So the heuristic DFS is faster, but gives longer routes.
 
 #### Why the edge count is constant?
 
-The edge count is varies from 0-8 to but is still technically a constant because all the 8 edges are checked whether or not the edge exists.
+The edge count is varies from 0-8 to but is still technically a constant because all the 8 edges have to be checked anyway.
 
 Code from the A* algorithm:
 ```
@@ -127,6 +127,8 @@ for (int i = 0; i < 8; i++) {
     ...
 }
 ```
+
+i is the bit index, which also acts as a direction.
 
 Each edge is processed and the GetChild method checks if the allowed byte had bit index i set to 1.
 
@@ -147,3 +149,7 @@ Other minor problems include that not all the requirements from the requirement 
 
 ## Improvements
 
+## Sources
+
+A* search algorithm - https://en.wikipedia.org/wiki/A*_search_algorithm
+Depth-first search - https://en.wikipedia.org/wiki/Depth-first_search
