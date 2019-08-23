@@ -151,5 +151,5 @@ Other minor problems include that not all the requirements from the requirement 
 
 ## Sources
 
-A* search algorithm - https://en.wikipedia.org/wiki/A*_search_algorithm
-Depth-first search - https://en.wikipedia.org/wiki/Depth-first_search
+- A* search algorithm - https://en.wikipedia.org/wiki/A*_search_algorithm
+- Depth-first search - https://en.wikipedia.org/wiki/Depth-first_search
