@@ -12,6 +12,7 @@ public class TankAI : MonoBehaviour {
     public TankAIMovement Movement { get; set; }
     public TankAIShooting Shooting { get; set; }
     public TankAIBulletChecker Bullets { get; set; }
+    public TankAITurret Turret { get; set; }
     public TankDFSPath DFS { get; set; }
     public TankAStarPath AStar { get; set; }
     #endregion
@@ -39,6 +40,7 @@ public class TankAI : MonoBehaviour {
         Movement = new TankAIMovement(this);
         Bullets = new TankAIBulletChecker(this);
         Shooting = new TankAIShooting(this);
+        Turret = new TankAITurret(this);
 
         //path = aStar.FindPath(
         //    Vector.PositionToCoords(transform.position),
@@ -75,11 +77,14 @@ public class TankAI : MonoBehaviour {
         // Components
         Behaviour.Update();
         Shooting.Update();
+        Turret.Update();
     }
 
     public void DodgeBullets() {
 
         print("Dodging bullet");
+
+        Turret.Cancel();
 
         IntCoords current = Vector.PositionToCoords(transform.position);
         Vector[] safePath = Bullets.GetPathToSafeCoords(current, AStar);

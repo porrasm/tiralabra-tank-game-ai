@@ -15,6 +15,8 @@ public class TankAIMovement : TankAIComponent {
     private bool stuck;
     private float stuckTime;
     private Vector stuckPos;
+    private float stuckRot;
+    private bool stuckRotPossible;
 
     private int pathIndex;
 
@@ -42,11 +44,13 @@ public class TankAIMovement : TankAIComponent {
 
         Moving = true;
 
+        ai.Turret.Cancel();
+
         this.urgent = urgent;
 
         pathIndex++;
 
-        TankPathVisualizer.DrawRoute(path);
+        // TankPathVisualizer.DrawRoute(path);
 
         ai.StopCoroutine(TraversePathCoroutine(pathIndex - 1));
         ai.StopCoroutine(RemoveStuck());
@@ -54,18 +58,28 @@ public class TankAIMovement : TankAIComponent {
         this.path = path;
         ai.StartCoroutine(TraversePathCoroutine(pathIndex));
     }
+    public void Stop(bool reset) {
+        if (reset) {
+            controls.ResetControls();
+        }
+        path = null;
+    }
 
     private IEnumerator TraversePathCoroutine(int pi) {
 
         int index = 0;
 
-        while (index < path.Length) {
+        while (path != null && index < path.Length && pi == pathIndex) {
 
             ResetStuck();
 
             Vector targetPos = path[index];
 
-            while (!InCoords(index)) {
+            while (!InCoords(index) && path != null && pi == pathIndex) {
+
+                if (path == null) {
+                    yield break;
+                }
 
                 if (pi != pathIndex) {
                     yield break;
@@ -85,8 +99,6 @@ public class TankAIMovement : TankAIComponent {
             index++;
         }
 
-        Debug.Log("Finished path: " + path[path.Length - 1]);
-
         Moving = false;
     }
 
@@ -100,6 +112,13 @@ public class TankAIMovement : TankAIComponent {
         }
 
         if (Vector.Distance(stuckPos, ai.transform.position) < TankAISettings.StuckTresholdDistance) {
+            stuckTime += Time.deltaTime;
+
+            if (stuckTime > TankAISettings.StuckTresholdTime) {
+                stuck = true;
+                ai.StartCoroutine(RemoveStuck());
+            }
+        } else if (stuckRotPossible && Mathf.Abs(stuckRot - ai.transform.eulerAngles.y) < TankAISettings.StuckRotTresholdDistance) {
             stuckTime += Time.deltaTime;
 
             if (stuckTime > TankAISettings.StuckTresholdTime) {
@@ -125,6 +144,7 @@ public class TankAIMovement : TankAIComponent {
         stuck = false;
         stuckTime = 0;
         stuckPos = ai.transform.position;
+        stuckRot = ai.transform.eulerAngles.y;
     }
 
     /// <summary>
@@ -134,7 +154,7 @@ public class TankAIMovement : TankAIComponent {
     /// <returns></returns>
     private bool InCoords(int i) {
 
-        if (i >= path.Length) {
+        if (path == null || i >= path.Length) {
             return false;
         }
 
@@ -148,7 +168,7 @@ public class TankAIMovement : TankAIComponent {
     /// Moves the tank towards a position
     /// </summary>
     /// <param name="position"></param>
-    private void MoveTowards(Vector position) {
+    public void MoveTowards(Vector position) {
 
         TurnToPosition(position);
 
@@ -164,13 +184,15 @@ public class TankAIMovement : TankAIComponent {
     /// Turns the tank towards a position
     /// </summary>
     /// <param name="position"></param>
-    private void TurnToPosition(Vector position) {
+    public void TurnToPosition(Vector position) {
 
         // Replace Quaternion.LookRotation
         Vector currentRotation = ai.transform.eulerAngles;
         Vector targetRotation = Quaternion.LookRotation(position.Vector3 - ai.transform.position, Vector3.up).eulerAngles;
 
         float rotation = TurnDirection(currentRotation, targetRotation);
+        stuckRotPossible = rotation > 0.85f;
+
         controls.ProcessControl(TankControls.Control.Rotation, rotation);
     }
 
@@ -182,8 +204,6 @@ public class TankAIMovement : TankAIComponent {
     /// <returns></returns>
     private float TurnDirection(Vector current, Vector target) {
 
-
-        // wtf does this do, found from internet
         int rotateDirection = (((target.y - current.y) + 360f) % 360f) > 180.0f ? -1 : 1;
 
         float angleDif = ((target.y - current.y) + 360f) % 360f;

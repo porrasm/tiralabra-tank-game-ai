@@ -22,6 +22,8 @@ public class TankAIShooting : TankAIComponent {
             CellBulletCounts = new byte[TankSettings.LevelWidth, TankSettings.LevelHeight];
         }
     }
+
+    public int Shot { get; set; }
     #endregion
 
     public TankAIShooting(TankAI ai) : base(ai) {
@@ -39,16 +41,33 @@ public class TankAIShooting : TankAIComponent {
             checker,
             TankSettings.BulletBounces,
             new Vector(ai.transform.position),
-            new Vector(ai.transform.forward));
+            new Vector(ai.transform.forward),
+            false);
 
         trajectory.CalculateTrajectory();
 
         if (trajectory.HitPlayer && !trajectory.HitAI) {
-            Shoot();
+            trajectory = new TankBulletTrajectory(
+            checker,
+            TankSettings.BulletBounces,
+            new Vector(ai.transform.position),
+            new Vector(ai.transform.forward),
+            false);
+
+            trajectory.CalculateTrajectory();
+
+            if (trajectory.HitPlayer && !trajectory.HitAI) {
+                Shot = 2;
+            } else {
+                Shot = 1;
+                Shoot();
+            }
+        } else {
+            Shot = 0;
         }
     }
 
     private void Shoot() {
-        ai.Controls.ProcessControl(TankControls.Control.Fire);
+        //ai.Controls.ProcessControl(TankControls.Control.Fire);
     }
 }

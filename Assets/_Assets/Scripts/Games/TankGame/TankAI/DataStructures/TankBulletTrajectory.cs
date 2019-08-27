@@ -17,7 +17,7 @@ public interface IBulletCountHolder {
 public class TankBulletTrajectory {
 
     #region fields;
-    private float defaultHeight = 0f;
+    private float defaultHeight = -0.25f;
     private float envHeight = 0.3f;
 
     private IBulletCountHolder checker;
@@ -30,6 +30,8 @@ public class TankBulletTrajectory {
 
     private Vector[] trajectory;
     public Vector[] Trajectory { get => trajectory; private set => trajectory = value; }
+
+    private bool ignoreTriggers;
 
     private struct BulletInfo {
         public BulletInfo(TankBullet bullet, int bounces, Vector startPos, Vector direction) {
@@ -46,10 +48,11 @@ public class TankBulletTrajectory {
     }
     #endregion
 
-    public TankBulletTrajectory(IBulletCountHolder checker, int bounces, Vector position, Vector direction) {
+    public TankBulletTrajectory(IBulletCountHolder checker, int bounces, Vector position, Vector direction, bool hitTriggers) {
         this.checker = checker;
         ai = checker.AI;
         this.bullet = new BulletInfo(null, bounces, position, direction);
+        this.ignoreTriggers = hitTriggers;
     }
     public TankBulletTrajectory(IBulletCountHolder checker, TankBullet bullet) {
         this.checker = checker;
@@ -97,9 +100,10 @@ public class TankBulletTrajectory {
     /// <returns></returns>
     private bool CalculateNextHit(ref Vector direction, Vector currentPos, int index, float rayHeight) {
 
+        var tIgnore = !ignoreTriggers || rayHeight == defaultHeight ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore;
 
         RaycastHit hit;
-        if (!Physics.Raycast(RayCastStartPosition(currentPos, rayHeight), direction.Vector3, out hit, Mathf.Infinity, 1, QueryTriggerInteraction.Ignore)) {
+        if (!Physics.Raycast(RayCastStartPosition(currentPos, rayHeight), direction.Vector3, out hit, Mathf.Infinity, 1, tIgnore)) {
             return false;
         }
 

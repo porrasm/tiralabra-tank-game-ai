@@ -6,6 +6,7 @@
     #region Stuck settings
     public static float StuckTresholdTime = 0.2f;
     public static float StuckTresholdDistance = 0.05f;
+    public static float StuckRotTresholdDistance = 0.1f;
     public static float AllowedStuckTime = 0.2f;
     public static float StuckCooldown = 0.5f;
     #endregion

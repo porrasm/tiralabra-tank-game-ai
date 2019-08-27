@@ -14,6 +14,9 @@ public class TankGameManager : MonoBehaviour {
     public delegate void RoundStart();
     private RoundStart roundCallbacks;
 
+    private float bulletFrequency = 2f;
+    private float bulletTime;
+
     private void Start() {
         generator = GameObject.FindGameObjectWithTag("Level").GetComponent<TankLevelGenerator>();
         roundIsOn = true;
@@ -25,6 +28,13 @@ public class TankGameManager : MonoBehaviour {
 
     private void Update() {
         StartRound();
+
+        bulletTime -= Time.deltaTime;
+
+        if (bulletTime < 0) {
+            bulletTime = bulletFrequency;
+            //TankEvents.Instance.CallEvent(TankEvents.EventType.BulletEvent);
+        }
     }
 
     private TankNetworking[] Players {
