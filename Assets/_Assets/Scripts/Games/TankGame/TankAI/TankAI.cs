@@ -61,7 +61,7 @@ public class TankAI : MonoBehaviour {
     }
 
     private void Update() {
-
+        return;
         if (net.State != TankPlayer.PlayerState.Enabled) {
             return;
         }

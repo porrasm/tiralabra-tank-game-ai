@@ -15,7 +15,7 @@ public class TankAStarPath : TankAIPathfinding {
     private LinkedPriorityList<Node> open;
 
     // Replace
-    private HashSet<IntCoords> closed;
+    private CoordsContainer closed;
 
     private class Node {
 
@@ -64,7 +64,7 @@ public class TankAStarPath : TankAIPathfinding {
         open = new LinkedPriorityList<Node>();
 
         // Replace
-        closed = new HashSet<IntCoords>();
+        closed = new CoordsContainer();
 
         Node n = new Node(start, 0);
         open.Add(n, n.EstimatedCost(end));

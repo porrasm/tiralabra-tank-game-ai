@@ -37,7 +37,7 @@ namespace Tests {
             Assert.AreEqual(1, vector.Normalized.Magnitude(), "(1, 0, 0)");
 
             vector = new Vector(1, 1, 1);
-            Assert.AreEqual(new Vector3(1, 1, 1).normalized.magnitude, vector.Normalized.Magnitude(), "(1, 1, 1) Vector3 comparison");
+            Assert.AreEqual(new Vector3(1, 1, 1).normalized.magnitude, vector.Normalized.Magnitude(), delta, "(1, 1, 1) Vector3 comparison");
             Assert.AreEqual(1, vector.Normalized.Magnitude(), delta, "(1, 1, 1)");
 
             vector = new Vector(0, 0, 0);

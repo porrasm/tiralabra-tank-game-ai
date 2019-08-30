@@ -84,7 +84,6 @@ public class LinkedPriorityList<T> {
         node.Next = newNode;
     }
 
-    // Replace this
     /// <summary>
     /// Updates the priority of an element
     /// </summary>

@@ -132,12 +132,50 @@ i is the bit index, which also acts as a direction.
 
 Each edge is processed and the GetChild method checks if the allowed byte had bit index i set to 1.
 
-
 ## Algorithms and space complexities
 
 ### Pathfinding
 
 For both A* and DFS the worst case space complecity is O(|V|). A* will have max |V| count of active and closed nodes and the recursive DFSs maximum depth will be |V|.
+
+## Tank components
+
+### Bullet trajectory
+
+The algorithm for calculating bullet trajectories is very simple. The algorithm shoots a raycast which hits a wall (or player). If a player is hit the algorithms returns. If not, it reflects the raycast and shoots again from the current hit position.
+
+The time complexity for this algorithm is O(b) where b is the amount of bounces the bullet has. This algorithm is called from the TankBulletChecker component and it calls it for every bullet. So the complete time complexity of the bullet operation is O(c * b) where c is the bullet count and b is the bullet bounce count.
+
+The space complexity for the algorithm is O(b) because only a single Vector array containing the hit positions is required.
+
+## Data structures
+
+### Linked priority list
+
+This is a basic linked priority list where the smallest priority is placed first. 
+
+The operations Add, Contains, Find, Update, Get and ToArray have a time complexity of O(n).
+
+The rest of the operations have a complexity of O(1).
+
+The linked priority list has a space complexity of O(n).
+
+
+### Stack
+
+An array based implementation of stack. Default array size is 8 and it is doubled when the capacity is exceeded.
+
+Push, Pop and Peek operations have the time complexity of O(1), except for push if the array size needs to be raised. In this case the time complexity is O(n).
+
+FitToSize has a time complexity of O(n).
+
+The stack has a space complexity of O(n).
+
+### CoordsContainer
+
+This is a very simple data structure which checks whether or not certain IntCoords have been added. It uses a 2 dimensional array to see if a boolean is set to true in the indexed position of the IntCoords.
+
+Time complexity for each operation is O(1) and the space complexity is O(n) where n is the size of the current level.
 
 ## Problems
 

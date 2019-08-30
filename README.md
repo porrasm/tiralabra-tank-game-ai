@@ -16,7 +16,7 @@ If you are reviewing this project, click [here](https://github.com/porrasm/tiral
 
 This is a Tank Game AI.
 
-[Current week report](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/weeks/week4.md)
+[Current week report](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/weeks/week6.md)
 
 
 ### Documentation
@@ -24,6 +24,8 @@ This is a Tank Game AI.
 [Requirements Specification](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/requirements-specification.md)
 
 [Design document](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/design-document.md)
+
+[Testing document](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/testing-document.md)
 
 [Documentation](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation)
 

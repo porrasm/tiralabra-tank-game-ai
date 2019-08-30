@@ -129,6 +129,56 @@ namespace Tests {
             }
 
             PathfindingHelper.IterateLevel(From);
-        }   
+        }
+        
+        [Test]
+        public void TheFastestRouteIsFound() {
+
+            byte[,] level = TestLevel();
+
+            pf = new TankAStarPath(level);
+
+            IntCoords from = new IntCoords();
+            IntCoords to = new IntCoords(0, 1);
+
+            Vector[] route = pf.FindPath(from, to);
+
+            Assert.AreEqual(2, route.Length);
+
+            to = new IntCoords(3, 2);
+
+            route = pf.FindPath(from, to);
+
+            Assert.AreEqual(5, route.Length);
+            Assert.AreEqual(Vector.CoordsToPosition(new IntCoords(2, 1)), route[3]);
+        }
+
+        private byte[,] TestLevel() {
+
+            byte[,] level = new byte[5, 5];
+
+            level[0, 0] = Allowed(TankDirection.Right, TankDirection.Up);
+            level[1, 0] = Allowed(TankDirection.Right, TankDirection.Up);
+            level[2, 0] = Allowed(TankDirection.Up);
+            level[1, 1] = Allowed(TankDirection.Left);
+            level[2, 1] = Allowed(TankDirection.Left, TankDirection.Up, TankDirection.UpRight);
+
+            level[0, 2] = Allowed(TankDirection.Right);
+            level[1, 2] = Allowed(TankDirection.Right);
+            level[2, 2] = Allowed(TankDirection.Right);
+
+            return level;
+        }
+
+        private byte Allowed(params TankDirection[] directions) {
+
+            byte allowed = 0;
+
+            foreach (TankDirection d in directions) {
+                TankDirectionTools.SetDirectionBit(ref allowed, d);
+            }
+
+            return allowed;
+        }
     }
 }

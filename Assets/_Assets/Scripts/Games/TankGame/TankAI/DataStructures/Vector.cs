@@ -222,7 +222,6 @@ public struct Vector {
                z == vector.z;
     }
 
-    // Replace
     public override int GetHashCode() {
         var hashCode = 1886620659;
         hashCode = hashCode * -1521134295 + x.GetHashCode();

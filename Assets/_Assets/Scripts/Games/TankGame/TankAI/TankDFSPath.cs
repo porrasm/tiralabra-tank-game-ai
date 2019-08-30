@@ -14,9 +14,8 @@ public class TankDFSPath : TankAIPathfinding {
 
     private IntCoords coords;
 
-    // Replace list
     private bool building;
-    private Stack<IntCoords> route;
+    private CStack<IntCoords> route;
 
     private bool found;
 
@@ -47,7 +46,7 @@ public class TankDFSPath : TankAIPathfinding {
 
         visited = new byte[level.GetLength(0), level.GetLength(1)];
         usedDirections = new byte[level.GetLength(0), level.GetLength(1)];
-        route = new Stack<IntCoords>();
+        route = new CStack<IntCoords>();
 
         found = false;
 

@@ -62,11 +62,20 @@ public struct IntCoords {
         if (obj.GetType() == GetType()) {
             return this == (IntCoords)obj;
         }
+
         return false;
     }
 
+    /// <summary>
+    /// 'Perfect' hash function if all coordinates are below short.MaxValue
+    /// </summary>
+    /// <returns></returns>
     public override int GetHashCode() {
-        return x * 31 + y;
+
+        int x = (this.x % short.MaxValue) & 0xFFFF;
+        int y = (this.y % short.MaxValue) & 0xFFFF;
+
+        return(x << 16) | y;
     }
 
     public static bool operator ==(IntCoords a, IntCoords b) {

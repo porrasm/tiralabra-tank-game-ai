@@ -47,3 +47,10 @@
 | 19.8     | Add release for week 4 | 0.5 |
 | 22.8     | Add review Unity instructions | 0.5 |
 | 23.8     | Add design document & performance testing for pathfinding| 4 |
+
+### Week 6
+
+| Date        | Description           | Hours  |
+| ------------- |-------------| -----|
+| 27.8     | Add new shooting (which failed, on another branch atm)| 2 |
+| 30.8     | Add stack, CoordsContainer, testing document, design document | 3 |
