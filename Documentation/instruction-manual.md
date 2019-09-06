@@ -12,7 +12,7 @@ The executable file of this project can be found in [releases](https://github.co
 
 ### Starting the game
 
-- Download the latest release and run the file TankAIBot.exe
+- Download the latest release, unpack it and run the file TankAIBot.exe
 - Press Start game and select how many AIs you want to play against
 - Start the game
 
