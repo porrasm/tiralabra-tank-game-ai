@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BeardedManStudios.Forge.Networking.Unity;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// This class is used for initializing the AI testing environment without the need to open 2 separate applications (server & client) at the same time.
@@ -18,6 +19,27 @@ public class TankAIManager : MonoBehaviour {
 
     private void Start() {
         InitializeTesting();
+    }
+
+    private void Update() {
+
+        if (Input.GetKeyDown(KeyCode.LeftShift)) {
+
+            TankSettings.Debugging = !TankSettings.Debugging;
+
+        }
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+
+            Application.Quit();
+
+            Server.StopServer();
+            SceneManager.LoadScene(0);
+
+            foreach (TankNetworking g in TankNetworking.Tanks()) {
+                Destroy(g.gameObject);
+                Destroy(g.Owner.gameObject);
+            }
+        }
     }
 
     private void InitializeTesting() {

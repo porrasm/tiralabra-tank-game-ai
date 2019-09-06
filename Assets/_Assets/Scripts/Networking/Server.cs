@@ -30,6 +30,9 @@ public class Server {
         }
     }
 
+    public static void StopServer() {
+        Networker.Disconnect(true);
+    }
     public static bool StartServer() {
 
         SetIP();

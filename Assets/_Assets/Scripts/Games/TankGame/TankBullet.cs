@@ -9,7 +9,16 @@ public class TankBullet : MonoBehaviour {
     public int Bounces { get => bounces; set => bounces = value; }
     public float AliveTime { get => aliveTime; set => aliveTime = value; }
     public bool ConstantDamage { get; set; }
-    public int Damage { get => damage; set => damage = value; }
+    public int Damage {
+        get {
+            if (damage < TankSettings.MinDamage) 
+                { return TankSettings.MinDamage;
+            } else {
+                return damage;
+            }
+        }
+        set => damage = value;
+    }
     public Vector3 Velocity { get => velocity; set => velocity = value; }
 
     protected int damage;

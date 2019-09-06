@@ -54,3 +54,10 @@
 | ------------- |-------------| -----|
 | 27.8     | Add new shooting (which failed, on another branch atm)| 2 |
 | 30.8     | Add stack, CoordsContainer, testing document, design document | 3 |
+
+### Week 7
+
+| Date        | Description           | Hours  |
+| ------------- |-------------| -----|
+| 3.7     | Prepare for demo | 0.5 |
+| 6.9     | Finish up the project, fix numerous bugs, add instructions manual| 3 |

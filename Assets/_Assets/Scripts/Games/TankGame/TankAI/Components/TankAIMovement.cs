@@ -13,13 +13,18 @@ public class TankAIMovement : TankAIComponent {
     private TankControls controls;
 
     private bool stuck;
-    private float stuckTime;
+    private float stuckPosTime;
     private Vector stuckPos;
+
+    private float stuckRotTime;
+    private float stuckAngle;
 
     private int pathIndex;
 
     private bool urgent;
     public bool Moving { get; set; }
+
+    private Vector targetPos;
     #endregion
 
     public TankAIMovement(TankAI ai) : base(ai) {
@@ -63,7 +68,7 @@ public class TankAIMovement : TankAIComponent {
 
             ResetStuck();
 
-            Vector targetPos = path[index];
+            targetPos = path[index];
 
             while (!InCoords(index)) {
 
@@ -85,8 +90,6 @@ public class TankAIMovement : TankAIComponent {
             index++;
         }
 
-        Debug.Log("Finished path: " + path[path.Length - 1]);
-
         Moving = false;
     }
 
@@ -99,13 +102,17 @@ public class TankAIMovement : TankAIComponent {
             return;
         }
 
-        if (Vector.Distance(stuckPos, ai.transform.position) < TankAISettings.StuckTresholdDistance) {
-            stuckTime += Time.deltaTime;
+        bool pos = Vector.Distance(stuckPos, ai.transform.position) < TankAISettings.StuckTresholdDistance;
+        bool rot = Maths.Abs(stuckAngle - ai.transform.eulerAngles.y) < TankAISettings.StuckTreshholdAngle && TurnDirection(ai.transform.position, targetPos) > 0.8f;
 
-            if (stuckTime > TankAISettings.StuckTresholdTime) {
+        if (pos || rot) {
+            stuckPosTime += Time.deltaTime;
+
+            if (stuckPosTime > TankAISettings.StuckTresholdTime) {
                 stuck = true;
                 ai.StartCoroutine(RemoveStuck());
             }
+
         } else {
             ResetStuck();
         }
@@ -123,8 +130,9 @@ public class TankAIMovement : TankAIComponent {
     }
     private void ResetStuck() {
         stuck = false;
-        stuckTime = 0;
+        stuckPosTime = 0;
         stuckPos = ai.transform.position;
+        stuckAngle = ai.transform.eulerAngles.y;
     }
 
     /// <summary>
@@ -182,8 +190,6 @@ public class TankAIMovement : TankAIComponent {
     /// <returns></returns>
     private float TurnDirection(Vector current, Vector target) {
 
-
-        // wtf does this do, found from internet
         int rotateDirection = (((target.y - current.y) + 360f) % 360f) > 180.0f ? -1 : 1;
 
         float angleDif = ((target.y - current.y) + 360f) % 360f;

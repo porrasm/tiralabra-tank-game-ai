@@ -18,8 +18,6 @@ public class TankAITargetJob : TankAIBehaviourJob {
 
     public override IEnumerator Execute(int executeIndex) {
 
-        Debug.Log("Executing target job against: " + target.Owner.Name);
-
         this.executeIndex = executeIndex;
 
         while (true) {
@@ -49,10 +47,15 @@ public class TankAITargetJob : TankAIBehaviourJob {
 
     private Vector[] TargetingPath() {
 
-        return ai.AStar.FindPath(
-            Vector.PositionToCoords(ai.transform.position), 
-            Vector.PositionToCoords(target.transform.position), 
+        Vector[] path = ai.AStar.FindPath(
+            Vector.PositionToCoords(ai.transform.position),
+            Vector.PositionToCoords(target.transform.position),
             FoundCondition);
+
+        if (path.Length > 2) {
+            return path;
+        } else return ai.AStar.FindPath(Vector.PositionToCoords(ai.transform.position),
+              Vector.PositionToCoords(target.transform.position));
     }
 
     private bool FoundCondition(IntCoords current) {
@@ -61,14 +64,14 @@ public class TankAITargetJob : TankAIBehaviourJob {
         Vector currentPos = current;
         Vector aiPos = ai.transform.position;
 
-        if (AreClose(aiPos, targetPos)) {
-            return !AreClose(currentPos, targetPos);
+        if (AreClose(aiPos, targetPos, preferredDistance)) {
+            return !AreClose(currentPos, targetPos, preferredDistance);
         } else {
-            return AreClose(currentPos, targetPos);
+            return AreClose(currentPos, targetPos, preferredDistance);
         }
     }
 
-    private bool AreClose(Vector a, Vector b) {
+    private bool AreClose(Vector a, Vector b, float preferredDistance) {
         return Vector.Distance(a, b) < preferredDistance;
     }
 

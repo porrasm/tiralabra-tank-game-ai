@@ -33,6 +33,10 @@ public class TankLevelCellVisualizer {
 
     public static void VisualizeCells(byte[,] levelCellCounts) {
 
+        if (!TankSettings.Debugging) {
+            return;
+        }
+
         if (prev == null) {
             InitTexts();
         }

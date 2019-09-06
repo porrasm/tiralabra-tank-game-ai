@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\datastructures\cstack.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+
+/// &lt;summary&gt;
+/// Simple stack collection with a first in first out system
+/// &lt;/summary&gt;
+/// &lt;typeparam name=&quot;T&quot;&gt;&lt;/typeparam&gt;
+public class CStack&lt;T&gt; {
+
+    private T[] array;
+    private int i;
+
+    private static int defaultArraySize = 8;
+
+    public CStack() {
+        Reset();
+    }
+
+    /// &lt;summary&gt;
+    /// Resets the stack
+    /// &lt;/summary&gt;
+    public void Reset() {
+        array = new T[defaultArraySize];
+        i = 0;
+    }
+
+    /// &lt;summary&gt;
+    /// Add new element to the stack
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;obj&quot;&gt;&lt;/param&gt;
+    public void Push(T obj) {
+
+        if (i &gt;= array.Length) {
+            IncreaseArray();
+        }
+
+        array[i] = obj;
+        i++;
+    }
+
+    /// &lt;summary&gt;
+    /// Retrieve and remove the first element from the stack
+    /// &lt;/summary&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    public T Pop() {
+
+        if (i &gt; 0) {
+            i--;
+
+            T obj = array[i];
+            array[i] = default(T);
+
+            return obj;
+        }
+
+        throw new Exception(&quot;Stack is empty&quot;);
+    }
+
+    /// &lt;summary&gt;
+    /// Retrieve but do not remove the first element from the stack
+    /// &lt;/summary&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    public T Peek() {
+
+        if (i &gt; 0) {
+            return array[i - 1];
+        }
+
+        throw new Exception(&quot;Stack is empty&quot;);
+    }
+
+    /// &lt;summary&gt;
+    /// Returns the amount of elements in the stack
+    /// &lt;/summary&gt;
+    public int Count {
+        get {
+            return i;
+        }
+    }
+
+    /// &lt;summary&gt;
+    /// Returns the size of the underlying array of the stack
+    /// &lt;/summary&gt;
+    public int Capacity {
+        get {
+            return array.Length;
+        }
+    }
+
+    /// &lt;summary&gt;
+    /// Increases the size of the array
+    /// &lt;/summary&gt;
+    private void IncreaseArray() {
+        Array.Resize(ref array, array.Length * 2);
+    }
+
+    /// &lt;summary&gt;
+    /// Decreases the size of the underlying array to fit the amount of elements in the array
+    /// &lt;/summary&gt;
+    public void FitToSize() {
+        if (array.Length &lt;= defaultArraySize) {
+            return;
+        }
+
+        int len = array.Length;
+        int pow;
+
+        for (pow = 0; ; pow++) {
+
+            len /= 2;
+
+            if (len &lt; i || len &lt; defaultArraySize) {
+                break;
+            }
+        }
+
+        if (pow == 0) {
+            return;
+        }
+
+        Array.Resize(ref array, array.Length / (1 &lt;&lt; pow));
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[12,5,12,45,1],[14,5,14,20,1],[14,21,14,22,1],[15,9,15,17,1],[16,5,16,6,1],[21,25,21,26,1],[22,9,22,41,1],[23,9,23,15,1],[24,5,24,6,1],[30,29,30,30,1],[32,9,32,31,1],[32,32,32,33,1],[33,13,33,29,1],[34,9,34,10,1],[36,9,36,24,1],[37,9,37,13,1],[38,5,38,6,1],[44,20,44,21,1],[46,9,46,19,1],[46,20,46,21,1],[47,13,47,17,1],[49,13,49,30,1],[50,13,50,35,1],[52,13,52,24,1],[55,9,55,47,0],[56,5,56,6,1],[62,21,62,22,1],[64,9,64,19,1],[64,20,64,21,1],[65,13,65,33,1],[68,9,68,47,0],[69,5,69,6,1],[75,13,75,14,1],[76,13,76,22,1],[77,9,77,10,1],[84,13,84,14,1],[85,13,85,33,1],[86,9,86,10,1],[92,34,92,35,1],[93,9,93,51,1],[94,5,94,6,1],[99,29,99,30,1],[100,9,100,46,1],[100,47,100,48,0],[101,13,101,20,0],[104,9,104,32,1],[107,14,107,21,1],[107,25,107,30,1],[107,32,107,33,1],[109,13,109,22,1],[111,13,111,51,1],[111,52,111,53,1],[112,17,112,23,1],[114,9,114,10,1],[116,9,116,22,1],[116,23,116,24,0],[117,13,117,20,0],[120,9,120,60,1],[121,5,121,6,1]]);
+    </script>
+  </body>
+</html>

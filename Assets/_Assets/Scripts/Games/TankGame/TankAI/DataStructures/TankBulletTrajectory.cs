@@ -65,7 +65,8 @@ public class TankBulletTrajectory {
         HitAI = false;
         HitPlayer = false;
 
-        Trajectory = new Vector[bullet.Bounces + 2];
+        int count = bullet.Bounces + 2 < 2 ? 2 : bullet.Bounces + 2;
+        Trajectory = new Vector[count];
         Trajectory[0] = bullet.StartPos;
 
         SetTrajectory();
@@ -142,6 +143,8 @@ public class TankBulletTrajectory {
 
         for (int i = 0; ; i++) {
 
+            CheckHitItself(position, i);
+
             IntCoords coords = Vector.PositionToCoords(position);
 
             if (coords.x >= TankSettings.LevelWidth || coords.y >= TankSettings.LevelHeight
@@ -162,6 +165,17 @@ public class TankBulletTrajectory {
             }
 
             position = newPosition;
+        }
+    }
+
+    private void CheckHitItself(Vector position, int index) {
+
+        if (index == 0) {
+            return;
+        }
+
+        if (Vector.Distance(position, ai.transform.position) < TankAISettings.TankAIHitLimit) {
+            HitAI = true;
         }
     }
 }

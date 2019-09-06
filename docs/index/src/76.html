@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>p:\stuff\projects\minigamesproject\minigamesproject\assets\_assets\scripts\games\tankgame\tankai\datastructures\coordscontainer.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+/// &lt;summary&gt;
+/// Data structure to store which coordinates are used. Similar functionality than a HashMap.
+/// &lt;/summary&gt;
+public class CoordsContainer {
+
+    #region fields
+    private bool[,] coords;
+
+    private int count;
+    #endregion
+
+
+    public CoordsContainer() {
+        coords = new bool[TankSettings.LevelWidth, TankSettings.LevelHeight];
+    }
+
+    /// &lt;summary&gt;
+    /// Amount of coordinates added
+    /// &lt;/summary&gt;
+    public int Count {
+         get {
+            return count;
+        }
+    }
+
+    /// &lt;summary&gt;
+    /// Adds a specific IntCoords value to the set
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;newCoords&quot;&gt;&lt;/param&gt;
+    public void Add(IntCoords newCoords) {
+        if (!Contains(newCoords)) {
+            count++;
+            coords[newCoords.x, newCoords.y] = true;
+        }
+    }
+
+    /// &lt;summary&gt;
+    /// Checks if the specific coords have been added
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;newCoords&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    public bool Contains(IntCoords newCoords) {
+        return coords[newCoords.x, newCoords.y];
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,5,18,29,1],[18,30,18,31,1],[19,9,19,78,1],[20,5,20,6,1],[26,14,26,15,1],[27,13,27,26,1],[28,9,28,10,1],[35,42,35,43,1],[36,9,36,34,1],[36,35,36,36,1],[37,13,37,21,1],[38,13,38,53,1],[39,9,39,10,1],[40,5,40,6,1],[47,47,47,48,1],[48,9,48,49,1],[49,5,49,6,1]]);
+    </script>
+  </body>
+</html>

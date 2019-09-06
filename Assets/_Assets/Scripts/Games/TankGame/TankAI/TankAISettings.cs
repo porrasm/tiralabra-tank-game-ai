@@ -8,5 +8,9 @@
     public static float StuckTresholdDistance = 0.05f;
     public static float AllowedStuckTime = 0.2f;
     public static float StuckCooldown = 0.5f;
+    public static float StuckTreshholdAngle = 3;
     #endregion
+
+    public static float TankAIHitLimit = 0.75f;
+
 }

@@ -61,7 +61,7 @@ public class TankAI : MonoBehaviour {
     }
 
     private void Update() {
-        return;
+
         if (net.State != TankPlayer.PlayerState.Enabled) {
             return;
         }
@@ -79,12 +79,8 @@ public class TankAI : MonoBehaviour {
 
     public void DodgeBullets() {
 
-        print("Dodging bullet");
-
         IntCoords current = Vector.PositionToCoords(transform.position);
         Vector[] safePath = Bullets.GetPathToSafeCoords(current, AStar);
-        Debug.Log("Path length; " + safePath.Length);
-        Debug.Log("Path pos: " + safePath[safePath.Length - 1]);
         Movement.TraversePath(safePath);
     }
 }

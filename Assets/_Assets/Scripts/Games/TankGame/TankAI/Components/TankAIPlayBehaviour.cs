@@ -29,8 +29,6 @@ public class TankAIPlayBehaviour : TankAIComponent {
 
         if (!ai.Behaviour.Executing) {
             ExecuteIndex++;
-            Debug.Log("Execute count: " + jobs.Count);
-            Debug.Log("First type: " + jobs.First.JobType);
             Executing = true;
 
             ai.StartCoroutine(jobs.First.Execute(ExecuteIndex));

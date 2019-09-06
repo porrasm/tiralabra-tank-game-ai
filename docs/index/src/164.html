@@ -15,6 +15,8 @@ public class TankAIPathfinding {
 
     protected byte[,] level;
 
+    public int ProcessedCount { get; protected set; }
+
     public TankAIPathfinding(byte[,] level) {
         this.level = level;
     }
@@ -48,13 +50,14 @@ public class TankAIPathfinding {
     /// &lt;param name=&quot;foundCondition&quot;&gt;&lt;/param&gt;
     /// &lt;returns&gt;Path as Vector array&lt;/returns&gt;
     public virtual Vector[] FindPath(IntCoords start, IntCoords end, FoundCondition foundCondition) {
+        ProcessedCount = 0;
         return null;
     }
 }
 
     </pre>
     <script type="text/javascript">
-      highlightRanges([[8,5,8,44,1],[8,45,8,46,1],[9,9,9,28,1],[10,5,10,6,1]]);
+      highlightRanges([[10,5,10,44,1],[10,45,10,46,1],[11,9,11,28,1],[12,5,12,6,1]]);
     </script>
   </body>
 </html>

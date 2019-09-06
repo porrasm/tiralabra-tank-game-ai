@@ -33,7 +33,13 @@ public class TankPlayer : MonoBehaviour {
     #region Game
     public void DoDamage(int damage, TankPlayer player) {
 
+        int start = net.Health;
+
         net.Health -= damage;
+
+        if (net.Health > start) {
+            Debug.Log("GAINED HEALTH: " + damage + ", p: " + player.net.Owner.name);
+        }
 
         if (net.Health <= 0) {
             SetPlayerState(PlayerState.Disabled);

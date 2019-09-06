@@ -6,6 +6,8 @@ using UnityEngine;
 // Find out if iterating through class fields is possible like in javascript
 public class TankSettings : MonoBehaviour {
 
+    public static bool Debugging = false;
+
     #region Level
     public static int LevelWidth = 10;
     public static int LevelHeight = 10;
@@ -45,7 +47,7 @@ public class TankSettings : MonoBehaviour {
     public static int BulletBounces = 5;
     public static int BulletDamageBounceReduction = 10;
     public static float BulletAliveTime = 10f;
-
+    public static int MinDamage = 10;
     #endregion
 
     #region Score

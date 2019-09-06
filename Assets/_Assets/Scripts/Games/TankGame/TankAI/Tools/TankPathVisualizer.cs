@@ -194,6 +194,11 @@ public class TankPathVisualizer : MonoBehaviour {
         DrawRoute(positions.Select(o => o.Vector3).ToArray());
     }
     public static void DrawRoute(Vector3[] positions) {
+
+        if (!TankSettings.Debugging) {
+            return;
+        }
+
         LineRenderer line = GameObject.FindGameObjectWithTag("Scripts").GetComponent<LineRenderer>();
         if (line == null) {
             return;
