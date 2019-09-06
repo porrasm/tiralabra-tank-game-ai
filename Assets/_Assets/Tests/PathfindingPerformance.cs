@@ -36,8 +36,6 @@ namespace Tests {
         [Test]
         public void PerformanceCalculations() {
 
-            return;
-
             long closedDFS = 0;
             long routesDFS = 0;
 

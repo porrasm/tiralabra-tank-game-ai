@@ -23,6 +23,8 @@ This is a Tank Game AI.
 
 [Requirements Specification](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/requirements-specification.md)
 
+[Instruction manual](https://github.com/porrasm/tiralabra-tank-game-ai/blob/master/Documentation/instruction-manual.md)
+
 [Design document](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/design-document.md)
 
 [Testing document](https://github.com/porrasm/tiralabra-tank-game-ai/tree/master/Documentation/testing-document.md)
